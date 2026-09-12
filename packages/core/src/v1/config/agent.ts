@@ -21,6 +21,10 @@ const AgentSchema = Schema.StructWithRest(
     tools: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)).annotate({
       description: "@deprecated Use 'permission' field instead",
     }),
+    toolset: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)).annotate({
+      description:
+        "Visibility allowlist for tools exposed to this agent. Absent = all tools. Present = only matching tools; keys are globs over tool ids or MCP names, plus 'mcp:<server>'.",
+    }),
     disable: Schema.optional(Schema.Boolean),
     description: Schema.optional(Schema.String).annotate({ description: "Description of when to use the agent" }),
     mode: Schema.optional(Schema.Literals(["subagent", "primary", "all"])),
@@ -57,6 +61,7 @@ const KNOWN_KEYS = new Set([
   "permission",
   "disable",
   "tools",
+  "toolset",
 ])
 
 const normalize = (agent: Schema.Schema.Type<typeof AgentSchema>): Schema.Schema.Type<typeof AgentSchema> => {

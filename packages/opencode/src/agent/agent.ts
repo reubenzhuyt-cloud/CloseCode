@@ -42,6 +42,7 @@ export const Info = Schema.Struct({
   temperature: Schema.optional(Schema.Finite),
   color: Schema.optional(Schema.String),
   permission: PermissionV1.Ruleset,
+  toolset: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
   model: Schema.optional(
     Schema.Struct({
       modelID: ModelV2.ID,
@@ -289,6 +290,7 @@ const layer = Layer.effect(
           item.hidden = value.hidden ?? item.hidden
           item.name = value.name ?? item.name
           item.steps = value.steps ?? item.steps
+          item.toolset = value.toolset ?? item.toolset
           item.options = mergeDeep(item.options, value.options ?? {})
           item.permission = Permission.merge(item.permission, Permission.fromConfig(value.permission ?? {}))
         }
