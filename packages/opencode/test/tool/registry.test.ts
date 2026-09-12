@@ -75,8 +75,17 @@ const withCodeMode = testEffect(
               client: {} as MCP.McpTool["client"],
               server: "weather",
             },
+            calendar_today: {
+              def: {
+                name: "today",
+                description: "today's calendar",
+                inputSchema: { type: "object", properties: {} },
+              } as MCPToolDef,
+              client: {} as MCP.McpTool["client"],
+              server: "calendar",
+            },
           }),
-        clients: () => Effect.succeed({ weather: {} as any }),
+        clients: () => Effect.succeed({ weather: {} as any, calendar: {} as any }),
       }),
     ],
   ]),
@@ -134,6 +143,24 @@ describe("tool.registry", () => {
       expect(ids).toContain("execute")
       expect(tools.map((tool) => tool.id)).toContain("execute")
       expect(execute?.description).toContain("tools.weather.current(input: {\n  city: string,\n})")
+    }),
+  )
+
+  withCodeMode.instance("hides toolset-denied MCP tools from the code-mode catalog", () =>
+    Effect.gen(function* () {
+      const registry = yield* ToolRegistry.Service
+      const agents = yield* Agent.Service
+      const base = yield* agents.defaultInfo()
+      const tools = yield* registry.tools({
+        providerID: ProviderV2.ID.opencode,
+        modelID: ModelV2.ID.make("test"),
+        agent: { ...base, toolset: { "*": true, "mcp:weather": false } },
+      })
+      const execute = tools.find((tool) => tool.id === "execute")
+
+      expect(execute).toBeDefined()
+      expect(execute?.description).not.toContain("tools.weather.current")
+      expect(execute?.description).toContain("tools.calendar.today")
     }),
   )
 

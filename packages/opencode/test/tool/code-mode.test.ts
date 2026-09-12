@@ -28,13 +28,14 @@ function mcpTool(
   handler: (args: Record<string, unknown>) => unknown,
   inputSchema: Record<string, unknown> = { type: "object", properties: {} },
   outputSchema?: Record<string, unknown>,
+  server = "test",
 ): MCP.McpTool {
   return {
     def: { name, description: name, inputSchema, ...(outputSchema ? { outputSchema } : {}) } as MCPToolDef,
     client: {
       callTool: async (params: { arguments?: Record<string, unknown> }) => handler(params.arguments ?? {}),
     } as unknown as MCP.McpTool["client"],
-    server: "test",
+    server,
   }
 }
 
@@ -43,6 +44,7 @@ function harness(input: {
   servers: string[]
   permission?: PermissionV1.Rule[]
   trigger?: Plugin.Interface["trigger"]
+  toolset?: Record<string, boolean>
 }) {
   return Layer.mergeAll(
     Layer.mock(Plugin.Service, {
@@ -52,7 +54,7 @@ function harness(input: {
       output: (text: string) => Effect.succeed({ content: text, truncated: false as const }),
     }),
     Layer.mock(Agent.Service, {
-      get: () => Effect.succeed({ name: "build", permission: input.permission ?? [] } as any),
+      get: () => Effect.succeed({ name: "build", permission: input.permission ?? [], toolset: input.toolset } as any),
     }),
     Layer.mock(Session.Service, {
       get: () => Effect.succeed({ permission: [] } as any),
@@ -73,12 +75,13 @@ function build(
   servers?: string[],
   permission?: PermissionV1.Rule[],
   trigger?: Plugin.Interface["trigger"],
+  toolset?: Record<string, boolean>,
 ) {
   const names = serverNames(mcpTools, servers)
   return Effect.runPromise(
     CodeModeTool.pipe(
       Effect.flatMap(Tool.init),
-      Effect.provide(harness({ mcpTools, servers: names, permission, trigger })),
+      Effect.provide(harness({ mcpTools, servers: names, permission, trigger, toolset })),
     ),
   )
 }
@@ -728,5 +731,44 @@ describe("code mode permission visibility", () => {
       { permission: "c_tool", pattern: "something", action: "deny" },
     ])
     expect(Object.keys(visible)).toEqual(["b_tool", "c_tool"])
+  })
+
+  test("a toolset-hidden MCP tool is not dispatchable in the executed script", async () => {
+    const called: string[] = []
+    const tool = await build(
+      {
+        github_ping: mcpTool(
+          "ping",
+          () => {
+            called.push("github")
+            return { content: [{ type: "text", text: "pong" }] }
+          },
+          undefined,
+          undefined,
+          "github",
+        ),
+        linear_ping: mcpTool(
+          "ping",
+          () => {
+            called.push("linear")
+            return { content: [{ type: "text", text: "pong" }] }
+          },
+          undefined,
+          undefined,
+          "linear",
+        ),
+      },
+      ["github", "linear"],
+      undefined,
+      undefined,
+      { "*": false, "mcp:github": true },
+    )
+
+    const hidden = await failure(tool.execute({ code: "return await tools.linear.ping({})" }, ctx))
+    expect(hidden.message).toContain("Unknown tool 'linear.ping'")
+
+    const allowed = await Effect.runPromise(tool.execute({ code: "return await tools.github.ping({})" }, ctx))
+    expect(allowed.output).toBe("pong")
+    expect(called).toEqual(["github"])
   })
 })

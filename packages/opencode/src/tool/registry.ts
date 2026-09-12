@@ -284,7 +284,12 @@ const layer = Layer.effect(
     }) {
       if (!codeMode) return
       const ruleset = Permission.merge(input.agent.permission, input.permission ?? [])
-      const tools = Permission.visibleTools(yield* mcp.tools(), ruleset)
+      const allowed = Object.fromEntries(
+        Object.entries(yield* mcp.tools()).filter(([key, entry]) =>
+          toolsetAllows(input.agent.toolset, [key, `mcp:${entry.server}`]),
+        ),
+      )
+      const tools = Permission.visibleTools(allowed, ruleset)
       if (Object.keys(tools).length === 0) return
       return codeMode.describeCatalog(tools, Object.keys(yield* mcp.clients()).map(McpCatalog.sanitize))
     })

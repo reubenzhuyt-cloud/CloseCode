@@ -5,6 +5,7 @@ import { CodeMode, Tool as SandboxTool, toolError } from "@opencode-ai/codemode"
 import { MCP } from "@/mcp"
 import { McpCatalog } from "@/mcp/catalog"
 import { Agent } from "@/agent/agent"
+import { toolsetAllows } from "@/agent/toolset"
 import { Session } from "@/session/session"
 import { Permission } from "@/permission"
 import { Plugin } from "@/plugin"
@@ -207,7 +208,12 @@ export const CodeModeTool = Tool.define(
         const agent = yield* agents.get(ctx.agent)
         const session = yield* sessions.get(ctx.sessionID).pipe(Effect.orDie)
         const ruleset = Permission.merge(agent.permission, session.permission ?? [])
-        const mcpTools = Permission.visibleTools(yield* mcp.tools(), ruleset)
+        const allowed = Object.fromEntries(
+          Object.entries(yield* mcp.tools()).filter(([key, entry]) =>
+            toolsetAllows(agent.toolset, [key, `mcp:${entry.server}`]),
+          ),
+        )
+        const mcpTools = Permission.visibleTools(allowed, ruleset)
         const servers = Object.keys(yield* mcp.clients()).map(McpCatalog.sanitize)
         const catalog = [...groupByServer(mcpTools, servers).values()].flat()
 
