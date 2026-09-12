@@ -543,6 +543,17 @@ it.instance("remote timeout aborts both real HTTP transport attempts", () =>
   }),
 )
 
+it.instance("tools() records the owning server on each McpTool", () =>
+  Effect.gen(function* () {
+    const server = yield* lifecycleServer({ capabilities: { tools: { listChanged: true } } })
+    const mcp = yield* MCP.Service
+    yield* mcp.add("owner-server", remote(server.url))
+
+    const entry = (yield* mcp.tools())["owner-server_test_tool"]
+    expect(entry?.server).toBe("owner-server")
+  }),
+)
+
 it.live("McpOAuthCallback.cancelPending rejects the pending callback", () =>
   Effect.acquireUseRelease(
     Effect.sync(() => McpOAuthCallback.waitForCallback("abc123hexstate", "my-mcp-server")),
