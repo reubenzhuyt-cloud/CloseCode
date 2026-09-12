@@ -5,11 +5,26 @@ import { useDialog } from "../ui/dialog"
 import { DialogSelect, type DialogSelectOption } from "../ui/dialog-select"
 import { DialogPrompt } from "../ui/dialog-prompt"
 
+const PERMISSIONS = [
+  "bash",
+  "read",
+  "edit",
+  "glob",
+  "grep",
+  "webfetch",
+  "task",
+  "todowrite",
+  "websearch",
+  "lsp",
+  "skill",
+] as const
+
 type AgentMode = "all" | "primary" | "subagent"
 type Patch = {
   description?: string
   mode?: AgentMode
   toolset?: Record<string, boolean>
+  permission?: Record<string, "deny">
 }
 
 export function DialogAgentEdit(props: { name: string; create?: boolean }) {
@@ -18,7 +33,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean }) {
   const dialog = useDialog()
   const [patch, setPatch] = createSignal<Patch>({})
   const [scope, setScope] = createSignal<"project" | "global">("project")
-  const [view, setView] = createSignal<"fields" | "mode" | "toolset" | "description">("fields")
+  const [view, setView] = createSignal<"fields" | "mode" | "toolset" | "description" | "permission">("fields")
   const [toolIds, setToolIds] = createSignal<string[]>([])
 
   onMount(async () => {
@@ -27,6 +42,13 @@ export function DialogAgentEdit(props: { name: string; create?: boolean }) {
   })
 
   const stored = createMemo(() => sync.data.config.agent?.[props.name] ?? {})
+
+  const deniedKeys = createMemo(() => {
+    const source: unknown = patch().permission ?? stored().permission
+    if (!source || typeof source !== "object") return [] as string[]
+    const record = source as Record<string, unknown>
+    return PERMISSIONS.filter((key) => record[key] === "deny")
+  })
 
   async function save() {
     const payload = { config: { agent: { [props.name]: patch() } } }
@@ -54,6 +76,11 @@ export function DialogAgentEdit(props: { name: string; create?: boolean }) {
         title: "Toolset",
         description: toolset ? `${Object.keys(toolset).length} rule(s)` : "all tools",
       },
+      {
+        value: "permission",
+        title: "Permissions",
+        description: deniedKeys().length ? `${deniedKeys().length} denied` : "default",
+      },
       { value: "scope", title: "Save to", description: scope() },
       { value: "save", title: "Save" },
     ]
@@ -70,6 +97,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean }) {
             if (option.value === "scope") return void setScope(scope() === "project" ? "global" : "project")
             if (option.value === "mode") return void setView("mode")
             if (option.value === "toolset") return void setView("toolset")
+            if (option.value === "permission") return void setView("permission")
             if (option.value === "description") return void setView("description")
           }}
         />
@@ -108,6 +136,15 @@ export function DialogAgentEdit(props: { name: string; create?: boolean }) {
             setView("fields")
           }}
           onCancel={() => setView("fields")}
+        />
+      </Match>
+      <Match when={view() === "permission"}>
+        <DialogAgentPermissionView
+          initialDenied={deniedKeys()}
+          onDone={(permission) => {
+            setPatch({ ...patch(), permission })
+            setView("fields")
+          }}
         />
       </Match>
     </Switch>
@@ -154,6 +191,50 @@ function DialogAgentToolsetView(props: {
   return (
     <DialogSelect
       title="Toolset (select toggles, Save commits)"
+      options={options()}
+      onSelect={(option) => {
+        if (option.value === SAVE) return commit()
+        toggle(option.value)
+      }}
+    />
+  )
+}
+
+function DialogAgentPermissionView(props: {
+  initialDenied: string[]
+  onDone: (permission: Record<string, "deny">) => void
+}) {
+  const SAVE = "\u0000save"
+  const [selected, setSelected] = createSignal<Set<string>>(
+    new Set(PERMISSIONS.filter((key) => !props.initialDenied.includes(key))),
+  )
+
+  const options = createMemo<DialogSelectOption<string>[]>(() => [
+    { value: SAVE, title: "Save permissions" },
+    ...PERMISSIONS.map((key) => ({
+      value: key,
+      title: key,
+      footer: selected().has(key) ? "allow" : "deny",
+    })),
+  ])
+
+  function toggle(value: string) {
+    const next = new Set(selected())
+    if (next.has(value)) next.delete(value)
+    else next.add(value)
+    setSelected(next)
+  }
+
+  function commit() {
+    const permission = Object.fromEntries(
+      PERMISSIONS.filter((key) => !selected().has(key)).map((key) => [key, "deny" as const]),
+    )
+    props.onDone(permission)
+  }
+
+  return (
+    <DialogSelect
+      title="Permissions (selected = allowed, Save commits)"
       options={options()}
       onSelect={(option) => {
         if (option.value === SAVE) return commit()
