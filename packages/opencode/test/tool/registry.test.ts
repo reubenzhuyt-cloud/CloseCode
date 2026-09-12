@@ -569,4 +569,23 @@ describe("tool.registry", () => {
       expect(ids).toContain("cowsay")
     }),
   )
+
+  it.instance("filters built-in tools by agent toolset", () =>
+    Effect.gen(function* () {
+      const registry = yield* ToolRegistry.Service
+      const agents = yield* Agent.Service
+      const base = yield* agents.defaultInfo()
+      const tools = yield* registry.tools({
+        providerID: ProviderV2.ID.opencode,
+        modelID: ModelV2.ID.make("test"),
+        agent: { ...base, toolset: { "*": false, read: true } },
+      })
+      const ids = tools.map((tool) => tool.id)
+
+      expect(ids).toContain("read")
+      expect(ids).not.toContain("bash")
+      expect(ids).not.toContain("grep")
+      expect(ids).not.toContain("write")
+    }),
+  )
 })
