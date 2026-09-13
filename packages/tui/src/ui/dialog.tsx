@@ -77,6 +77,7 @@ function init() {
 
   const renderer = useRenderer()
   const modeStack = useOpencodeModeStack()
+  const backHandlers: (() => boolean)[] = []
 
   createEffect(() => {
     if (store.stack.length === 0) return
@@ -113,6 +114,11 @@ function init() {
           if (renderer.getSelection()) {
             renderer.clearSelection()
           }
+          const consumed = backHandlers
+            .slice()
+            .reverse()
+            .some((handler) => handler())
+          if (consumed) return
           const current = store.stack.at(-1)
           current?.onClose?.()
           setStore("stack", store.stack.slice(0, -1))
@@ -138,6 +144,7 @@ function init() {
 
   return {
     clear() {
+      backHandlers.length = 0
       for (const item of store.stack) {
         if (item.onClose) item.onClose()
       }
@@ -148,6 +155,7 @@ function init() {
       refocus()
     },
     replace(input: () => JSX.Element, onClose?: () => void) {
+      backHandlers.length = 0
       if (store.stack.length === 0) {
         focus = renderer.currentFocusedRenderable
         focus?.blur()
@@ -171,6 +179,13 @@ function init() {
     },
     setSize(size: "medium" | "large" | "xlarge") {
       setStore("size", size)
+    },
+    pushBack(handler: () => boolean) {
+      backHandlers.push(handler)
+      return () => {
+        const index = backHandlers.indexOf(handler)
+        if (index !== -1) backHandlers.splice(index, 1)
+      }
     },
   }
 }
@@ -235,4 +250,9 @@ export function useDialog() {
     throw new Error("useDialog must be used within a DialogProvider")
   }
   return value
+}
+
+export function useDialogBack(handler: () => boolean) {
+  const dialog = useDialog()
+  onCleanup(dialog.pushBack(handler))
 }

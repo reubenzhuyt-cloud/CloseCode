@@ -1,8 +1,8 @@
-import { createMemo } from "solid-js"
+import { createMemo, createSignal } from "solid-js"
 import { useLocal } from "../context/local"
 import { useSync } from "../context/sync"
 import { useSDK } from "../context/sdk"
-import { useDialog } from "../ui/dialog"
+import { useDialog, useDialogBack } from "../ui/dialog"
 import { useToast } from "../ui/toast"
 import { DialogSelect, type DialogSelectOption } from "../ui/dialog-select"
 import { DialogPrompt } from "../ui/dialog-prompt"
@@ -10,25 +10,53 @@ import { DialogConfirm } from "../ui/dialog-confirm"
 import { DialogAgentEdit } from "./dialog-agent-edit"
 
 const CREATE = "\u0000create"
+const SYSTEM = "\u0000system"
+const BACK = "\u0000back"
 
-export function DialogAgentManage() {
+export function DialogAgentManage(props: { initialView?: "agents" | "system" }) {
   const local = useLocal()
   const sync = useSync()
   const sdk = useSDK()
   const dialog = useDialog()
   const toast = useToast()
+  const [view, setView] = createSignal<"agents" | "system">(props.initialView ?? "agents")
 
-  const options = createMemo<DialogSelectOption<string>[]>(() => [
-    { value: CREATE, title: "+ Create new agent" },
-    ...sync.data.agent.map((agent) => ({
+  useDialogBack(() => {
+    if (view() === "system") {
+      setView("agents")
+      return true
+    }
+    return false
+  })
+
+  const systemAgents = createMemo(() => sync.data.agent.filter((agent) => agent.native === true))
+  const agentRows = (agents: typeof sync.data.agent) =>
+    agents.map((agent) => ({
       value: agent.name,
       title: agent.name,
       description: `${agent.mode}${agent.model ? ` · ${agent.model.providerID}/${agent.model.modelID}` : ""}`,
-    })),
-  ])
+    }))
+
+  const options = createMemo<DialogSelectOption<string>[]>(() => {
+    const system = systemAgents()
+    if (view() === "system") return [{ value: BACK, title: "← Back" }, ...agentRows(system)]
+    return [
+      { value: CREATE, title: "+ Create new agent" },
+      ...agentRows(sync.data.agent.filter((agent) => agent.native !== true)),
+      ...(system.length
+        ? [
+            {
+              value: SYSTEM,
+              title: `System agents (${system.length})`,
+              description: system.map((agent) => agent.name).join(", "),
+            },
+          ]
+        : []),
+    ]
+  })
 
   const isAgentRow = (option: DialogSelectOption<string> | undefined): option is DialogSelectOption<string> =>
-    !!option && option.value !== CREATE
+    !!option && option.value !== CREATE && option.value !== SYSTEM && option.value !== BACK
 
   async function refresh() {
     const result = await sdk.client.app.agents({}, { throwOnError: true })
@@ -59,7 +87,15 @@ export function DialogAgentManage() {
           command: "dialog.agent.edit",
           title: "edit",
           disabled: (option) => !isAgentRow(option),
-          onTrigger: (option) => dialog.replace(() => <DialogAgentEdit name={option.value} />),
+          onTrigger: (option) => {
+            const target = view()
+            dialog.replace(() => (
+              <DialogAgentEdit
+                name={option.value}
+                onBack={() => dialog.replace(() => <DialogAgentManage initialView={target} />)}
+              />
+            ))
+          },
         },
         {
           command: "dialog.agent.switch",
@@ -84,13 +120,33 @@ export function DialogAgentManage() {
         },
       ]}
       onSelect={async (option) => {
+        if (option.value === SYSTEM) return void setView("system")
+        if (option.value === BACK) return void setView("agents")
         if (option.value === CREATE) {
-          const name = (await DialogPrompt.show(dialog, "Agent name", { placeholder: "e.g. researcher" }))?.trim()
+          const target = view()
+          const name = (
+            await DialogPrompt.show(dialog, "Agent name", {
+              placeholder: "e.g. researcher",
+              onBack: () => dialog.replace(() => <DialogAgentManage initialView={target} />),
+            })
+          )?.trim()
           if (!name) return
-          dialog.replace(() => <DialogAgentEdit name={name} create />)
+          dialog.replace(() => (
+            <DialogAgentEdit
+              name={name}
+              create
+              onBack={() => dialog.replace(() => <DialogAgentManage initialView={target} />)}
+            />
+          ))
           return
         }
-        dialog.replace(() => <DialogAgentEdit name={option.value} />)
+        const target = view()
+        dialog.replace(() => (
+          <DialogAgentEdit
+            name={option.value}
+            onBack={() => dialog.replace(() => <DialogAgentManage initialView={target} />)}
+          />
+        ))
       }}
     />
   )

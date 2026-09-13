@@ -1,6 +1,6 @@
 import { TextareaRenderable, TextAttributes } from "@opentui/core"
 import { useTheme } from "../context/theme"
-import { useDialog, type DialogContext } from "./dialog"
+import { useDialog, useDialogBack, type DialogContext } from "./dialog"
 import { Show, createEffect, createSignal, onMount, type JSX } from "solid-js"
 import { Spinner } from "../component/spinner"
 import { useTuiConfig } from "../config"
@@ -15,6 +15,7 @@ export type DialogPromptProps = {
   busyText?: string
   onConfirm?: (value: string) => void
   onCancel?: () => void
+  onBack?: () => void
 }
 
 export function DialogPrompt(props: DialogPromptProps) {
@@ -24,6 +25,12 @@ export function DialogPrompt(props: DialogPromptProps) {
   const submitShortcut = useCommandShortcut("dialog.prompt.submit")
   const [textareaTarget, setTextareaTarget] = createSignal<TextareaRenderable>()
   let textarea: TextareaRenderable
+
+  useDialogBack(() => {
+    if (!props.onBack) return false
+    props.onBack()
+    return true
+  })
 
   function confirm() {
     if (props.busy) return

@@ -211,6 +211,8 @@ export const Definitions = {
   "dialog.agent.edit": keybind("ctrl+e", "Edit agent"),
   "dialog.agent.switch": keybind("ctrl+s", "Switch to agent"),
   "dialog.agent.delete": keybind("ctrl+d", "Delete agent"),
+  "dialog.agent.prompt.submit": keybind("alt+return", "Save agent prompt"),
+  "dialog.agent.prompt.newline": keybind("return", "Insert newline in agent prompt"),
   "dialog.move_session.new": keybind("ctrl+m", "New project copy"),
   "dialog.move_session.delete": keybind("ctrl+d", "Delete project copy"),
   "dialog.move_session.refresh": keybind("ctrl+r", "Refresh project copies"),
