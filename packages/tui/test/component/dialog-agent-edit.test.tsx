@@ -43,8 +43,10 @@ async function mountManage() {
   const requests: { method: string; path: string; body: string }[] = []
   const build = { name: "build", mode: "primary", prompt: "You are build.", permission: [], options: {} }
   const plan = { name: "plan", mode: "primary", native: true, permission: [], options: {} }
+  const triage = { name: "triage", mode: "primary", hidden: true, permission: [], options: {} }
+  const compaction = { name: "compaction", mode: "primary", native: true, hidden: true, permission: [], options: {} }
   const override: FetchHandler = (url) => {
-    if (url.pathname === "/agent") return json([build, plan])
+    if (url.pathname === "/agent") return json([build, plan, triage, compaction])
     if (url.pathname === "/config") return json({ agent: { build: { description: "hello" } } })
     if (url.pathname === "/experimental/tool/ids") return json(["bash", "read"])
     return undefined
@@ -278,18 +280,48 @@ test("agent manage groups system agents and escapes back", async () => {
 
     const system = await capture(app)
     expect(system).toContain("plan")
+    expect(system).toContain("compaction")
     expect(system).toContain("← Back")
 
     app.mockInput.pressEscape()
     await settle()
     const agents = await capture(app)
-    expect(agents).toContain("System agents (1)")
+    expect(agents).toContain("System agents (2)")
     expect(agents).toContain("plan")
     expect(agents).not.toContain("← Back")
 
     app.mockInput.pressEscape()
     await settle()
     expect(dialog().stack.length).toBe(0)
+  } finally {
+    await harness.cleanup()
+  }
+})
+
+test("agent manage groups hidden agents and returns to the main list", async () => {
+  const harness = await mountManage()
+  try {
+    const { app, dialog } = harness
+    const agents = await capture(app)
+    expect(agents).toContain("Hidden (1)")
+    expect(agents).not.toContain("triage")
+
+    pressDowns(app, 3)
+    await settle()
+    app.mockInput.pressEnter()
+    await settle()
+
+    const hidden = await capture(app)
+    expect(hidden).toContain("triage")
+    expect(hidden).not.toContain("compaction")
+    expect(hidden).toContain("← Back")
+
+    app.mockInput.pressEscape()
+    await settle()
+    expect(dialog().stack.length).toBe(1)
+    const back = await capture(app)
+    expect(back).toContain("Hidden (1)")
+    expect(back).not.toContain("← Back")
   } finally {
     await harness.cleanup()
   }
@@ -367,7 +399,7 @@ test("escape from edit fields returns to the agents list", async () => {
     app.mockInput.pressEscape()
     await settle()
     expect(dialog().stack.length).toBe(1)
-    expect(await capture(app)).toContain("System agents (1)")
+    expect(await capture(app)).toContain("System agents (2)")
 
     app.mockInput.pressEscape()
     await settle()

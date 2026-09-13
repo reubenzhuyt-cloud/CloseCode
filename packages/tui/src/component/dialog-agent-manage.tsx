@@ -11,18 +11,19 @@ import { DialogAgentEdit } from "./dialog-agent-edit"
 
 const CREATE = "\u0000create"
 const SYSTEM = "\u0000system"
+const HIDDEN = "\u0000hidden"
 const BACK = "\u0000back"
 
-export function DialogAgentManage(props: { initialView?: "agents" | "system" }) {
+export function DialogAgentManage(props: { initialView?: "agents" | "system" | "hidden" }) {
   const local = useLocal()
   const sync = useSync()
   const sdk = useSDK()
   const dialog = useDialog()
   const toast = useToast()
-  const [view, setView] = createSignal<"agents" | "system">(props.initialView ?? "agents")
+  const [view, setView] = createSignal<"agents" | "system" | "hidden">(props.initialView ?? "agents")
 
   useDialogBack(() => {
-    if (view() === "system") {
+    if (view() !== "agents") {
       setView("agents")
       return true
     }
@@ -30,6 +31,9 @@ export function DialogAgentManage(props: { initialView?: "agents" | "system" }) 
   })
 
   const systemAgents = createMemo(() => sync.data.agent.filter((agent) => agent.native === true))
+  const hiddenAgents = createMemo(
+    () => sync.data.agent.filter((agent) => agent.native !== true && agent.hidden === true),
+  )
   const agentRows = (agents: typeof sync.data.agent) =>
     agents.map((agent) => ({
       value: agent.name,
@@ -39,10 +43,12 @@ export function DialogAgentManage(props: { initialView?: "agents" | "system" }) 
 
   const options = createMemo<DialogSelectOption<string>[]>(() => {
     const system = systemAgents()
+    const hidden = hiddenAgents()
     if (view() === "system") return [{ value: BACK, title: "← Back" }, ...agentRows(system)]
+    if (view() === "hidden") return [{ value: BACK, title: "← Back" }, ...agentRows(hidden)]
     return [
       { value: CREATE, title: "+ Create new agent" },
-      ...agentRows(sync.data.agent.filter((agent) => agent.native !== true)),
+      ...agentRows(sync.data.agent.filter((agent) => agent.native !== true && agent.hidden !== true)),
       ...(system.length
         ? [
             {
@@ -52,11 +58,19 @@ export function DialogAgentManage(props: { initialView?: "agents" | "system" }) 
             },
           ]
         : []),
+      ...(hidden.length
+        ? [
+            {
+              value: HIDDEN,
+              title: `Hidden (${hidden.length})`,
+            },
+          ]
+        : []),
     ]
   })
 
   const isAgentRow = (option: DialogSelectOption<string> | undefined): option is DialogSelectOption<string> =>
-    !!option && option.value !== CREATE && option.value !== SYSTEM && option.value !== BACK
+    !!option && option.value !== CREATE && option.value !== SYSTEM && option.value !== HIDDEN && option.value !== BACK
 
   async function refresh() {
     const result = await sdk.client.app.agents({}, { throwOnError: true })
@@ -100,9 +114,11 @@ export function DialogAgentManage(props: { initialView?: "agents" | "system" }) 
         {
           command: "dialog.agent.switch",
           title: "switch",
-          disabled: (option) =>
-            !isAgentRow(option) ||
-            sync.data.agent.find((agent) => agent.name === option.value)?.mode === "subagent",
+          disabled: (option) => {
+            if (!isAgentRow(option)) return true
+            const agent = sync.data.agent.find((agent) => agent.name === option.value)
+            return agent?.mode === "subagent" || agent?.hidden === true
+          },
           onTrigger: (option) => switchTo(option.value),
         },
         {
@@ -121,6 +137,7 @@ export function DialogAgentManage(props: { initialView?: "agents" | "system" }) 
       ]}
       onSelect={async (option) => {
         if (option.value === SYSTEM) return void setView("system")
+        if (option.value === HIDDEN) return void setView("hidden")
         if (option.value === BACK) return void setView("agents")
         if (option.value === CREATE) {
           const target = view()
