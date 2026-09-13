@@ -3,6 +3,7 @@ import { useLocal } from "../context/local"
 import { useSync } from "../context/sync"
 import { useSDK } from "../context/sdk"
 import { useDialog } from "../ui/dialog"
+import { useToast } from "../ui/toast"
 import { DialogSelect, type DialogSelectOption } from "../ui/dialog-select"
 import { DialogPrompt } from "../ui/dialog-prompt"
 import { DialogConfirm } from "../ui/dialog-confirm"
@@ -15,6 +16,7 @@ export function DialogAgentManage() {
   const sync = useSync()
   const sdk = useSDK()
   const dialog = useDialog()
+  const toast = useToast()
 
   const options = createMemo<DialogSelectOption<string>[]>(() => [
     { value: CREATE, title: "+ Create new agent" },
@@ -34,9 +36,13 @@ export function DialogAgentManage() {
   }
 
   async function remove(name: string) {
-    await sdk.client.config.update({ config: { agent: { [name]: { disable: true } } } }, { throwOnError: true })
-    await refresh()
-    dialog.clear()
+    try {
+      await sdk.client.config.update({ config: { agent: { [name]: { disable: true } } } }, { throwOnError: true })
+      await refresh()
+      dialog.clear()
+    } catch (error) {
+      toast.error(error)
+    }
   }
 
   function switchTo(name: string) {

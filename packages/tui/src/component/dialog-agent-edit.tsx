@@ -2,6 +2,7 @@ import { createMemo, createSignal, onMount, Match, Switch } from "solid-js"
 import { useSync } from "../context/sync"
 import { useSDK } from "../context/sdk"
 import { useDialog } from "../ui/dialog"
+import { useToast } from "../ui/toast"
 import { DialogSelect, type DialogSelectOption } from "../ui/dialog-select"
 import { DialogPrompt } from "../ui/dialog-prompt"
 
@@ -31,10 +32,12 @@ export function DialogAgentEdit(props: { name: string; create?: boolean }) {
   const sync = useSync()
   const sdk = useSDK()
   const dialog = useDialog()
+  const toast = useToast()
   const [patch, setPatch] = createSignal<Patch>({})
   const [scope, setScope] = createSignal<"project" | "global">("project")
   const [view, setView] = createSignal<"fields" | "mode" | "toolset" | "description" | "permission">("fields")
   const [toolIds, setToolIds] = createSignal<string[]>([])
+  const [saving, setSaving] = createSignal(false)
 
   onMount(async () => {
     const result = await sdk.client.tool.ids({}, { throwOnError: true }).catch(() => undefined)
@@ -51,15 +54,23 @@ export function DialogAgentEdit(props: { name: string; create?: boolean }) {
   })
 
   async function save() {
-    const payload = { config: { agent: { [props.name]: patch() } } }
-    if (scope() === "global") {
-      await sdk.client.global.config.update(payload, { throwOnError: true })
-    } else {
-      await sdk.client.config.update(payload, { throwOnError: true })
+    if (saving()) return
+    setSaving(true)
+    try {
+      const payload = { config: { agent: { [props.name]: patch() } } }
+      if (scope() === "global") {
+        await sdk.client.global.config.update(payload, { throwOnError: true })
+      } else {
+        await sdk.client.config.update(payload, { throwOnError: true })
+      }
+      const result = await sdk.client.app.agents({}, { throwOnError: true })
+      sync.set("agent", result.data ?? [])
+      dialog.clear()
+    } catch (error) {
+      toast.error(error)
+    } finally {
+      setSaving(false)
     }
-    const result = await sdk.client.app.agents({}, { throwOnError: true })
-    sync.set("agent", result.data ?? [])
-    dialog.clear()
   }
 
   const fields = createMemo<DialogSelectOption<string>[]>(() => {
