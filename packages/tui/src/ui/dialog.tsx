@@ -1,5 +1,5 @@
 import { useRenderer, useTerminalDimensions } from "@opentui/solid"
-import { batch, createContext, createEffect, onCleanup, Show, useContext, type JSX, type ParentProps } from "solid-js"
+import { batch, createContext, createEffect, createMemo, onCleanup, Show, useContext, type JSX, type ParentProps } from "solid-js"
 import { useTheme } from "../context/theme"
 import { MouseButton, Renderable, RGBA } from "@opentui/core"
 import { createStore } from "solid-js/store"
@@ -69,7 +69,7 @@ export function Dialog(
 function init() {
   const [store, setStore] = createStore({
     stack: [] as {
-      element: JSX.Element
+      element: () => JSX.Element
       onClose?: () => void
     }[],
     size: "medium" as "medium" | "large" | "xlarge",
@@ -147,7 +147,7 @@ function init() {
       })
       refocus()
     },
-    replace(input: any, onClose?: () => void) {
+    replace(input: () => JSX.Element, onClose?: () => void) {
       if (store.stack.length === 0) {
         focus = renderer.currentFocusedRenderable
         focus?.blur()
@@ -212,13 +212,20 @@ export function DialogProvider(props: ParentProps) {
         }}
         onMouseUp={!Flag.OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? copySelection : undefined}
       >
-        <Show when={value.stack.length}>
-          <Dialog onClose={() => value.clear()} size={value.size}>
-            {value.stack.at(-1)!.element}
-          </Dialog>
-        </Show>
+        <DialogHost value={value} />
       </box>
     </ctx.Provider>
+  )
+}
+
+function DialogHost(props: { value: DialogContext }) {
+  const content = createMemo(() => props.value.stack.at(-1)?.element())
+  return (
+    <Show when={props.value.stack.length}>
+      <Dialog onClose={() => props.value.clear()} size={props.value.size}>
+        {content()}
+      </Dialog>
+    </Show>
   )
 }
 
