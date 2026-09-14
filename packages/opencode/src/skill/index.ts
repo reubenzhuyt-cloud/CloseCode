@@ -318,30 +318,37 @@ const layer = Layer.effect(
   }),
 )
 
-export function fmt(list: Info[], opts: { verbose: boolean }) {
-  const described = list.filter((skill) => skill.description !== undefined)
-  if (described.length === 0) return "No skills are currently available."
+export type Level = "off" | "name" | "full"
+
+export function fmt(list: Info[], opts: { verbose: boolean; levels?: Record<string, Level> }) {
+  const entries = list
+    .map((skill) => ({ skill, level: opts.levels?.[skill.name] ?? "full" }))
+    .filter(({ skill, level }) => level !== "off" && (level === "name" || skill.description !== undefined))
+    .toSorted((a, b) => a.skill.name.localeCompare(b.skill.name))
+  if (entries.length === 0) return "No skills are currently available."
   if (opts.verbose) {
     return [
       "<available_skills>",
-      ...described
-        .toSorted((a, b) => a.name.localeCompare(b.name))
-        .flatMap((skill) => [
-          "  <skill>",
-          `    <name>${skill.name}</name>`,
-          `    <description>${skill.description}</description>`,
-          `    <location>${escapeHtml(skill.location)}</location>`,
-          "  </skill>",
-        ]),
+      ...entries.flatMap(({ skill, level }) => [
+        "  <skill>",
+        `    <name>${skill.name}</name>`,
+        ...(level === "full" && skill.description !== undefined
+          ? [`    <description>${skill.description}</description>`]
+          : []),
+        ...(level === "full" ? [`    <location>${escapeHtml(skill.location)}</location>`] : []),
+        "  </skill>",
+      ]),
       "</available_skills>",
     ].join("\n")
   }
 
   return [
     "## Available Skills",
-    ...described
-      .toSorted((a, b) => a.name.localeCompare(b.name))
-      .map((skill) => `- **${skill.name}**: ${skill.description}`),
+    ...entries.map(({ skill, level }) =>
+      level === "full" && skill.description !== undefined
+        ? `- **${skill.name}**: ${skill.description}`
+        : `- **${skill.name}**`,
+    ),
   ].join("\n")
 }
 

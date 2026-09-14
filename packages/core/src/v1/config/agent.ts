@@ -43,6 +43,9 @@ const AgentSchema = Schema.StructWithRest(
     }),
     maxSteps: Schema.optional(PositiveInt).annotate({ description: "@deprecated Use 'steps' field instead." }),
     permission: Schema.optional(ConfigPermissionV1.Info),
+    skill_activation: Schema.optional(Schema.Record(Schema.String, Schema.Literals(["off", "name", "full"]))).annotate({
+      description: "Per-skill activation level: off (omit from prompt), name (name only), full (name + description)",
+    }),
   }),
   [Schema.Record(Schema.String, Schema.Any)],
 )
@@ -66,6 +69,7 @@ const KNOWN_KEYS = new Set([
   "disable",
   "tools",
   "toolset",
+  "skill_activation",
 ])
 
 const normalize = (agent: Schema.Schema.Type<typeof AgentSchema>): Schema.Schema.Type<typeof AgentSchema> => {

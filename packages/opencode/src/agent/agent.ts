@@ -44,6 +44,7 @@ export const Info = Schema.Struct({
   color: Schema.optional(Schema.String),
   permission: PermissionV1.Ruleset,
   toolset: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
+  skillActivation: Schema.optional(Schema.Record(Schema.String, Schema.Literals(["off", "name", "full"]))),
   model: Schema.optional(
     Schema.Struct({
       modelID: ModelV2.ID,
@@ -293,6 +294,7 @@ const layer = Layer.effect(
           item.name = value.name ?? item.name
           item.steps = value.steps ?? item.steps
           item.toolset = value.toolset ?? item.toolset
+          item.skillActivation = value.skill_activation ?? item.skillActivation
           item.options = mergeDeep(item.options, value.options ?? {})
           item.permission = Permission.merge(item.permission, Permission.fromConfig(value.permission ?? {}))
         }

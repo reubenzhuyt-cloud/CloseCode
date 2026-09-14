@@ -1255,7 +1255,7 @@ const layer = Layer.effect(
             yield* plugin.trigger("experimental.chat.messages.transform", {}, { messages: msgs })
 
             const [skills, env, instructions, subagents, mcpInstructions, modelMsgs] = yield* Effect.all([
-              sys.skills(agent),
+              sys.skills(agent, session),
               sys.environment(model),
               instruction.system().pipe(Effect.orDie),
               sys.subagents(agent),

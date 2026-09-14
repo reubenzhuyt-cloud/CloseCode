@@ -25,6 +25,8 @@ import { LocationServiceMap, locationServiceMapLayer } from "@opencode-ai/core/l
 import { Reference } from "@opencode-ai/core/reference"
 import { MCP } from "@/mcp"
 import { PermissionV1 } from "@opencode-ai/core/v1/permission"
+import { isRecord } from "@/util/record"
+import type { Session } from "./session"
 
 export function provider(model: Provider.Model) {
   if (model.api.id.includes("muse")) {
@@ -51,9 +53,23 @@ export function provider(model: Provider.Model) {
   return [PROMPT_DEFAULT]
 }
 
+function isLevel(value: unknown): value is Skill.Level {
+  return value === "off" || value === "name" || value === "full"
+}
+
+function sessionLevels(session: Session.Info | undefined, agent: string): Record<string, Skill.Level> {
+  const metadata: unknown = session?.metadata
+  if (!isRecord(metadata)) return {}
+  const agentSkills: unknown = metadata["agent_skills"]
+  if (!isRecord(agentSkills)) return {}
+  const raw: unknown = agentSkills[agent]
+  if (!isRecord(raw)) return {}
+  return Object.fromEntries(Object.entries(raw).filter((entry): entry is [string, Skill.Level] => isLevel(entry[1])))
+}
+
 export interface Interface {
   readonly environment: (model: Provider.Model) => Effect.Effect<string[]>
-  readonly skills: (agent: Agent.Info) => Effect.Effect<string | undefined>
+  readonly skills: (agent: Agent.Info, session?: Session.Info) => Effect.Effect<string | undefined>
   readonly mcp: (agent: Agent.Info, permission?: PermissionV1.Ruleset) => Effect.Effect<string | undefined>
   readonly subagents: (agent: Agent.Info) => Effect.Effect<string[]>
 }
@@ -107,17 +123,26 @@ const layer = Layer.effect(
         ].filter((part): part is string => part !== undefined)
       }),
 
-      skills: Effect.fn("SystemPrompt.skills")(function* (agent: Agent.Info) {
+      skills: Effect.fn("SystemPrompt.skills")(function* (agent: Agent.Info, session?: Session.Info) {
         if (Permission.disabled(["skill"], agent.permission).has("skill")) return
 
         const list = yield* skill.available(agent)
+        const config = agent.skillActivation ?? {}
+        const override = sessionLevels(session, agent.name)
+        const fallback: Skill.Level = agent.mode === "subagent" ? "off" : "name"
+        const levels = Object.fromEntries(
+          list.map((s) => [
+            s.name,
+            override[s.name] ?? override["*"] ?? config[s.name] ?? config["*"] ?? fallback,
+          ]),
+        ) as Record<string, Skill.Level>
 
         return [
           "Skills provide specialized instructions and workflows for specific tasks.",
           "Use the skill tool to load a skill when a task matches its description.",
           // the agents seem to ingest the information about skills a bit better if we present a more verbose
           // version of them here and a less verbose version in tool description, rather than vice versa.
-          Skill.fmt(list, { verbose: true }),
+          Skill.fmt(list, { verbose: true, levels }),
         ].join("\n")
       }),
 

@@ -1,8 +1,9 @@
-import { createEffect, createMemo, createSignal, onCleanup, onMount, Match, Switch } from "solid-js"
+import { createEffect, createMemo, createResource, createSignal, onCleanup, onMount, Match, Switch } from "solid-js"
 import { TextareaRenderable, TextAttributes } from "@opentui/core"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useSync } from "../context/sync"
 import { useSDK } from "../context/sdk"
+import { useRoute } from "../context/route"
 import { useTheme } from "../context/theme"
 import { useDialog, useDialogBack } from "../ui/dialog"
 import { useToast } from "../ui/toast"
@@ -26,12 +27,18 @@ const PERMISSIONS = [
 ] as const
 
 type AgentMode = "all" | "primary" | "subagent"
+type SkillLevel = "off" | "name" | "full"
 type Patch = {
   description?: string
   prompt?: string
   mode?: AgentMode
   toolset?: Record<string, boolean>
   permission?: Record<string, "deny">
+  skill_activation?: Record<string, SkillLevel>
+}
+
+function isSkillLevel(value: unknown): value is SkillLevel {
+  return value === "off" || value === "name" || value === "full"
 }
 
 export function DialogAgentEdit(props: { name: string; create?: boolean; onBack?: () => void }) {
@@ -39,13 +46,24 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; onBack?
   const sdk = useSDK()
   const dialog = useDialog()
   const toast = useToast()
+  const route = useRoute()
   const [patch, setPatch] = createSignal<Patch>({})
-  const [scope, setScope] = createSignal<"project" | "global">("project")
-  const [view, setView] = createSignal<"fields" | "mode" | "toolset" | "description" | "permission" | "prompt">(
-    "fields",
-  )
+  const [scope, setScope] = createSignal<"project" | "global" | "session">("project")
+  const [view, setView] = createSignal<
+    "fields" | "mode" | "toolset" | "description" | "permission" | "prompt" | "skills"
+  >("fields")
   const [toolIds, setToolIds] = createSignal<string[]>([])
   const [saving, setSaving] = createSignal(false)
+
+  const sessionID = () => (route.data.type === "session" ? route.data.sessionID : undefined)
+
+  function cycleScope() {
+    if (!sessionID()) {
+      setScope(scope() === "project" ? "global" : "project")
+      return
+    }
+    setScope(scope() === "project" ? "global" : scope() === "global" ? "session" : "project")
+  }
 
   useDialogBack(() => {
     if (view() !== "fields") {
@@ -65,6 +83,13 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; onBack?
   })
 
   const stored = createMemo(() => sync.data.config.agent?.[props.name] ?? {})
+  const storedSkillActivation = createMemo<Record<string, SkillLevel>>(() => {
+    const raw = (stored() as Record<string, unknown>)["skill_activation"]
+    if (!raw || typeof raw !== "object") return {}
+    return Object.fromEntries(
+      Object.entries(raw).filter((entry): entry is [string, SkillLevel] => isSkillLevel(entry[1])),
+    )
+  })
   const resolved = createMemo(() => sync.data.agent.find((agent) => agent.name === props.name))
   const promptValue = createMemo(() => patch().prompt ?? resolved()?.prompt ?? "")
 
@@ -79,6 +104,30 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; onBack?
     if (saving()) return
     setSaving(true)
     try {
+      if (scope() === "session") {
+        const id = sessionID()
+        if (!id) {
+          toast.error(new Error("No active session"))
+          return
+        }
+        const current = (sync.session.get(id)?.metadata ?? {}) as Record<string, unknown>
+        await sdk.client.session.update(
+          {
+            sessionID: id,
+            metadata: {
+              ...current,
+              agent_skills: {
+                ...(current["agent_skills"] as Record<string, unknown> | undefined),
+                [props.name]: patch().skill_activation,
+              },
+            },
+          },
+          { throwOnError: true },
+        )
+        dialog.clear()
+        return
+      }
+
       const payload = { config: { agent: { [props.name]: patch() } } }
       if (scope() === "global") {
         await sdk.client.global.config.update(payload, { throwOnError: true })
@@ -119,6 +168,13 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; onBack?
         title: "Permissions",
         description: deniedKeys().length ? `${deniedKeys().length} denied` : "default",
       },
+      {
+        value: "skills",
+        title: "Skills",
+        description: Object.keys(patch().skill_activation ?? storedSkillActivation()).length
+          ? `${Object.keys(patch().skill_activation ?? storedSkillActivation()).length} rule(s)`
+          : "default",
+      },
       { value: "scope", title: "Save to", description: scope() },
       { value: "save", title: "Save" },
     ]
@@ -132,10 +188,11 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; onBack?
           options={fields()}
           onSelect={async (option) => {
             if (option.value === "save") return void save()
-            if (option.value === "scope") return void setScope(scope() === "project" ? "global" : "project")
+            if (option.value === "scope") return void cycleScope()
             if (option.value === "mode") return void setView("mode")
             if (option.value === "toolset") return void setView("toolset")
             if (option.value === "permission") return void setView("permission")
+            if (option.value === "skills") return void setView("skills")
             if (option.value === "description") return void setView("description")
             if (option.value === "prompt") return void setView("prompt")
           }}
@@ -193,6 +250,15 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; onBack?
           initialDenied={deniedKeys()}
           onDone={(permission) => {
             setPatch({ ...patch(), permission })
+            setView("fields")
+          }}
+        />
+      </Match>
+      <Match when={view() === "skills"}>
+        <DialogAgentSkillView
+          initial={patch().skill_activation ?? storedSkillActivation()}
+          onDone={(value) => {
+            setPatch({ ...patch(), skill_activation: value })
             setView("fields")
           }}
         />
@@ -418,6 +484,49 @@ function DialogAgentPermissionView(props: {
       onSelect={(option) => {
         if (option.value === SAVE) return commit()
         toggle(option.value)
+      }}
+    />
+  )
+}
+
+function DialogAgentSkillView(props: {
+  initial?: Record<string, SkillLevel>
+  onDone: (value: Record<string, SkillLevel>) => void
+}) {
+  const SAVE = "\u0000save"
+  const sdk = useSDK()
+  const [skills] = createResource(() =>
+    sdk.client.app
+      .skills({}, { throwOnError: true })
+      .then((result) => result.data ?? [])
+      .catch(() => undefined),
+  )
+  const [levels, setLevels] = createSignal<Record<string, SkillLevel>>({ ...(props.initial ?? {}) })
+
+  const options = createMemo<DialogSelectOption<string>[]>(() => [
+    { value: SAVE, title: "Save skills" },
+    ...(skills() ?? []).map((skill) => ({
+      value: skill.name,
+      title: skill.name,
+      footer: levels()[skill.name] ?? "off",
+    })),
+  ])
+
+  function cycle(value: string) {
+    const current = levels()[value] ?? "off"
+    setLevels({
+      ...levels(),
+      [value]: current === "off" ? "name" : current === "name" ? "full" : "off",
+    })
+  }
+
+  return (
+    <DialogSelect
+      title="Skill activation (select cycles off → name → full)"
+      options={options()}
+      onSelect={(option) => {
+        if (option.value === SAVE) return props.onDone(levels())
+        cycle(option.value)
       }}
     />
   )
