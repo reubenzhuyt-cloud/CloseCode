@@ -47,6 +47,7 @@ import { DialogDebug } from "./component/dialog-debug"
 import { DialogThemeList } from "./component/dialog-theme-list"
 import { DialogHelp } from "./ui/dialog-help"
 import { DialogAgentManage } from "./component/dialog-agent-manage"
+import { DialogAgentEdit } from "./component/dialog-agent-edit"
 import { DialogSessionList } from "./component/dialog-session-list"
 import { DialogWorkspaceList } from "./component/dialog-workspace-list"
 import { DialogConsoleOrg } from "./component/dialog-console-org"
@@ -681,6 +682,17 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         slashName: "agents",
         run: () => {
           dialog.replace(() => <DialogAgentManage />)
+        },
+      },
+      {
+        name: "skill.settings",
+        title: "Skill settings",
+        category: "Agent",
+        slashName: "skillsetting",
+        run: () => {
+          dialog.replace(() => (
+            <DialogAgentEdit name={local.agent.current()?.name ?? "build"} initialView="skills" />
+          ))
         },
       },
       {

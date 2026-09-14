@@ -41,7 +41,7 @@ function isSkillLevel(value: unknown): value is SkillLevel {
   return value === "off" || value === "name" || value === "full"
 }
 
-export function DialogAgentEdit(props: { name: string; create?: boolean; onBack?: () => void }) {
+export function DialogAgentEdit(props: { name: string; create?: boolean; initialView?: "skills"; onBack?: () => void }) {
   const sync = useSync()
   const sdk = useSDK()
   const dialog = useDialog()
@@ -51,7 +51,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; onBack?
   const [scope, setScope] = createSignal<"project" | "global" | "session">("project")
   const [view, setView] = createSignal<
     "fields" | "mode" | "toolset" | "description" | "permission" | "prompt" | "skills"
-  >("fields")
+  >(props.initialView ?? "fields")
   const [toolIds, setToolIds] = createSignal<string[]>([])
   const [saving, setSaving] = createSignal(false)
 
