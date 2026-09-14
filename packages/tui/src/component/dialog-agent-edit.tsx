@@ -65,16 +65,22 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
     setScope(scope() === "project" ? "global" : scope() === "global" ? "session" : "project")
   }
 
+  function exit() {
+    if (props.onBack) return props.onBack()
+    dialog.clear()
+  }
+
   useDialogBack(() => {
     if (view() !== "fields") {
       setView("fields")
       return true
     }
-    if (props.onBack) {
-      props.onBack()
+    if (Object.keys(patch()).length === 0) {
+      exit()
       return true
     }
-    return false
+    void save()
+    return true
   })
 
   onMount(async () => {
@@ -90,13 +96,33 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
       Object.entries(raw).filter((entry): entry is [string, SkillLevel] => isSkillLevel(entry[1])),
     )
   })
+  const sessionSkillActivation = createMemo<Record<string, SkillLevel>>(() => {
+    const id = sessionID()
+    if (!id) return {}
+    const metadata = sync.session.get(id)?.metadata as Record<string, unknown> | undefined
+    const raw = metadata?.["agent_skills"]
+    if (!raw || typeof raw !== "object") return {}
+    const agent = (raw as Record<string, unknown>)[props.name]
+    if (!agent || typeof agent !== "object") return {}
+    return Object.fromEntries(
+      Object.entries(agent).filter((entry): entry is [string, SkillLevel] => isSkillLevel(entry[1])),
+    )
+  })
+  const activeSkillActivation = createMemo(() =>
+    scope() === "session" ? sessionSkillActivation() : storedSkillActivation(),
+  )
   const resolved = createMemo(() => sync.data.agent.find((agent) => agent.name === props.name))
   const promptValue = createMemo(() => patch().prompt ?? resolved()?.prompt ?? "")
 
-  const deniedKeys = createMemo(() => {
+  const permissionValue = createMemo<Record<string, string> | undefined>(() => {
     const source: unknown = patch().permission ?? stored().permission
-    if (!source || typeof source !== "object") return [] as string[]
-    const record = source as Record<string, unknown>
+    if (!source || typeof source !== "object") return undefined
+    return source as Record<string, string>
+  })
+
+  const deniedKeys = createMemo(() => {
+    const record = permissionValue()
+    if (!record) return [] as string[]
     return PERMISSIONS.filter((key) => record[key] === "deny")
   })
 
@@ -124,7 +150,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
           },
           { throwOnError: true },
         )
-        dialog.clear()
+        exit()
         return
       }
 
@@ -136,7 +162,9 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
       }
       const result = await sdk.client.app.agents({}, { throwOnError: true })
       sync.set("agent", result.data ?? [])
-      dialog.clear()
+      const refreshed = await sdk.client.config.get({}, { throwOnError: true })
+      if (refreshed.data) sync.set("config", refreshed.data)
+      exit()
     } catch (error) {
       toast.error(error)
     } finally {
@@ -171,12 +199,12 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
       {
         value: "skills",
         title: "Skills",
-        description: Object.keys(patch().skill_activation ?? storedSkillActivation()).length
-          ? `${Object.keys(patch().skill_activation ?? storedSkillActivation()).length} rule(s)`
+        description: Object.keys(patch().skill_activation ?? activeSkillActivation()).length
+          ? `${Object.keys(patch().skill_activation ?? activeSkillActivation()).length} rule(s)`
           : "default",
       },
       { value: "scope", title: "Save to", description: scope() },
-      { value: "save", title: "Save" },
+      { value: "save", title: "Save", description: "esc also saves and exits" },
     ]
   })
 
@@ -216,11 +244,8 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
         <DialogAgentToolsetView
           ids={toolIds()}
           servers={Object.keys(sync.data.mcp ?? {})}
-          initial={patch().toolset}
-          onDone={(toolset) => {
-            setPatch({ ...patch(), toolset })
-            setView("fields")
-          }}
+          value={patch().toolset}
+          onChange={(toolset) => setPatch({ ...patch(), toolset })}
         />
       </Match>
       <Match when={view() === "description"}>
@@ -247,20 +272,14 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
       </Match>
       <Match when={view() === "permission"}>
         <DialogAgentPermissionView
-          initialDenied={deniedKeys()}
-          onDone={(permission) => {
-            setPatch({ ...patch(), permission })
-            setView("fields")
-          }}
+          value={permissionValue()}
+          onChange={(permission) => setPatch({ ...patch(), permission })}
         />
       </Match>
       <Match when={view() === "skills"}>
         <DialogAgentSkillView
-          initial={patch().skill_activation ?? storedSkillActivation()}
-          onDone={(value) => {
-            setPatch({ ...patch(), skill_activation: value })
-            setView("fields")
-          }}
+          value={patch().skill_activation ?? activeSkillActivation()}
+          onChange={(value) => setPatch({ ...patch(), skill_activation: value })}
         />
       </Match>
     </Switch>
@@ -399,20 +418,17 @@ function DialogAgentPromptView(props: {
 function DialogAgentToolsetView(props: {
   ids: string[]
   servers: string[]
-  initial?: Record<string, boolean>
-  onDone: (toolset: Record<string, boolean>) => void
+  value?: Record<string, boolean>
+  onChange: (toolset: Record<string, boolean>) => void
 }) {
-  const SAVE = "\u0000save"
-  const [selected, setSelected] = createSignal<Set<string>>(
+  const selected = () =>
     new Set(
-      Object.entries(props.initial ?? {})
+      Object.entries(props.value ?? {})
         .filter(([key, enabled]) => enabled && key !== "*")
         .map(([key]) => key),
-    ),
-  )
+    )
 
   const options = createMemo<DialogSelectOption<string>[]>(() => [
-    { value: SAVE, title: "Save toolset" },
     ...props.ids.map((id) => ({ value: id, title: id, footer: selected().has(id) ? "✓" : "" })),
     ...props.servers.map((server) => {
       const value = `mcp:${server}`
@@ -424,76 +440,56 @@ function DialogAgentToolsetView(props: {
     const next = new Set(selected())
     if (next.has(value)) next.delete(value)
     else next.add(value)
-    setSelected(next)
-  }
-
-  function commit() {
     const toolset: Record<string, boolean> = { "*": false }
-    for (const id of selected()) toolset[id] = true
-    props.onDone(toolset)
+    for (const id of next) toolset[id] = true
+    props.onChange(toolset)
   }
 
   return (
     <DialogSelect
-      title="Toolset (select toggles, Save commits)"
+      title="Toolset (select toggles, esc back)"
       options={options()}
-      onSelect={(option) => {
-        if (option.value === SAVE) return commit()
-        toggle(option.value)
-      }}
+      onSelect={(option) => toggle(option.value)}
     />
   )
 }
 
 function DialogAgentPermissionView(props: {
-  initialDenied: string[]
-  onDone: (permission: Record<string, "deny">) => void
+  value?: Record<string, string>
+  onChange: (permission: Record<string, "deny">) => void
 }) {
-  const SAVE = "\u0000save"
-  const [selected, setSelected] = createSignal<Set<string>>(
-    new Set(PERMISSIONS.filter((key) => !props.initialDenied.includes(key))),
-  )
+  const allowed = () => new Set<string>(PERMISSIONS.filter((key) => props.value?.[key] !== "deny"))
 
-  const options = createMemo<DialogSelectOption<string>[]>(() => [
-    { value: SAVE, title: "Save permissions" },
-    ...PERMISSIONS.map((key) => ({
+  const options = createMemo<DialogSelectOption<string>[]>(() =>
+    PERMISSIONS.map((key) => ({
       value: key,
       title: key,
-      footer: selected().has(key) ? "allow" : "deny",
+      footer: allowed().has(key) ? "allow" : "deny",
     })),
-  ])
+  )
 
   function toggle(value: string) {
-    const next = new Set(selected())
+    const next = new Set(allowed())
     if (next.has(value)) next.delete(value)
     else next.add(value)
-    setSelected(next)
-  }
-
-  function commit() {
-    const permission = Object.fromEntries(
-      PERMISSIONS.filter((key) => !selected().has(key)).map((key) => [key, "deny" as const]),
+    props.onChange(
+      Object.fromEntries(PERMISSIONS.filter((key) => !next.has(key)).map((key) => [key, "deny" as const])),
     )
-    props.onDone(permission)
   }
 
   return (
     <DialogSelect
-      title="Permissions (selected = allowed, Save commits)"
+      title="Permissions (selected = allowed, esc back)"
       options={options()}
-      onSelect={(option) => {
-        if (option.value === SAVE) return commit()
-        toggle(option.value)
-      }}
+      onSelect={(option) => toggle(option.value)}
     />
   )
 }
 
 function DialogAgentSkillView(props: {
-  initial?: Record<string, SkillLevel>
-  onDone: (value: Record<string, SkillLevel>) => void
+  value: Record<string, SkillLevel>
+  onChange: (value: Record<string, SkillLevel>) => void
 }) {
-  const SAVE = "\u0000save"
   const sdk = useSDK()
   const [skills] = createResource(() =>
     sdk.client.app
@@ -501,33 +497,25 @@ function DialogAgentSkillView(props: {
       .then((result) => result.data ?? [])
       .catch(() => undefined),
   )
-  const [levels, setLevels] = createSignal<Record<string, SkillLevel>>({ ...(props.initial ?? {}) })
 
-  const options = createMemo<DialogSelectOption<string>[]>(() => [
-    { value: SAVE, title: "Save skills" },
-    ...(skills() ?? []).map((skill) => ({
+  const options = createMemo<DialogSelectOption<string>[]>(() =>
+    (skills() ?? []).map((skill) => ({
       value: skill.name,
       title: skill.name,
-      footer: levels()[skill.name] ?? "off",
+      footer: props.value[skill.name] ?? "off",
     })),
-  ])
+  )
 
   function cycle(value: string) {
-    const current = levels()[value] ?? "off"
-    setLevels({
-      ...levels(),
-      [value]: current === "off" ? "name" : current === "name" ? "full" : "off",
-    })
+    const current = props.value[value] ?? "off"
+    props.onChange({ ...props.value, [value]: current === "off" ? "name" : current === "name" ? "full" : "off" })
   }
 
   return (
     <DialogSelect
-      title="Skill activation (select cycles off → name → full)"
+      title="Skill activation (select cycles off → name → full, esc back)"
       options={options()}
-      onSelect={(option) => {
-        if (option.value === SAVE) return props.onDone(levels())
-        cycle(option.value)
-      }}
+      onSelect={(option) => cycle(option.value)}
     />
   )
 }

@@ -360,15 +360,11 @@ it.instance(
 it.instance("updates config and preserves empty shell sentinel", () =>
   Effect.gen(function* () {
     const test = yield* TestInstance
-    yield* writeConfigEffect(
-      test.directory,
-      { $schema: "https://opencode.ai/config.json", shell: "bash" },
-      "config.json",
-    )
+    yield* writeConfigEffect(test.directory, { $schema: "https://opencode.ai/config.json", shell: "bash" })
 
     yield* Config.Service.use((svc) => svc.update(ConfigParse.schema(ConfigV1.Info, { shell: "" }, "test:config")))
 
-    const writtenConfig = yield* FSUtil.use.readJson(path.join(test.directory, "config.json"))
+    const writtenConfig = yield* FSUtil.use.readJson(path.join(test.directory, "opencode.json"))
     expect(writtenConfig).toMatchObject({ shell: "" })
   }),
 )
@@ -468,7 +464,7 @@ for (const input of projectInputs) {
     Effect.gen(function* () {
       const instance = yield* TestInstance
       const fs = yield* FSUtil.Service
-      const file = path.join(instance.directory, "config.json")
+      const file = path.join(instance.directory, "opencode.json")
       yield* fs.writeFileString(file, yield* fs.readFileString(path.join(updateFixtures, input)))
       const patch = ConfigParse.schema(ConfigV1.Info, yield* fs.readJson(`${prefix}-patch.json`), input)
       yield* Config.use.update(patch)
@@ -511,7 +507,7 @@ it.instance("rejects a project update with native agent permissions without writ
   Effect.gen(function* () {
     const instance = yield* TestInstance
     const fs = yield* FSUtil.Service
-    const file = path.join(instance.directory, "config.json")
+    const file = path.join(instance.directory, "opencode.json")
     const before = JSON.stringify({ agents: { reviewer: { permissions: [] } } })
     yield* fs.writeFileString(file, before)
     const exit = yield* Effect.exit(Config.use.update({ username: "changed" }))
@@ -1084,8 +1080,43 @@ it.instance("updates config and writes to file", () =>
       svc.update(ConfigParse.schema(ConfigV1.Info, { model: "updated/model" }, "test:config")),
     )
 
-    const writtenConfig = yield* FSUtil.use.readJson(path.join(test.directory, "config.json"))
+    const writtenConfig = yield* FSUtil.use.readJson(path.join(test.directory, "opencode.json"))
     expect(writtenConfig).toMatchObject({ model: "updated/model" })
+  }),
+)
+
+it.instance("project update round-trips through load", () =>
+  Effect.gen(function* () {
+    const test = yield* TestInstance
+    yield* writeConfigEffect(test.directory, schemaConfig({ agent: { build: { description: "before" } } }))
+    yield* Config.use.update(
+      ConfigParse.schema(ConfigV1.Info, { agent: { build: { skill_activation: { write: "full" } } } }, "test:config"),
+    )
+    yield* clearEffect(true)
+    const config = yield* Config.use.get()
+    expect(config.agent?.["build"]?.description).toBe("before")
+    expect(config.agent?.["build"]?.skill_activation).toEqual({ write: "full" })
+  }),
+)
+
+it.instance("project jsonc update preserves comments", () =>
+  Effect.gen(function* () {
+    const test = yield* TestInstance
+    const file = path.join(test.directory, "opencode.jsonc")
+    yield* FSUtil.use.writeWithDirs(
+      file,
+      `{
+        // keep me
+        "$schema": "https://opencode.ai/config.json"
+      }`,
+    )
+    yield* Config.use.update(
+      ConfigParse.schema(ConfigV1.Info, { agent: { build: { skill_activation: { write: "name" } } } }, "test:config"),
+    )
+    const written = yield* FSUtil.use.readFileString(file)
+    expect(written).toContain("// keep me")
+    const parsed = ConfigParse.schema(ConfigV1.Info, ConfigV2Compat.lower(ConfigParse.jsonc(written, file)).value, file)
+    expect(parsed.agent?.["build"]?.skill_activation).toEqual({ write: "name" })
   }),
 )
 

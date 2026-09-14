@@ -637,16 +637,22 @@ const layer = Layer.effect(
 
     const update = Effect.fn("Config.update")(function* (config: Info) {
       const dir = yield* InstanceState.directory
-      const file = path.join(dir, "config.json")
-      const existing = yield* loadFile(file)
-      const text = yield* readConfigFile(file)
-      const original = text ? ConfigParse.jsonc(text, file) : writable(existing)
-      yield* fs
-        .writeFileString(
-          file,
-          JSON.stringify(mergeDeep(isRecord(original) ? original : writable(existing), writable(config)), null, 2),
-        )
-        .pipe(Effect.orDie)
+      const jsonc = path.join(dir, "opencode.jsonc")
+      // Project config is loaded from opencode.json/opencode.jsonc; jsonc wins over json in the same directory.
+      const file = existsSync(jsonc) ? jsonc : path.join(dir, "opencode.json")
+      const before = (yield* readConfigFile(file)) ?? "{}"
+      const patch = writable(config)
+      if (file.endsWith(".jsonc")) {
+        const updated = patchJsonc(before, patch)
+        yield* decodeConfig(ConfigParse.jsonc(updated, file), file)
+        yield* fs.writeFileString(file, updated).pipe(Effect.orDie)
+        return
+      }
+      const existing = ConfigParse.jsonc(before, file)
+      ConfigParse.schema(ConfigV1.Info, ConfigV2Compat.lower(normalizeLoadedConfig(existing), file).value, file)
+      const merged = mergeDeep(isRecord(existing) ? existing : {}, patch)
+      yield* decodeConfig(merged, file)
+      yield* fs.writeFileString(file, JSON.stringify(merged, null, 2)).pipe(Effect.orDie)
     })
 
     const invalidate = Effect.fn("Config.invalidate")(function* () {
