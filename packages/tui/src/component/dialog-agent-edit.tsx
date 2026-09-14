@@ -126,36 +126,42 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
     return PERMISSIONS.filter((key) => record[key] === "deny")
   })
 
+  // Close immediately and finish the write in the background: the config.update
+  // response is only flushed after the server disposes the instance, so awaiting
+  // it (plus the follow-up reads) visibly stalls the dialog.
   async function save() {
     if (saving()) return
     setSaving(true)
-    try {
-      if (scope() === "session") {
-        const id = sessionID()
-        if (!id) {
-          toast.error(new Error("No active session"))
-          return
-        }
-        const current = (sync.session.get(id)?.metadata ?? {}) as Record<string, unknown>
-        await sdk.client.session.update(
+    const target = props.name
+    const draft = patch()
+    const where = scope()
+    const id = sessionID()
+    exit()
+
+    if (where === "session") {
+      if (!id) return toast.error(new Error("No active session"))
+      const current = (sync.session.get(id)?.metadata ?? {}) as Record<string, unknown>
+      await sdk.client.session
+        .update(
           {
             sessionID: id,
             metadata: {
               ...current,
               agent_skills: {
                 ...(current["agent_skills"] as Record<string, unknown> | undefined),
-                [props.name]: patch().skill_activation,
+                [target]: draft.skill_activation,
               },
             },
           },
           { throwOnError: true },
         )
-        exit()
-        return
-      }
+        .catch((error) => toast.error(error))
+      return
+    }
 
-      const payload = { config: { agent: { [props.name]: patch() } } }
-      if (scope() === "global") {
+    try {
+      const payload = { config: { agent: { [target]: draft } } }
+      if (where === "global") {
         await sdk.client.global.config.update(payload, { throwOnError: true })
       } else {
         await sdk.client.config.update(payload, { throwOnError: true })
@@ -164,11 +170,8 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
       sync.set("agent", result.data ?? [])
       const refreshed = await sdk.client.config.get({}, { throwOnError: true })
       if (refreshed.data) sync.set("config", refreshed.data)
-      exit()
     } catch (error) {
       toast.error(error)
-    } finally {
-      setSaving(false)
     }
   }
 
