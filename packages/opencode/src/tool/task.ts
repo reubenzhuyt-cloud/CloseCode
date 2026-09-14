@@ -10,6 +10,8 @@ import { Agent } from "../agent/agent"
 import { deriveSubagentSessionPermission } from "../agent/subagent-permissions"
 import type { SessionPrompt } from "../session/prompt"
 import { Config } from "@/config/config"
+import { Provider } from "@/provider/provider"
+import { usable } from "../session/overflow"
 import { Effect, Exit, Schema, Scope } from "effect"
 import { EffectBridge } from "@/effect/bridge"
 import { RuntimeFlags } from "@/effect/runtime-flags"
@@ -61,11 +63,22 @@ export const Parameters = Schema.Struct({
   }),
 })
 
+function countContextTokens(tokens: SessionV1.Assistant["tokens"]) {
+  return tokens.total || tokens.input + tokens.output + tokens.cache.read + tokens.cache.write
+}
+
+function renderUsage(usage: { tokens: number; limit?: number }) {
+  if (!usage.limit) return []
+  const percent = Math.round((usage.tokens / usage.limit) * 100)
+  return [`<task_usage tokens="${usage.tokens}" limit="${usage.limit}" percent="${percent}" />`]
+}
+
 function renderOutput(input: {
   sessionID: SessionID
   state: "running" | "completed" | "error"
   summary?: string
   text: string
+  usage?: { tokens: number; limit?: number }
 }) {
   const tag = input.state === "error" ? "task_error" : "task_result"
   return [
@@ -74,6 +87,7 @@ function renderOutput(input: {
     `<${tag}>`,
     input.text,
     `</${tag}>`,
+    ...(input.state === "completed" && input.usage ? renderUsage(input.usage) : []),
     "</task>",
   ].join("\n")
 }
@@ -85,6 +99,7 @@ export const TaskTool = Tool.define(
     const background = yield* BackgroundJob.Service
     const config = yield* Config.Service
     const sessions = yield* Session.Service
+    const provider = yield* Provider.Service
     const scope = yield* Scope.Scope
     const flags = yield* RuntimeFlags.Service
     const database = yield* Database.Service
@@ -186,6 +201,7 @@ export const TaskTool = Tool.define(
         parentSessionId: ctx.sessionID,
         sessionId: nextSession.id,
         model,
+        usage: undefined as { tokens: number; limit?: number } | undefined,
         ...(runInBackground ? { background: true } : {}),
       }
 
@@ -196,6 +212,19 @@ export const TaskTool = Tool.define(
 
       const ops = ctx.extra?.promptOps as TaskPromptOps
       if (!ops) return yield* Effect.fail(new Error("TaskTool requires promptOps in ctx.extra"))
+
+      const taskUsage = Effect.fn("TaskTool.usage")(function* () {
+        const messages = yield* sessions.messages({ sessionID: nextSession.id })
+        const tokens = MessageV2.latest(messages).finished?.tokens
+        if (!tokens) return
+        const limit = yield* provider
+          .getModel(model.providerID, model.modelID)
+          .pipe(
+            Effect.map((resolved) => usable({ cfg, model: resolved, outputTokenMax: flags.outputTokenMax })),
+            Effect.catchCause(() => Effect.succeed(undefined)),
+          )
+        return { tokens: countContextTokens(tokens), ...(limit ? { limit } : {}) }
+      })
 
       const runTask = Effect.fn("TaskTool.runTask")(function* () {
         const parts = yield* ops.resolvePromptParts(params.prompt)
@@ -229,6 +258,11 @@ export const TaskTool = Tool.define(
         text: string,
       ) {
         const currentParent = yield* sessions.get(ctx.sessionID)
+        const usage =
+          state === "completed"
+            ? yield* taskUsage().pipe(Effect.catchCause(() => Effect.succeed(undefined)))
+            : undefined
+        if (state === "completed") metadata.usage = usage
         yield* ops
           .prompt({
             sessionID: ctx.sessionID,
@@ -246,6 +280,7 @@ export const TaskTool = Tool.define(
                       ? `Background task completed: ${params.description}`
                       : `Background task failed: ${params.description}`,
                   text,
+                  usage,
                 }),
               },
             ],
@@ -338,10 +373,17 @@ export const TaskTool = Tool.define(
             if (result?.metadata?.background === true) return backgroundResult()
             if (result?.status === "error") return yield* Effect.fail(new Error(result.error ?? "Task failed"))
             if (result?.status === "cancelled") return yield* Effect.fail(new Error("Task cancelled"))
+            const usage = yield* taskUsage().pipe(Effect.catchCause(() => Effect.succeed(undefined)))
+            metadata.usage = usage
             return {
               title: params.description,
               metadata,
-              output: renderOutput({ sessionID: nextSession.id, state: "completed", text: result?.output ?? "" }),
+              output: renderOutput({
+                sessionID: nextSession.id,
+                state: "completed",
+                text: result?.output ?? "",
+                usage,
+              }),
             }
           }),
         (_, exit) =>

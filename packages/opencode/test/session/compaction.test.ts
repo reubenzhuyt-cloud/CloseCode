@@ -561,6 +561,70 @@ describe("session.compaction.isOverflow", () => {
       },
     ),
   )
+
+  it.live(
+    "caps usable context at compaction.limit",
+    provideTmpdirInstance(
+      () =>
+        Effect.gen(function* () {
+          const compact = yield* SessionCompaction.Service
+          const model = createModel({ context: 200_000, output: 32_000 })
+          const tokens = { input: 120_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+          expect(yield* compact.isOverflow({ tokens, model })).toBe(true)
+        }),
+      {
+        config: {
+          compaction: { limit: 100_000 },
+        },
+      },
+    ),
+  )
+
+  it.live(
+    "treats compaction.limit of 0 as unset",
+    provideTmpdirInstance(
+      () =>
+        Effect.gen(function* () {
+          const compact = yield* SessionCompaction.Service
+          const model = createModel({ context: 200_000, output: 32_000 })
+          const withinContext = { input: 120_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+          const overContext = { input: 170_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+          expect(yield* compact.isOverflow({ tokens: withinContext, model })).toBe(false)
+          expect(yield* compact.isOverflow({ tokens: overContext, model })).toBe(true)
+        }),
+      {
+        config: {
+          compaction: { limit: 0 },
+        },
+      },
+    ),
+  )
+
+  it.live(
+    "keeps model-derived usable when compaction.limit is above it",
+    provideTmpdirInstance(
+      () =>
+        Effect.gen(function* () {
+          const compact = yield* SessionCompaction.Service
+          const model = createModel({ context: 200_000, output: 32_000 })
+          const tokens = { input: 170_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+          const withoutLimit = yield* compact.isOverflow({ tokens, model })
+          const withLimit = yield* provideTmpdirInstance(
+            () =>
+              Effect.gen(function* () {
+                const capped = yield* SessionCompaction.Service
+                return yield* capped.isOverflow({ tokens, model })
+              }),
+            { config: { compaction: { limit: 500_000 } } },
+          )
+          expect(withLimit).toBe(withoutLimit)
+          expect(withLimit).toBe(true)
+        }),
+      {
+        config: {},
+      },
+    ),
+  )
 })
 
 describe("session.compaction.create", () => {

@@ -9,6 +9,7 @@ import { BackgroundJob } from "@/background/job"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { Config } from "@/config/config"
 import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { Provider } from "@/provider/provider"
 import { Ripgrep } from "@opencode-ai/core/ripgrep"
 import { Session } from "@/session/session"
 import type { SessionPrompt } from "../../src/session/prompt"
@@ -22,6 +23,7 @@ import { ToolRegistry } from "@/tool/registry"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { disposeAllInstances } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"
+import { ProviderTest } from "../fake/provider"
 import { ProviderV2 } from "@opencode-ai/core/provider"
 import { ModelV2 } from "@opencode-ai/core/model"
 
@@ -33,6 +35,14 @@ const ref = {
   providerID: ProviderV2.ID.make("test"),
   modelID: ModelV2.ID.make("test-model"),
 }
+
+const provider = ProviderTest.fake({
+  model: ProviderTest.model({
+    id: ref.modelID,
+    providerID: ref.providerID,
+    limit: { context: 200_000, output: 10_000 },
+  }),
+})
 
 const layer = (flags: Partial<RuntimeFlags.Info> = {}) =>
   LayerNode.compile(
@@ -51,8 +61,12 @@ const layer = (flags: Partial<RuntimeFlags.Info> = {}) =>
       Database.node,
       RuntimeFlags.node,
       Ripgrep.node,
+      Provider.node,
     ]),
-    [[RuntimeFlags.node, RuntimeFlags.layer(flags)]],
+    [
+      [RuntimeFlags.node, RuntimeFlags.layer(flags)],
+      [Provider.node, provider.layer],
+    ],
   )
 
 const it = testEffect(layer())
@@ -501,6 +515,92 @@ describe("tool.task", () => {
       expect(result.metadata.sessionId).not.toBe("ses_missing")
       expect(result.output).toContain(`<task id="${result.metadata.sessionId}" state="completed">`)
       expect(seen?.sessionID).toBe(result.metadata.sessionId)
+    }),
+  )
+
+  it.instance("reports child context usage when a completed task has finished messages", () =>
+    Effect.gen(function* () {
+      const sessions = yield* Session.Service
+      const { chat, assistant } = yield* seed()
+      const child = yield* sessions.create({ parentID: chat.id, title: "Existing child" })
+      const childUser = yield* sessions.updateMessage({
+        id: MessageID.ascending(),
+        role: "user",
+        sessionID: child.id,
+        agent: "general",
+        model: ref,
+        time: { created: Date.now() },
+      })
+      yield* sessions.updateMessage({
+        id: MessageID.ascending(),
+        role: "assistant",
+        parentID: childUser.id,
+        sessionID: child.id,
+        mode: "general",
+        agent: "general",
+        cost: 0,
+        path: { cwd: "/tmp", root: "/tmp" },
+        tokens: { input: 50_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+        modelID: ref.modelID,
+        providerID: ref.providerID,
+        finish: "stop",
+        time: { created: Date.now() },
+      })
+      const tool = yield* TaskTool
+      const def = yield* tool.init()
+
+      const result = yield* def.execute(
+        {
+          description: "inspect bug",
+          prompt: "look into the cache key path",
+          subagent_type: "general",
+          task_id: child.id,
+        },
+        {
+          sessionID: chat.id,
+          messageID: assistant.id,
+          agent: "build",
+          abort: new AbortController().signal,
+          extra: { promptOps: stubOps({ text: "resumed" }) },
+          messages: [],
+          metadata: () => Effect.void,
+          ask: () => Effect.void,
+        },
+      )
+
+      expect(result.output).toContain(`<task_usage tokens="50000" limit="190000" percent="26" />`)
+      expect(result.metadata.usage).toEqual({ tokens: 50_000, limit: 190_000 })
+    }),
+  )
+
+  background.instance("omits task usage for running background tasks", () =>
+    Effect.gen(function* () {
+      const { chat, assistant } = yield* seed()
+      const tool = yield* TaskTool
+      const def = yield* tool.init()
+      const result = yield* def.execute(
+        {
+          description: "inspect bug",
+          prompt: "look into the cache key path",
+          subagent_type: "general",
+          background: true,
+        },
+        {
+          sessionID: chat.id,
+          messageID: assistant.id,
+          agent: "build",
+          abort: new AbortController().signal,
+          extra: {
+            promptOps: { ...stubOps(), prompt: () => Effect.never } satisfies TaskPromptOps,
+          },
+          messages: [],
+          metadata: () => Effect.void,
+          ask: () => Effect.void,
+        },
+      )
+
+      expect(result.output).toContain(`state="running"`)
+      expect(result.output).not.toContain("<task_usage")
     }),
   )
 

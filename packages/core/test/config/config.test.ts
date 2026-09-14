@@ -87,6 +87,15 @@ describe("Config", () => {
     }),
   )
 
+  it.effect("decodes the v1 compaction.limit context cap", () =>
+    Effect.sync(() => {
+      const decoded = Schema.decodeUnknownSync(ConfigV1.Info)({
+        compaction: { limit: 120_000 },
+      })
+      expect(decoded.compaction?.limit).toBe(120_000)
+    }),
+  )
+
   it.effect("migrates v1 provider setup options into AISDK settings", () =>
     Effect.sync(() => {
       const migrated = ConfigMigrateV1.migrate({
