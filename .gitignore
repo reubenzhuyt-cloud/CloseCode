@@ -32,3 +32,10 @@ UPCOMING_CHANGELOG.md
 logs/
 *.bun-build
 tsconfig.tsbuildinfo
+
+# Local runtime / agent state
+.opencode/goals/
+.superpowers/
+packages/opencode/.opencode/
+packages/opencode/config.json
+packages/opencode/opencode.json
