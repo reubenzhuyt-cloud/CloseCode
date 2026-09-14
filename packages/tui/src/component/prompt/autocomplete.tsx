@@ -20,6 +20,15 @@ import { useTerminalDimensions } from "@opentui/solid"
 import { Locale } from "../../util/locale"
 import type { PromptInfo } from "../../prompt/history"
 import { useFrecency } from "../../prompt/frecency"
+import { useKV } from "../../context/kv"
+import {
+  COMMAND_USAGE_KEY,
+  commandUsageBoost,
+  commandUsageKey,
+  incrementCommandUsage,
+  readCommandUsage,
+  sortCommandsByUsage,
+} from "../../prompt/command-usage"
 import { useBindings, useCommandSlashes, useOpencodeModeStack } from "../../keymap"
 import { displayCharAt, mentionTriggerIndex } from "../../prompt/display"
 import type { FileSystemEntry } from "@opencode-ai/sdk/v2"
@@ -94,6 +103,8 @@ export function Autocomplete(props: {
   const { theme } = useTheme()
   const dimensions = useTerminalDimensions()
   const frecency = useFrecency()
+  const kv = useKV()
+  const commandUsage = createMemo(() => readCommandUsage(kv.get(COMMAND_USAGE_KEY)))
   const tuiConfig = useTuiConfig()
   const paths = useTuiPaths()
   const location = useLocation()
@@ -445,13 +456,15 @@ export function Autocomplete(props: {
   )
 
   const commands = createMemo((): AutocompleteOption[] => {
-    const results: AutocompleteOption[] = [...slashes()]
+    const results: AutocompleteOption[] = slashes().map((item) => ({ ...item, value: item.display }))
 
     for (const serverCommand of sync.data.command) {
       if (serverCommand.source === "skill") continue
       const label = serverCommand.source === "mcp" ? ":mcp" : ""
+      const display = "/" + serverCommand.name + label
       results.push({
-        display: "/" + serverCommand.name + label,
+        display,
+        value: display,
         description: serverCommand.description,
         onSelect: () => {
           const newText = "/" + serverCommand.name + " "
@@ -463,11 +476,11 @@ export function Autocomplete(props: {
       })
     }
 
-    results.sort((a, b) => a.display.localeCompare(b.display))
+    const sorted = sortCommandsByUsage(results, commandUsage())
 
-    const max = firstBy(results, [(x) => x.display.length, "desc"])?.display.length
-    if (!max) return results
-    return results.map((item) => ({
+    const max = firstBy(sorted, [(x) => x.display.length, "desc"])?.display.length
+    if (!max) return sorted
+    return sorted.map((item) => ({
       ...item,
       display: item.display.padEnd(max + 2),
     }))
@@ -516,7 +529,9 @@ export function Autocomplete(props: {
             score *= 2
           }
           const frecencyScore = objResults.obj.path ? frecency.getFrecency(objResults.obj.path) : 0
-          return score * (1 + frecencyScore)
+          const usageScore =
+            store.visible === "/" ? (commandUsage()[commandUsageKey(objResults.obj)] ?? 0) : 0
+          return score * (1 + frecencyScore) * commandUsageBoost(usageScore)
         },
       })
       .map((arr) => arr.obj)
@@ -550,9 +565,14 @@ export function Autocomplete(props: {
     }
   }
 
+  function recordCommandUsage(option: AutocompleteOption) {
+    kv.set(COMMAND_USAGE_KEY, incrementCommandUsage(commandUsage(), commandUsageKey(option)))
+  }
+
   function select() {
     const selected = options()[store.selected]
     if (!selected) return
+    if (store.visible === "/") recordCommandUsage(selected)
     hide()
     selected.onSelect?.()
   }
