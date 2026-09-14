@@ -35,6 +35,7 @@ import { PluginV2 } from "@opencode-ai/core/plugin"
 export const Info = Schema.Struct({
   name: Schema.String,
   description: Schema.optional(Schema.String),
+  useWhen: Schema.optional(Schema.String),
   mode: Schema.Literals(["subagent", "primary", "all"]),
   native: Schema.optional(Schema.Boolean),
   hidden: Schema.optional(Schema.Boolean),
@@ -283,6 +284,7 @@ const layer = Layer.effect(
           item.variant = value.variant ?? item.variant
           item.prompt = value.prompt ?? item.prompt
           item.description = value.description ?? item.description
+          item.useWhen = value.use_when ?? item.useWhen
           item.temperature = value.temperature ?? item.temperature
           item.topP = value.top_p ?? item.topP
           item.mode = value.mode ?? item.mode

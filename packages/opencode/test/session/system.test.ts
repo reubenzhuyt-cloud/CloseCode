@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 import { Effect, Layer } from "effect"
-import type { Agent } from "../../src/agent/agent"
+import { Agent } from "../../src/agent/agent"
 import { NamedError } from "@opencode-ai/core/util/error"
 import { Skill } from "../../src/skill"
 import { Permission } from "../../src/permission"
@@ -43,6 +43,38 @@ const build: Agent.Info = {
   options: {},
 }
 
+const subagents: Agent.Info[] = [
+  {
+    name: "zeta",
+    description: "Zeta subagent.",
+    useWhen: "Use zeta for zeta work.",
+    mode: "subagent",
+    permission: Permission.fromConfig({}),
+    options: {},
+  },
+  {
+    name: "alpha",
+    description: "Alpha subagent.",
+    mode: "subagent",
+    permission: Permission.fromConfig({}),
+    options: {},
+  },
+  {
+    name: "middle",
+    description: "Middle subagent.",
+    mode: "subagent",
+    permission: Permission.fromConfig({}),
+    options: {},
+  },
+  {
+    name: "primary-agent",
+    description: "Primary agent.",
+    mode: "primary",
+    permission: Permission.fromConfig({}),
+    options: {},
+  },
+]
+
 const it = testEffect(
   LayerNode.compile(SystemPrompt.node, [
     [
@@ -61,6 +93,12 @@ const it = testEffect(
               tools: ["tool-server_search", "tool-server_update"],
             },
           ]),
+      }),
+    ],
+    [
+      Agent.node,
+      Layer.mock(Agent.Service, {
+        list: () => Effect.succeed(subagents),
       }),
     ],
     [
@@ -163,6 +201,65 @@ describe("session.system", () => {
           "</mcp_instructions>",
         ].join("\n"),
       )
+    }),
+  )
+
+  it.effect("subagents output lists dispatchable subagents sorted by name", () =>
+    Effect.gen(function* () {
+      const prompt = yield* SystemPrompt.Service
+      const output =
+        (yield* prompt.subagents(build))[0] ??
+        (yield* Effect.fail(new NamedError.Unknown({ message: "missing subagents output" })))
+
+      const alpha = output.indexOf("- alpha —")
+      const middle = output.indexOf("- middle —")
+      const zeta = output.indexOf("- zeta —")
+
+      expect(alpha).toBeGreaterThan(-1)
+      expect(middle).toBeGreaterThan(alpha)
+      expect(zeta).toBeGreaterThan(middle)
+      expect(output).not.toContain("primary-agent")
+      expect(output).toContain("## Subagent session management")
+    }),
+  )
+
+  it.effect("subagents output includes the Use when line when set", () =>
+    Effect.gen(function* () {
+      const prompt = yield* SystemPrompt.Service
+      const output =
+        (yield* prompt.subagents(build))[0] ??
+        (yield* Effect.fail(new NamedError.Unknown({ message: "missing subagents output" })))
+
+      expect(output).toContain("- zeta — Zeta subagent.")
+      expect(output).toContain("  Use when: Use zeta for zeta work.")
+    }),
+  )
+
+  it.effect("subagents output excludes agents denied by the task permission", () =>
+    Effect.gen(function* () {
+      const prompt = yield* SystemPrompt.Service
+      const restricted: Agent.Info = {
+        ...build,
+        permission: Permission.fromConfig({ task: { zeta: "deny" } }),
+      }
+      const output =
+        (yield* prompt.subagents(restricted))[0] ??
+        (yield* Effect.fail(new NamedError.Unknown({ message: "missing subagents output" })))
+
+      expect(output).not.toContain("- zeta")
+      expect(output).toContain("- alpha")
+    }),
+  )
+
+  it.effect("subagents output is empty when nothing is dispatchable", () =>
+    Effect.gen(function* () {
+      const prompt = yield* SystemPrompt.Service
+      const restricted: Agent.Info = {
+        ...build,
+        permission: Permission.fromConfig({ task: { "*": "deny" } }),
+      }
+
+      expect(yield* prompt.subagents(restricted)).toEqual([])
     }),
   )
 })

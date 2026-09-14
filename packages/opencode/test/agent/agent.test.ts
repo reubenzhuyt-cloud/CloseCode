@@ -210,6 +210,32 @@ it.instance(
 )
 
 it.instance(
+  "agent use_when frontmatter maps to useWhen",
+  () =>
+    Effect.gen(function* () {
+      const custom = yield* load((svc) => svc.get("researcher"))
+      expect(custom).toBeDefined()
+      expect(custom?.useWhen).toBe("Use for deep research.")
+      expect(custom?.mode).toBe("subagent")
+    }),
+  {
+    init: (directory) =>
+      Effect.promise(async () => {
+        await Bun.write(
+          path.join(directory, ".opencode", "agent", "researcher.md"),
+          `---
+description: Research agent
+mode: subagent
+use_when: Use for deep research.
+---
+
+Research prompt`,
+        )
+      }),
+  },
+)
+
+it.instance(
   "custom agent config overrides native agent properties",
   () =>
     Effect.gen(function* () {

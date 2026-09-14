@@ -27,6 +27,9 @@ const AgentSchema = Schema.StructWithRest(
     }),
     disable: Schema.optional(Schema.Boolean),
     description: Schema.optional(Schema.String).annotate({ description: "Description of when to use the agent" }),
+    use_when: Schema.optional(Schema.String).annotate({
+      description: "When the parent agent should dispatch to this subagent",
+    }),
     mode: Schema.optional(Schema.Literals(["subagent", "primary", "all"])),
     hidden: Schema.optional(Schema.Boolean).annotate({
       description: "Hide this subagent from the @ autocomplete menu (default: false, only applies to mode: subagent)",
@@ -50,6 +53,7 @@ const KNOWN_KEYS = new Set([
   "variant",
   "prompt",
   "description",
+  "use_when",
   "temperature",
   "top_p",
   "mode",

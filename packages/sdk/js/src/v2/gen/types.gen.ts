@@ -1692,8 +1692,12 @@ export type AgentConfig = {
   tools?: {
     [key: string]: boolean
   }
+  toolset?: {
+    [key: string]: boolean
+  }
   disable?: boolean
   description?: string
+  use_when?: string
   mode?: "subagent" | "primary" | "all"
   hidden?: boolean
   options?: {
@@ -1710,6 +1714,9 @@ export type AgentConfig = {
     | unknown
     | string
     | number
+    | {
+        [key: string]: boolean
+      }
     | {
         [key: string]: boolean
       }
@@ -2353,6 +2360,7 @@ export type Command = {
 export type Agent = {
   name: string
   description?: string
+  useWhen?: string
   mode: "subagent" | "primary" | "all"
   native?: boolean
   hidden?: boolean
@@ -2360,6 +2368,9 @@ export type Agent = {
   temperature?: number
   color?: string
   permission: PermissionRuleset
+  toolset?: {
+    [key: string]: boolean
+  }
   model?: {
     modelID: string
     providerID: string

@@ -15,7 +15,8 @@ import PROMPT_META from "./prompt/meta.txt"
 import PROMPT_CODEX from "./prompt/codex.txt"
 import PROMPT_TRINITY from "./prompt/trinity.txt"
 import type { Provider } from "@/provider/provider"
-import type { Agent } from "@/agent/agent"
+import { Agent } from "@/agent/agent"
+import { Subagent } from "@/agent/subagent"
 import { Permission } from "@/permission"
 import { Skill } from "@/skill"
 import { AbsolutePath } from "@opencode-ai/core/schema"
@@ -54,6 +55,7 @@ export interface Interface {
   readonly environment: (model: Provider.Model) => Effect.Effect<string[]>
   readonly skills: (agent: Agent.Info) => Effect.Effect<string | undefined>
   readonly mcp: (agent: Agent.Info, permission?: PermissionV1.Ruleset) => Effect.Effect<string | undefined>
+  readonly subagents: (agent: Agent.Info) => Effect.Effect<string[]>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/SystemPrompt") {}
@@ -63,6 +65,7 @@ const layer = Layer.effect(
   Effect.gen(function* () {
     const skill = yield* Skill.Service
     const mcp = yield* MCP.Service
+    const agents = yield* Agent.Service
     const locations = yield* LocationServiceMap.Service
 
     return Service.of({
@@ -135,6 +138,24 @@ const layer = Layer.effect(
           "</mcp_instructions>",
         ].join("\n")
       }),
+
+      subagents: Effect.fn("SystemPrompt.subagents")(function* (agent: Agent.Info) {
+        const list = Subagent.dispatchable(yield* agents.list(), agent)
+        if (list.length === 0) return []
+
+        return [
+          [
+            "Subagents can be delegated to through the task tool. A subagent runs in its own session with its own context window and does NOT see the parent conversation, so the task prompt must be self-contained.",
+            ...list.flatMap((item) => [
+              `- ${item.name} — ${item.description ?? "This subagent should only be called manually by the user."}`,
+              ...(item.useWhen ? [`  Use when: ${item.useWhen}`] : []),
+            ]),
+            "## Subagent session management",
+            "Each subagent session has its own context budget and is compacted automatically near the limit; the task result reports how much of that budget was used.",
+            "Reuse an existing session with task_id only when the work is a direct continuation of the same task. When the work changes significantly, launch a new subagent instead of reusing a nearly-full session.",
+          ].join("\n"),
+        ]
+      }),
     })
   }),
 )
@@ -148,7 +169,7 @@ const locationServiceMapNode = LayerNode.make({
 export const node = LayerNode.make({
   service: Service,
   layer: layer,
-  deps: [Skill.node, MCP.node, locationServiceMapNode],
+  deps: [Agent.node, Skill.node, MCP.node, locationServiceMapNode],
 })
 
 export * as SystemPrompt from "./system"
