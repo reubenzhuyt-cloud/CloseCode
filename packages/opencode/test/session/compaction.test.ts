@@ -9,6 +9,7 @@ import * as Stream from "effect/Stream"
 import { Config } from "@/config/config"
 import { LLM } from "../../src/session/llm"
 import { SessionCompaction } from "../../src/session/compaction"
+import { isTrigger } from "../../src/session/overflow"
 import { Token } from "@/util/token"
 import { Plugin } from "../../src/plugin"
 import { provideTmpdirInstance, TestInstance } from "../fixture/fixture"
@@ -1723,6 +1724,123 @@ describe("session.compaction.process", () => {
       expect(part?.type).toBe("compaction")
       expect(part?.tail_start_id).toBe(keep.id)
     }).pipe(withCompaction({ config: cfg({ tail_turns: 2, preserve_recent_tokens: 500 }) })),
+  )
+})
+
+describe("session.overflow.isTrigger", () => {
+  test("fires at the absolute threshold and not below", () => {
+    const model = createModel({ context: 200_000, output: 32_000 })
+    const below = { input: 143_999, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+    const at = { input: 144_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+    expect(isTrigger({ cfg: {}, tokens: below, model })).toBe(false)
+    expect(isTrigger({ cfg: {}, tokens: at, model })).toBe(true)
+  })
+
+  test("counts cache tokens", () => {
+    const model = createModel({ context: 200_000, output: 32_000 })
+    const tokens = { input: 100_000, output: 0, reasoning: 0, cache: { read: 44_000, write: 0 } }
+    expect(isTrigger({ cfg: {}, tokens, model })).toBe(true)
+  })
+
+  test("0 disables the trigger", () => {
+    const model = createModel({ context: 200_000, output: 32_000 })
+    const tokens = { input: 200_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+    expect(isTrigger({ cfg: { compaction: { trigger_tokens: 0 } }, tokens, model })).toBe(false)
+  })
+
+  test("auto false disables the trigger", () => {
+    const model = createModel({ context: 200_000, output: 32_000 })
+    const tokens = { input: 200_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+    expect(isTrigger({ cfg: { compaction: { auto: false } }, tokens, model })).toBe(false)
+  })
+
+  test("model context 0 disables the trigger", () => {
+    const model = createModel({ context: 0, output: 32_000 })
+    const tokens = { input: 200_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+    expect(isTrigger({ cfg: {}, tokens, model })).toBe(false)
+  })
+
+  test("honors a custom threshold", () => {
+    const model = createModel({ context: 200_000, output: 32_000 })
+    const tokens = { input: 1_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
+    expect(isTrigger({ cfg: { compaction: { trigger_tokens: 1_000 } }, tokens, model })).toBe(true)
+    expect(isTrigger({ cfg: { compaction: { trigger_tokens: 1_001 } }, tokens, model })).toBe(false)
+  })
+})
+
+describe("session.compaction.triggerTailTokens", () => {
+  test("defaults to 8000", () => {
+    expect(SessionCompaction.triggerTailTokens({})).toBe(8_000)
+    expect(SessionCompaction.triggerTailTokens({ compaction: {} })).toBe(8_000)
+  })
+
+  test("honors preserve_recent_tokens", () => {
+    expect(SessionCompaction.triggerTailTokens({ compaction: { preserve_recent_tokens: 1_200 } })).toBe(1_200)
+  })
+})
+
+function textMessage(text: string, role: "user" | "assistant" = "user"): SessionV1.WithParts {
+  const sessionID = SessionID.create()
+  const messageID = MessageID.ascending()
+  const info: SessionV1.Info =
+    role === "user"
+      ? { id: messageID, role: "user", sessionID, agent: "build", model: ref, time: { created: Date.now() } }
+      : {
+          id: messageID,
+          role: "assistant",
+          sessionID,
+          mode: "build",
+          agent: "build",
+          path: { cwd: "", root: "" },
+          cost: 0,
+          tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+          modelID: ref.modelID,
+          providerID: ref.providerID,
+          parentID: messageID,
+          time: { created: Date.now() },
+          finish: "end_turn",
+        }
+  return { info, parts: [{ id: PartID.ascending(), messageID, sessionID, type: "text", text }] }
+}
+
+describe("session.compaction.tailStart", () => {
+  it.effect("keeps the last turn and drops earlier history when it exceeds the budget", () =>
+    Effect.gen(function* () {
+      const model = createModel({ context: 100_000, output: 32_000 })
+      const older = textMessage("x".repeat(2_000))
+      const recent = textMessage("tiny")
+      expect(yield* SessionCompaction.tailStart({ messages: [older, recent], budget: 100, model })).toBe(recent.info.id)
+    }),
+  )
+
+  it.effect("cuts at a message inside a turn when only a suffix fits", () =>
+    Effect.gen(function* () {
+      const model = createModel({ context: 100_000, output: 32_000 })
+      const user = textMessage("intro")
+      const large = textMessage("z".repeat(2_000), "assistant")
+      const keep = textMessage("keep", "assistant")
+      expect(yield* SessionCompaction.tailStart({ messages: [user, large, keep], budget: 100, model })).toBe(
+        keep.info.id,
+      )
+    }),
+  )
+
+  it.effect("returns undefined when the whole history fits", () =>
+    Effect.gen(function* () {
+      const model = createModel({ context: 100_000, output: 32_000 })
+      const older = textMessage("a")
+      const recent = textMessage("b")
+      expect(yield* SessionCompaction.tailStart({ messages: [older, recent], budget: 10_000, model })).toBeUndefined()
+    }),
+  )
+
+  it.effect("returns undefined when budget is not positive", () =>
+    Effect.gen(function* () {
+      const model = createModel({ context: 100_000, output: 32_000 })
+      const recent = textMessage("b")
+      expect(yield* SessionCompaction.tailStart({ messages: [recent], budget: 0, model })).toBeUndefined()
+      expect(yield* SessionCompaction.tailStart({ messages: [recent], budget: -1, model })).toBeUndefined()
+    }),
   )
 })
 

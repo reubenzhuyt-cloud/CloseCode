@@ -14,7 +14,7 @@ import { NotFoundError } from "@/storage/storage"
 
 import { Effect, Layer, Context } from "effect"
 import { InstanceState } from "@/effect/instance-state"
-import { isOverflow as overflow, usable } from "./overflow"
+import { isOverflow, isTrigger, usable } from "./overflow"
 import { serviceUse } from "@opencode-ai/core/effect/service-use"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { EventV2Bridge } from "@/event-v2-bridge"
@@ -27,6 +27,7 @@ export const Event = SessionCompactionEvent
 
 export const PRUNE_MINIMUM = 20_000
 export const PRUNE_PROTECT = 40_000
+export const DEFAULT_TRIGGER_TAIL_TOKENS = 8_000
 const TOOL_OUTPUT_MAX_CHARS = 2_000
 const PRUNE_PROTECTED_TOOLS = ["skill"]
 const MIN_PRESERVE_RECENT_TOKENS = 2_000
@@ -84,6 +85,14 @@ const serialize = (message: SessionV1.WithParts) => {
     .join("\n")
 }
 
+const estimate = Effect.fn("SessionCompaction.estimate")(function* (input: {
+  messages: SessionV1.WithParts[]
+  model: Provider.Model
+}) {
+  const msgs = yield* MessageV2.toModelMessagesEffect(input.messages, input.model)
+  return Token.estimate(JSON.stringify(msgs))
+})
+
 function summaryText(message: SessionV1.WithParts) {
   const text = message.parts
     .filter((part): part is SessionV1.TextPart => part.type === "text")
@@ -117,6 +126,10 @@ function preserveRecentBudget(input: { cfg: ConfigV1.Info; model: Provider.Model
     input.cfg.compaction?.preserve_recent_tokens ??
     Math.min(MAX_PRESERVE_RECENT_TOKENS, Math.max(MIN_PRESERVE_RECENT_TOKENS, Math.floor(usable(input) * 0.25)))
   )
+}
+
+export function triggerTailTokens(cfg: ConfigV1.Info) {
+  return cfg.compaction?.preserve_recent_tokens ?? DEFAULT_TRIGGER_TAIL_TOKENS
 }
 
 function turns(messages: SessionV1.WithParts[]) {
@@ -162,8 +175,68 @@ function splitTurn(input: {
   })
 }
 
+const tailIndex = Effect.fnUntraced(function* (input: {
+  messages: SessionV1.WithParts[]
+  turns: Turn[]
+  model: Provider.Model
+  budget: number
+  estimate: (input: { messages: SessionV1.WithParts[]; model: Provider.Model }) => Effect.Effect<number>
+}) {
+  let total = 0
+  let keep: Tail | undefined
+  for (let i = input.turns.length - 1; i >= 0; i--) {
+    const turn = input.turns[i]!
+    // estimate lazily so cost stays proportional to the retained tail, not the whole session
+    const size = yield* input.estimate({
+      messages: input.messages.slice(turn.start, turn.end),
+      model: input.model,
+    })
+    if (total + size <= input.budget) {
+      total += size
+      keep = { start: turn.start, id: turn.id }
+      continue
+    }
+    const split = yield* splitTurn({
+      messages: input.messages,
+      turn,
+      model: input.model,
+      budget: input.budget - total,
+      estimate: input.estimate,
+    })
+    if (split) keep = split
+    else if (!keep) {
+      yield* Effect.logInfo("tail fallback", { budget: input.budget, size, total })
+    }
+    break
+  }
+  if (!keep || keep.start === 0) return undefined
+  return keep.start
+})
+
+export const tailStart = Effect.fn("SessionCompaction.tailStart")(function* (input: {
+  messages: SessionV1.WithParts[]
+  budget: number
+  model: Provider.Model
+}) {
+  if (input.budget <= 0) return undefined
+  const all = turns(input.messages)
+  if (!all.length) return undefined
+  const index = yield* tailIndex({
+    messages: input.messages,
+    turns: all,
+    budget: input.budget,
+    model: input.model,
+    estimate,
+  })
+  return index === undefined ? undefined : input.messages[index]!.info.id
+})
+
 export interface Interface {
   readonly isOverflow: (input: {
+    tokens: SessionV1.Assistant["tokens"]
+    model: Provider.Model
+  }) => Effect.Effect<boolean>
+  readonly isTrigger: (input: {
     tokens: SessionV1.Assistant["tokens"]
     model: Provider.Model
   }) => Effect.Effect<boolean>
@@ -200,11 +273,11 @@ const layer = Layer.effect(
     const events = yield* EventV2Bridge.Service
     const flags = yield* RuntimeFlags.Service
 
-    const isOverflow = Effect.fn("SessionCompaction.isOverflow")(function* (input: {
+    const checkOverflow = Effect.fn("SessionCompaction.isOverflow")(function* (input: {
       tokens: SessionV1.Assistant["tokens"]
       model: Provider.Model
     }) {
-      return overflow({
+      return isOverflow({
         cfg: yield* config.get(),
         tokens: input.tokens,
         model: input.model,
@@ -212,12 +285,16 @@ const layer = Layer.effect(
       })
     })
 
-    const estimate = Effect.fn("SessionCompaction.estimate")(function* (input: {
-      messages: SessionV1.WithParts[]
+    const checkTrigger = Effect.fn("SessionCompaction.isTrigger")(function* (input: {
+      tokens: SessionV1.Assistant["tokens"]
       model: Provider.Model
     }) {
-      const msgs = yield* MessageV2.toModelMessagesEffect(input.messages, input.model)
-      return Token.estimate(JSON.stringify(msgs))
+      return isTrigger({
+        cfg: yield* config.get(),
+        tokens: input.tokens,
+        model: input.model,
+        outputTokenMax: flags.outputTokenMax,
+      })
     })
 
     const select = Effect.fn("SessionCompaction.select")(function* (input: {
@@ -227,44 +304,20 @@ const layer = Layer.effect(
     }) {
       const limit = input.cfg.compaction?.tail_turns
       if (limit !== undefined && limit <= 0) return { head: input.messages, tail_start_id: undefined }
-      const budget = preserveRecentBudget({ cfg: input.cfg, model: input.model })
       const all = turns(input.messages)
       if (!all.length) return { head: input.messages, tail_start_id: undefined }
       const recent = limit === undefined ? all : all.slice(-limit)
-
-      let total = 0
-      let keep: Tail | undefined
-      for (let i = recent.length - 1; i >= 0; i--) {
-        const turn = recent[i]!
-        // estimate lazily so cost stays proportional to the retained tail, not the whole session
-        const size = yield* estimate({
-          messages: input.messages.slice(turn.start, turn.end),
-          model: input.model,
-        })
-        if (total + size <= budget) {
-          total += size
-          keep = { start: turn.start, id: turn.id }
-          continue
-        }
-        const remaining = budget - total
-        const split = yield* splitTurn({
-          messages: input.messages,
-          turn,
-          model: input.model,
-          budget: remaining,
-          estimate,
-        })
-        if (split) keep = split
-        else if (!keep) {
-          yield* Effect.logInfo("tail fallback", { budget, size, total })
-        }
-        break
-      }
-
-      if (!keep || keep.start === 0) return { head: input.messages, tail_start_id: undefined }
+      const index = yield* tailIndex({
+        messages: input.messages,
+        turns: recent,
+        model: input.model,
+        budget: preserveRecentBudget({ cfg: input.cfg, model: input.model }),
+        estimate,
+      })
+      if (index === undefined) return { head: input.messages, tail_start_id: undefined }
       return {
-        head: input.messages.slice(0, keep.start),
-        tail_start_id: keep.id,
+        head: input.messages.slice(0, index),
+        tail_start_id: input.messages[index]!.info.id,
       }
     })
 
@@ -582,7 +635,8 @@ const layer = Layer.effect(
     })
 
     return Service.of({
-      isOverflow,
+      isOverflow: checkOverflow,
+      isTrigger: checkTrigger,
       prune,
       process: processCompaction,
       create,

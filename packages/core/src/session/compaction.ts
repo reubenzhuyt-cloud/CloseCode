@@ -157,6 +157,14 @@ const select = (
   }
 }
 
+// Instruction-only variant for the warm-prefix compaction path, where the conversation is already
+// in the request messages. Unlike buildPrompt, it does not embed the conversation in <conversation> tags.
+export const buildSummaryInstruction = () =>
+  [
+    "Create a new anchored summary from the conversation above so another coding agent can continue the work.",
+    SUMMARY_TEMPLATE,
+  ].join("\n\n")
+
 export const buildPrompt = (input: { readonly previousSummary?: string; readonly context: readonly string[] }) => {
   const conversation = `Here is the conversation so far:\n\n<conversation>\n${input.context.join("\n\n")}\n</conversation>`
   if (!input.previousSummary)

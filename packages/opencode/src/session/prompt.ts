@@ -17,6 +17,7 @@ import { SystemPrompt } from "./system"
 import { Instruction } from "./instruction"
 import { Plugin } from "../plugin"
 import { MAX_STEPS_PROMPT } from "@opencode-ai/core/session/runner/max-steps"
+import { buildSummaryInstruction } from "@opencode-ai/core/session/compaction"
 import { ToolRegistry } from "@/tool/registry"
 import { MCP } from "../mcp"
 import { LSP } from "@/lsp/lsp"
@@ -1078,6 +1079,162 @@ const layer = Layer.effect(
       throw new Error("Impossible")
     })
 
+    const resolveRequest = Effect.fnUntraced(function* (input: {
+      agent: Agent.Info
+      session: Session.Info
+      model: Provider.Model
+      msgs: SessionV1.WithParts[]
+      handle: SessionProcessor.Handle
+    }) {
+      const lastUserMsg = input.msgs.findLast((m) => m.info.role === "user")
+      const bypassAgentCheck = lastUserMsg?.parts.some((p) => p.type === "agent") ?? false
+      const promptOps = yield* ops()
+      const tools = yield* SessionTools.resolve({
+        agent: input.agent,
+        session: input.session,
+        model: input.model,
+        processor: input.handle,
+        bypassAgentCheck,
+        messages: input.msgs,
+        promptOps,
+      }).pipe(
+        Effect.provideService(Plugin.Service, plugin),
+        Effect.provideService(Permission.Service, permission),
+        Effect.provideService(ToolRegistry.Service, registry),
+        Effect.provideService(MCP.Service, mcp),
+        Effect.provideService(Truncate.Service, truncate),
+        Effect.provideService(RuntimeFlags.Service, flags),
+      )
+      yield* plugin.trigger("experimental.chat.messages.transform", {}, { messages: input.msgs })
+      const [skills, env, instructions, subagents, mcpInstructions, modelMsgs] = yield* Effect.all([
+        sys.skills(input.agent, input.session),
+        sys.environment(input.model),
+        instruction.system().pipe(Effect.orDie),
+        sys.subagents(input.agent),
+        sys.mcp(input.agent, input.session.permission),
+        MessageV2.toModelMessagesEffect(input.msgs, input.model),
+      ])
+      const system = [
+        ...env,
+        ...instructions,
+        ...subagents,
+        ...(mcpInstructions ? [mcpInstructions] : []),
+        ...(skills ? [skills] : []),
+      ]
+      return { tools, system, modelMsgs }
+    })
+
+    const manualCompaction = Effect.fn("SessionPrompt.manualCompaction")(function* (input: {
+      sessionID: SessionID
+      session: Session.Info
+      model: Provider.Model
+      lastUser: SessionV1.User
+      msgs: SessionV1.WithParts[]
+      tailTokens: number
+    }) {
+      const agent = yield* agents.get(input.lastUser.agent)
+      if (!agent) {
+        const available = (yield* agents.list()).filter((a) => !a.hidden).map((a) => a.name)
+        const hint = available.length ? ` Available agents: ${available.join(", ")}` : ""
+        const error = new NamedError.Unknown({ message: `Agent not found: "${input.lastUser.agent}".${hint}` })
+        yield* events.publish(Session.Event.Error, { sessionID: input.sessionID, error: error.toObject() })
+        throw error
+      }
+      const marker = input.lastUser
+      const history = input.msgs.filter((m) => m.info.id !== marker.id)
+      const messages = yield* SessionReminders.apply({ messages: history, agent, session: input.session }).pipe(
+        Effect.provideService(RuntimeFlags.Service, flags),
+        Effect.provideService(FSUtil.Service, fsys),
+        Effect.provideService(Session.Service, sessions),
+      )
+      const priorUser = messages.flatMap((m) => (m.info.role === "user" ? [m.info] : [])).at(-1) ?? marker
+      const ctx = yield* InstanceState.context
+      const msg: SessionV1.Assistant = {
+        id: MessageID.ascending(),
+        parentID: marker.id,
+        role: "assistant",
+        mode: "compaction",
+        agent: "compaction",
+        variant: marker.model.variant,
+        path: { cwd: ctx.directory, root: ctx.worktree },
+        cost: 0,
+        tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+        modelID: input.model.id,
+        providerID: input.model.providerID,
+        summary: true,
+        time: { created: Date.now() },
+        sessionID: input.sessionID,
+      }
+      yield* sessions.updateMessage(msg)
+
+      const finalizeInterruptedAssistant = Effect.gen(function* () {
+        if (msg.time.completed) return
+        msg.error ??= MessageV2.fromError(new DOMException("Aborted", "AbortError"), {
+          providerID: msg.providerID,
+          aborted: true,
+        })
+        msg.time.completed = Date.now()
+        yield* sessions.updateMessage(msg)
+      })
+
+      const handle = yield* processor
+        .create({ assistantMessage: msg, sessionID: input.sessionID, model: input.model })
+        .pipe(Effect.onInterrupt(() => finalizeInterruptedAssistant))
+      const compacting = yield* plugin.trigger(
+        "experimental.session.compacting",
+        { sessionID: input.sessionID },
+        { context: [], prompt: undefined },
+      )
+      const { tools, system, modelMsgs } = yield* resolveRequest({
+        agent,
+        session: input.session,
+        model: input.model,
+        msgs: messages,
+        handle,
+      })
+      const result = yield* handle
+        .process({
+          user: priorUser,
+          agent,
+          permission: input.session.permission,
+          sessionID: input.sessionID,
+          parentSessionID: input.session.parentID,
+          system,
+          messages: [
+            ...modelMsgs,
+            {
+              role: "user" as const,
+              content: [compacting.prompt ?? buildSummaryInstruction(), ...compacting.context]
+                .filter(Boolean)
+                .join("\n\n"),
+            },
+          ],
+          tools,
+          model: input.model,
+          toolChoice: "none",
+        })
+        .pipe(Effect.ensuring(instruction.clear(msg.id)))
+      if (result === "compact") {
+        yield* sessions.removeMessage({ sessionID: input.sessionID, messageID: msg.id })
+        return "fallback" as const
+      }
+      if (result === "continue") {
+        if (input.tailTokens > 0) {
+          const part = input.msgs
+            .find((message) => message.info.id === marker.id)
+            ?.parts.find((item) => item.type === "compaction")
+          const tail = yield* SessionCompaction.tailStart({
+            messages: history,
+            budget: input.tailTokens,
+            model: input.model,
+          })
+          if (part && tail) yield* sessions.updatePart({ ...part, tail_start_id: tail })
+        }
+        yield* events.publish(SessionCompaction.Event.Compacted, { sessionID: input.sessionID })
+      }
+      return result
+    })
+
     const runLoop: (sessionID: SessionID) => Effect.Effect<SessionV1.WithParts> = Effect.fn("SessionPrompt.run")(
       function* (sessionID: SessionID) {
         const ctx = yield* InstanceState.context
@@ -1147,13 +1304,42 @@ const layer = Layer.effect(
           }
 
           if (task?.type === "compaction") {
-            const result = yield* compaction.process({
-              messages: msgs,
-              parentID: lastUser.id,
+            const overflow =
+              task.auto &&
+              lastFinished !== undefined &&
+              lastFinished.summary !== true &&
+              (yield* compaction.isOverflow({ tokens: lastFinished.tokens, model }))
+            if (overflow) {
+              const result = yield* compaction.process({
+                messages: msgs,
+                parentID: lastUser.id,
+                sessionID,
+                auto: task.auto,
+                overflow: task.overflow,
+              })
+              if (result === "stop") break
+              continue
+            }
+            const cfg = yield* config.get()
+            const result = yield* manualCompaction({
               sessionID,
-              auto: task.auto,
-              overflow: task.overflow,
+              session,
+              model,
+              lastUser,
+              msgs,
+              tailTokens: task.auto ? SessionCompaction.triggerTailTokens(cfg) : 0,
             })
+            if (result === "fallback") {
+              const fallback = yield* compaction.process({
+                messages: msgs,
+                parentID: lastUser.id,
+                sessionID,
+                auto: task.auto,
+                overflow: task.overflow,
+              })
+              if (fallback === "stop") break
+              continue
+            }
             if (result === "stop") break
             continue
           }
@@ -1164,6 +1350,21 @@ const layer = Layer.effect(
             (yield* compaction.isOverflow({ tokens: lastFinished.tokens, model }))
           ) {
             yield* compaction.create({ sessionID, agent: lastUser.agent, model: lastUser.model, auto: true })
+            continue
+          }
+
+          if (
+            lastFinished &&
+            lastFinished.summary !== true &&
+            (yield* compaction.isTrigger({ tokens: lastFinished.tokens, model }))
+          ) {
+            yield* compaction.create({
+              sessionID,
+              agent: lastUser.agent,
+              model: lastUser.model,
+              auto: true,
+              overflow: false,
+            })
             continue
           }
 
@@ -1219,26 +1420,7 @@ const layer = Layer.effect(
             .pipe(Effect.onInterrupt(() => finalizeInterruptedAssistant))
 
           const outcome: "break" | "continue" = yield* Effect.gen(function* () {
-            const lastUserMsg = msgs.findLast((m) => m.info.role === "user")
-            const bypassAgentCheck = lastUserMsg?.parts.some((p) => p.type === "agent") ?? false
-            const promptOps = yield* ops()
-
-            const tools = yield* SessionTools.resolve({
-              agent,
-              session,
-              model,
-              processor: handle,
-              bypassAgentCheck,
-              messages: msgs,
-              promptOps,
-            }).pipe(
-              Effect.provideService(Plugin.Service, plugin),
-              Effect.provideService(Permission.Service, permission),
-              Effect.provideService(ToolRegistry.Service, registry),
-              Effect.provideService(MCP.Service, mcp),
-              Effect.provideService(Truncate.Service, truncate),
-              Effect.provideService(RuntimeFlags.Service, flags),
-            )
+            const { tools, system, modelMsgs } = yield* resolveRequest({ agent, session, model, msgs, handle })
 
             if (lastUser.format?.type === "json_schema") {
               tools["StructuredOutput"] = createStructuredOutputTool({
@@ -1252,23 +1434,6 @@ const layer = Layer.effect(
             if (step === 1)
               yield* summary.summarize({ sessionID, messageID: lastUser.id }).pipe(Effect.ignore, Effect.forkIn(scope))
 
-            yield* plugin.trigger("experimental.chat.messages.transform", {}, { messages: msgs })
-
-            const [skills, env, instructions, subagents, mcpInstructions, modelMsgs] = yield* Effect.all([
-              sys.skills(agent, session),
-              sys.environment(model),
-              instruction.system().pipe(Effect.orDie),
-              sys.subagents(agent),
-              sys.mcp(agent, session.permission),
-              MessageV2.toModelMessagesEffect(msgs, model),
-            ])
-            const system = [
-              ...env,
-              ...instructions,
-              ...subagents,
-              ...(mcpInstructions ? [mcpInstructions] : []),
-              ...(skills ? [skills] : []),
-            ]
             const format = lastUser.format ?? { type: "text" as const }
             if (format.type === "json_schema") system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
             const result = yield* handle.process({

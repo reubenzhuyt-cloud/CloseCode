@@ -6,6 +6,11 @@ import { ProviderTransform } from "@/provider/transform"
 import type { MessageV2 } from "./message-v2"
 
 const COMPACTION_BUFFER = 20_000
+const DEFAULT_TRIGGER_TOKENS = 144_000
+
+function count(tokens: SessionV1.Assistant["tokens"]) {
+  return tokens.total || tokens.input + tokens.output + tokens.cache.read + tokens.cache.write
+}
 
 export function usable(input: { cfg: ConfigV1.Info; model: Provider.Model; outputTokenMax?: number }) {
   const context = input.model.limit.context
@@ -30,7 +35,19 @@ export function isOverflow(input: {
   if (input.cfg.compaction?.auto === false) return false
   if (input.model.limit.context === 0) return false
 
-  const count =
-    input.tokens.total || input.tokens.input + input.tokens.output + input.tokens.cache.read + input.tokens.cache.write
-  return count >= usable(input)
+  return count(input.tokens) >= usable(input)
+}
+
+export function isTrigger(input: {
+  cfg: ConfigV1.Info
+  tokens: SessionV1.Assistant["tokens"]
+  model: Provider.Model
+  outputTokenMax?: number
+}) {
+  if (input.cfg.compaction?.auto === false) return false
+  const threshold = input.cfg.compaction?.trigger_tokens ?? DEFAULT_TRIGGER_TOKENS
+  if (threshold <= 0) return false
+  if (input.model.limit.context === 0) return false
+
+  return count(input.tokens) >= threshold
 }
