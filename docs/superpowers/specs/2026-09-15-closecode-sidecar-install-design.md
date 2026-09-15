@@ -80,4 +80,4 @@ Then re-run the copy above. `--single` builds only the current platform.
 1. `closecode --version` prints `1.18.31-warm`.
 2. `opencode --version` still prints `1.18.31` (official untouched).
 3. `closecode` starts the TUI and lists the same sessions as `opencode`.
-4. `opencode.exe` inode/size/mtime is unchanged by the copy.
+4. `opencode.exe` size and mtime are unchanged by the copy.
