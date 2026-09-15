@@ -1,6 +1,8 @@
-# OpenCode — Architecture Baseline
+# CloseCode — Architecture Baseline
 
 > Generated baseline architecture survey produced from a multi-round read-only code review (2026-09-12). `path:line` anchors reflect the code at this commit and may drift as the code evolves.
+>
+> CloseCode is the fork of `opencode` (repository `reubenzhuyt-cloud/CloseCode`, renamed from `opencode_fork`, version `0.1.0`). Sections 1–4 describe the upstream architecture; **Appendix C** records the fork's deltas.
 
 ## 1. High-Level Overview
 
@@ -493,7 +495,7 @@ The `Contract` IR (`packages/httpapi-codegen/src/index.ts:29-31`) contains `Grou
 
 There are three SDK surfaces. Two are ACTIVE; one is EXPERIMENTAL.
 
-**`@opencode-ai/sdk`** (ACTIVE): Published package (`packages/sdk/js/package.json:2`, version 1.18.30). Generated from OpenAPI JSON spec using `@hey-api/openapi-ts` (`packages/sdk/js/script/build.ts:47-72`). The OpenAPI spec is produced by running `bun dev generate` from `packages/opencode` (`packages/sdk/js/script/build.ts:14`). Exports v1 (`src/index.ts`) and v2 (`src/v2/index.ts`) client facades. This is the package external plugins depend on (`packages/plugin/package.json:25`).
+**`@opencode-ai/sdk`** (ACTIVE): Published package (`packages/sdk/js/package.json:2`, version 0.1.0). Generated from OpenAPI JSON spec using `@hey-api/openapi-ts` (`packages/sdk/js/script/build.ts:47-72`). The OpenAPI spec is produced by running `bun dev generate` from `packages/opencode` (`packages/sdk/js/script/build.ts:14`). Exports v1 (`src/index.ts`) and v2 (`src/v2/index.ts`) client facades. This is the package external plugins depend on (`packages/plugin/package.json:25`).
 
 **`@opencode-ai/client`** (ACTIVE): Private package (`packages/client/package.json:4`). Generated from the Effect HttpApi definition by `@opencode-ai/httpapi-codegen`. This is the contract source of truth — new API types flow from here. The app's `packages/app/src/context/server-session.ts:3` imports `SessionApi`, `OpenCodeEvent`, `SessionMessageInfo` from `@opencode-ai/client/promise`. The app's `packages/app/src/context/server-sdk.tsx:1` imports `OpenCodeEvent` from `@opencode-ai/client/promise`.
 
@@ -1340,3 +1342,101 @@ cd packages/core && bun script/migration.ts          # generate migrations
 cd packages/core && bun script/migration.ts --check  # verify migrations
 cd packages/core && bun test --only-failures         # package tests (never from root)
 ```
+
+=====================================================================
+
+# Appendix C — CloseCode Fork Deltas
+
+CloseCode is a fork of upstream `opencode`. The repository was renamed from
+`opencode_fork` to `CloseCode` and the product packages are versioned `0.1.0`.
+Sections 1–4 above describe the upstream architecture; this appendix records
+what the fork changed on top of it. The fork's own history begins at
+`e2942f1ef docs: add architecture baseline and remove release docs`.
+
+## C.1 Identity and distribution
+
+| Item | Value |
+|---|---|
+| Repository | `reubenzhuyt-cloud/CloseCode` (renamed from `opencode_fork`; the old URL redirects) |
+| Version | `0.1.0` for the 12 product packages (`opencode`, `core`, `tui`, `server`, `app`, `web`, `desktop`, `ui`, `session-ui`, `cli`, `plugin`, `sdk/js`); the remaining workspace packages stay at `1.18.30` |
+| Branch | `dev` (default) |
+| Version source | `OPENCODE_VERSION` compile-time define only — `packages/script/src/index.ts` derives `VERSION` from `OPENCODE_VERSION`, else the git branch or the npm registry, and `packages/core/src/installation/version.ts` reads only `OPENCODE_VERSION`. **No runtime code reads a workspace `package.json` version**, so bumping the manifests does not change `opencode --version`. |
+| Auto-update | Hardcoded off: `OPENCODE_DISABLE_AUTOUPDATE: true` (`packages/core/src/flag/flag.ts:23`). A hand-built binary also reports `Installation.method() === "unknown"`, which independently suppresses upgrades. |
+| Sidecar command | A compiled build can be deployed as `%APPDATA%\npm\closecode.exe` beside the official npm install — a plain file copy with no `PATH`, identity, or branding change. Both commands share `~/.local/share/opencode` and `~/.config/opencode` because the data directory name derives from `const app = "opencode"` (`packages/core/src/global.ts:10-15`). **Do not run `opencode` and `closecode` concurrently**: they share the SQLite database and the `state` directory `Flock` lock. |
+
+## C.2 Agent scoping: `toolset` visibility
+
+Upstream placed every built-in and MCP tool into the model context regardless of
+agent, with `permission` gating only execution. The fork adds an optional
+`toolset` allowlist enforced at context-assembly time, so hidden tools never
+reach the provider.
+
+- Config field: `toolset: Record<string, boolean>` on the agent (`packages/core/src/v1/config/agent.ts`; `packages/opencode/src/config/v2-compat.ts:78`, `:399`; `packages/opencode/src/agent/agent.ts:46`, merged at `:296`).
+- Semantics: absent or empty → all tools visible; present and non-empty → allowlist evaluated in object key order, last matching pattern wins, default hidden. A `false` match beats a `true` match.
+- Matcher: `toolsetAllows(toolset, candidates)` (`packages/opencode/src/agent/toolset.ts`), reusing the permission glob syntax.
+- Match targets: the built-in tool id (`bash`, `read`), the MCP tool key (`github_create_issue`), or the synthetic `mcp:<server>` form covering every tool of one MCP server.
+- Filter points: built-in tools in `ToolRegistry.tools()` (`packages/opencode/src/tool/registry.ts:296`, applied before the model-capability checks); MCP tools in `SessionTools.resolve()` (`packages/opencode/src/session/tools.ts:399`); MCP resource tools at `:142`, `:226`, `:311`; the code-mode catalog in `ToolRegistry.describeCodeMode()` (`packages/opencode/src/tool/registry.ts:285-287`).
+- `toolset` and `permission` are orthogonal — visibility vs authorization. The `task` tool's dispatchable-subagent list is still governed by `permission` (`Subagent.dispatchable`, `packages/opencode/src/agent/subagent.ts:4`).
+
+## C.3 TUI: agent, skill, and command surfaces
+
+- `/agents` (`packages/tui/src/app.tsx:682`) opens a management dialog instead of a plain switcher: `packages/tui/src/component/dialog-agent-manage.tsx` provides the list, create, switch, edit, and delete actions, and `packages/tui/src/component/dialog-agent-edit.tsx` the field editor (description, mode, model, toolset, permission, scope). `packages/tui/src/component/dialog-agent.tsx` remains the switch-only dialog used elsewhere.
+- Writes go through the legacy config endpoints — `config.update` for project scope, `global.config.update` for global scope — and `Config.invalidate()` propagates the change; the dialog refreshes from `app.agents()`.
+- Deletion writes `{ disable: true }` rather than removing the key (`packages/opencode/src/agent/agent.ts:271`).
+- Hidden and system agents are folded into a `Hidden` group; the fork also added prompt editing, collapsible system agents, Esc-to-go-back, permission editing, per-row actions, and visible save/delete failures.
+- `/skillsetting` (`packages/tui/src/app.tsx:691`) opens the current agent's skill settings.
+- Slash-command autocomplete is ranked by local usage: `packages/tui/src/prompt/command-usage.ts` (max 200 tracked entries, boost up to 10 in 0.1 steps).
+- Project-level config edits are persisted to `opencode.json` and auto-save on Esc; agent-setting saves close the dialog first and write in the background.
+
+## C.4 Per-agent skill activation levels
+
+Skills accept an activation level of `off` | `name` | `full`
+(`packages/opencode/src/skill/index.ts:321`). `Skill.fmt` emits only the skill
+name for `name`, the full block (description plus location) for `full`, and drops
+the skill entirely for `off` (`:323-348`). Levels are stored per agent under the
+session metadata key `agent_skills` and resolved by `sessionLevels`
+(`packages/opencode/src/session/system.ts:60`), applied at `:131-145`.
+`/skillsetting` is the TUI entry point.
+
+## C.5 Subagent directory
+
+The system prompt's subagent list is generated from the dispatchable subagents
+(`packages/opencode/src/session/system.ts:167-183`), and each entry may carry a
+`use_when` hint (`packages/core/src/v1/config/agent.ts:30` →
+`packages/opencode/src/agent/agent.ts:38`, `:288`) rendered as
+`Use when: <text>` (`packages/opencode/src/session/system.ts:176`).
+
+## C.6 Task tool usage reporting
+
+`task` results report the subagent session's context usage as
+`<task_usage tokens="…" limit="…" percent="…" />`
+(`packages/opencode/src/tool/task.ts:70-73`, built at `:204-226`), where `limit`
+is the model's context cap. The generated subagent guidance instructs the model
+to reuse a `task_id` only for a direct continuation of the same task
+(`packages/opencode/src/session/system.ts:179-180`).
+
+## C.7 Compaction: an absolute warm trigger
+
+Two compaction mechanisms coexist in the V1 stack (`packages/opencode`). The
+upstream overflow path is unchanged; the fork adds a threshold path that runs
+through the prefix-preserving ("warm") request so the provider prompt cache is
+reused.
+
+| | Overflow (cold, upstream) | Threshold (warm, new) |
+|---|---|---|
+| Trigger | `SessionOverflow.isOverflow` — model-derived `usable()` | `SessionOverflow.isTrigger` — absolute `compaction.trigger_tokens`, default `144_000` (`packages/opencode/src/session/overflow.ts:9`, `:41-53`) |
+| Path | `SessionCompaction.process` — fresh prefix (`system: []`, `tools: {}`, summary agent) | `manualCompaction` — full history re-sent to the session's own agent |
+| Tail | none | the most recent ~`8_000` tokens kept verbatim (`DEFAULT_TRIGGER_TAIL_TOKENS`, `packages/opencode/src/session/compaction.ts:30`), overridable via `compaction.preserve_recent_tokens` (`:131-133`) |
+| Fallback | n/a | a warm request that would overflow falls back to the cold path |
+
+- Config: `trigger_tokens: Schema.optional(NonNegativeInt)` on the `compaction` struct (`packages/core/src/v1/config/config.ts:164`). There is no schema default — the runtime default lives at the check — and the value is **not** clamped to `usable()`.
+- Disabled when any of: `compaction.auto === false` (this honours `OPENCODE_DISABLE_AUTOCOMPACT`), the resolved threshold is `<= 0`, or `model.limit.context === 0`.
+- Loop wiring (`packages/opencode/src/session/prompt.ts`): the overflow check runs first (`:1342-1349`), then the threshold block (`:1351-1364`, calling `compaction.isTrigger` at `:1359`), so the threshold can never preempt the cold path. The compaction task branch picks cold vs warm at `:1302-1340` and passes `tailTokens` (`:1330`); `manualCompaction` takes `tailTokens: number` (`:1133`) and persists `tail_start_id` on the compaction marker when it is `> 0` (`:1222-1232`).
+- Tail selection: `tailStart` (`packages/opencode/src/session/compaction.ts:216`) walks turns backwards by token budget and shares `splitTurn` (`:153`) with `select`, so both agree on tail boundaries. `filterCompacted` (`packages/opencode/src/session/message-v2.ts:521-572`) already reassembles `[marker, summary, tail…, later…]` from `tail_start_id`, so post-compaction context needed no change.
+- `/compact` is unchanged: `auto: false`, full-history replacement, no tail, and it still falls back to cold when the warm request would overflow.
+- Known gap (pre-existing, deliberately not fixed by the fork): `compaction.create` does not forward `overflow`, so the media-stripping replay branch in `process` is skipped for overflow-triggered compaction and very large attachments can report "Session too large to compact" (`packages/opencode/src/session/prompt.ts:1318`, `:1338`).
+
+## C.8 Core refactors
+
+- `packages/core/src/filesystem/search.ts` imports `Entry` and `Match` from `@opencode-ai/schema/filesystem` and the `FindInput`/`GlobInput`/`GrepInput` types directly, instead of reaching through the `../filesystem` barrel — this breaks a circular import.
+- `.gitignore` also covers local runtime/agent state (see `# Local runtime / agent state`).
