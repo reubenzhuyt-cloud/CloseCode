@@ -27,6 +27,7 @@ export interface Namespace {
 interface BaseOptions {
   readonly namespace?: string
   readonly permission?: string
+  readonly mcpServer?: string
 }
 
 export type Options = BaseOptions &

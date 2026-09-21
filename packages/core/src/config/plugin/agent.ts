@@ -13,6 +13,7 @@ import { ConfigAgentV1 } from "../../v1/config/agent.js"
 import { ConfigMigrateV1 } from "../../v1/config/migrate.js"
 import { Global } from "@opencode/util/global"
 import { Permission } from "../../permission.js"
+import { AgentToolset } from "../../tool/toolset.js"
 import type { FileAccess } from "../../file-access.js"
 import type { ReadTool } from "../../tool/plugin/read.js"
 import type { EditTool } from "../../tool/plugin/edit.js"
@@ -118,6 +119,7 @@ export const Plugin = define({
             if (item.hidden !== undefined) agent.hidden = item.hidden
             if (item.color !== undefined) agent.color = item.color
             if (item.steps !== undefined) agent.steps = item.steps
+            if (item.toolset !== undefined) agent.toolset = AgentToolset.mergeToolset(agent.toolset, item.toolset)
             if (item.permissions !== undefined) {
               agent.permissions.push(...expandPermissions(item.permissions, global.home))
             }

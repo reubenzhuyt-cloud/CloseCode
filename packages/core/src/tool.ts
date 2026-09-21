@@ -16,6 +16,7 @@ import { SessionMessage } from "./session/message.js"
 import { SessionSchema } from "./session/schema.js"
 import { State } from "./state.js"
 import { definition, effectiveName, execute, normalizedName, normalizeContent } from "./tool/runtime.js"
+import { toolsetAllowsMcp } from "./tool/toolset.js"
 import { Wildcard } from "./util/wildcard.js"
 
 export class RegistrationError extends Schema.TaggedError<RegistrationError>()("Tool.RegistrationError", {
@@ -40,7 +41,10 @@ type Data = {
 
 export interface Interface extends State.Transformable<Editor> {
   readonly list: () => Effect.Effect<ReadonlyArray<Tool.Info & { readonly id: string }>>
-  readonly snapshot: (permissions?: Permission.Ruleset) => Effect.Effect<Snapshot>
+  readonly snapshot: (
+    permissions?: Permission.Ruleset,
+    toolset?: Record<string, boolean>,
+  ) => Effect.Effect<Snapshot>
 }
 
 /** A local execution result after hooks and content normalization. */
@@ -222,13 +226,19 @@ const layer = Layer.effect(
       transform: state.transform,
       reload: state.reload,
       list: () => Effect.sync(() => Array.from(state.get().tools.values())),
-      snapshot: Effect.fn("Tool.snapshot")((permissions) =>
+      snapshot: Effect.fn("Tool.snapshot")((permissions, toolset) =>
         Effect.sync(() => {
           const data = state.get()
           const active = new Map<string, Tool.Info>()
           const rules = permissions ?? []
           for (const [name, tool] of data.tools) {
             if (whollyDisabled(tool.options?.permission ?? name, rules)) continue
+            if (
+              toolset &&
+              tool.options?.mcpServer !== undefined &&
+              !toolsetAllowsMcp(toolset, [name, `mcp:${tool.options.mcpServer}`])
+            )
+              continue
             active.set(name, tool)
           }
           const direct = new Map(Array.from(active).filter(([, tool]) => tool.options?.codemode === false))

@@ -19,4 +19,10 @@ export class Info extends Schema.Class<Info>("Config.Agent")({
   steps: PositiveInt.pipe(optional),
   disabled: Schema.Boolean.pipe(optional),
   permissions: Permission.Ruleset.pipe(optional),
+  toolset: Schema.Record(Schema.String, Schema.Boolean)
+    .annotate({
+      description:
+        "Visibility allowlist for MCP tools. Keys are glob patterns matched against MCP tool ids or `mcp:<server>`; MCP tools are hidden unless a pattern allows them. Built-in tools are always visible.",
+    })
+    .pipe(optional),
 }) {}

@@ -1183,4 +1183,64 @@ describe("Tool", () => {
       ])
     }),
   )
+
+  it.effect("gates MCP tools by toolset while keeping built-in tools visible", () =>
+    Effect.gen(function* () {
+      const service = yield* Tool.Service
+      const weather: Info = {
+        name: "weather_current",
+        description: "Current weather",
+        input: Schema.Struct({ city: Schema.String }),
+        output: Schema.Struct({ city: Schema.String }),
+        options: { mcpServer: "weather" },
+        execute: ({ city }) => Effect.succeed({ output: { city } }),
+      }
+      yield* transform(service, {
+        echo: { ...make(), options: { codemode: false } },
+        weather_current: weather,
+      })
+      const catalog = (toolset?: Record<string, boolean>) =>
+        service
+          .snapshot(undefined, toolset)
+          .pipe(
+            Effect.map((snapshot) =>
+              snapshot.codeModeCatalog ? codeModeListings(snapshot.codeModeCatalog).map((tool) => tool.path) : [],
+            ),
+          )
+      const names = (toolset?: Record<string, boolean>) =>
+        service
+          .snapshot(undefined, toolset)
+          .pipe(Effect.map((snapshot) => snapshot.definitions.map((tool) => tool.name)))
+      const runWeather = (toolset: Record<string, boolean>, id: string) =>
+        service.snapshot(undefined, toolset).pipe(
+          Effect.flatMap((snapshot) =>
+            snapshot.execute({
+              ...call("execute"),
+              call: {
+                type: "tool-call",
+                id,
+                name: "execute",
+                input: { code: 'return await tools.weather_current({ city: "paris" })' },
+              },
+            }),
+          ),
+        )
+
+      expect(yield* names()).toEqual(["echo", "execute"])
+      expect(yield* catalog()).toEqual([])
+      expect(yield* names({ "*": false })).toEqual(["echo", "execute"])
+
+      expect(yield* catalog({ "mcp:weather": true })).toEqual(["weather_current"])
+      expect(yield* catalog({ weather_current: true })).toEqual(["weather_current"])
+      expect(yield* catalog({ "*": true })).toEqual(["weather_current"])
+      expect(yield* catalog({ "*": false })).toEqual([])
+
+      expect((yield* runWeather({ "*": false }, "call-hidden")).metadata?.error).toBe(true)
+      const visible = yield* runWeather({ "mcp:weather": true }, "call-visible")
+      expect(visible.metadata?.error).toBeUndefined()
+      expect(visible.metadata?.toolCalls).toEqual([
+        { tool: "weather_current", status: "completed", input: { city: "paris" } },
+      ])
+    }),
+  )
 })
