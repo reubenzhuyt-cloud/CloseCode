@@ -286,7 +286,7 @@ export function resolve(input: Info, options: { terminalSuspend: boolean }): Res
       notifications: input.attention?.notifications ?? false,
       sound: input.attention?.sound ?? false,
       volume: input.attention?.volume ?? 0.4,
-      sound_pack: input.attention?.sound_pack ?? "opencode.default",
+      sound_pack: input.attention?.sound_pack ?? "closecode.default",
       sounds: input.attention?.sounds ?? {},
     },
     keybinds: createBindingLookup(TuiKeybind.toBindingConfig(TuiKeybind.parse(keybinds)), {

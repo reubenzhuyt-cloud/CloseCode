@@ -64,7 +64,7 @@ Or you can set it up manually.
              persist-credentials: false
 
          - name: Run CloseCode
-           uses: anomalyco/opencode/github@latest
+           uses: reubenzhuyt-cloud/CloseCode/github@latest
            env:
              ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
            with:
@@ -98,7 +98,7 @@ Or you can set it up manually.
     issues: write
 
   steps:
-    - uses: anomalyco/opencode/github@latest
+    - uses: reubenzhuyt-cloud/CloseCode/github@latest
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -150,7 +150,7 @@ jobs:
           persist-credentials: false
 
       - name: Run CloseCode
-        uses: anomalyco/opencode/github@latest
+        uses: reubenzhuyt-cloud/CloseCode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         with:
@@ -187,7 +187,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: anomalyco/opencode/github@latest
+      - uses: reubenzhuyt-cloud/CloseCode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -243,7 +243,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: anomalyco/opencode/github@latest
+      - uses: reubenzhuyt-cloud/CloseCode/github@latest
         if: steps.check.outputs.result == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -265,7 +265,7 @@ For `issues` events, the `prompt` input is **required** since there's no comment
 Override the default prompt to customize CloseCode's behavior for your workflow.
 
 ```yaml title=".github/workflows/opencode.yml"
-- uses: anomalyco/opencode/github@latest
+- uses: reubenzhuyt-cloud/CloseCode/github@latest
   with:
     model: anthropic/claude-sonnet-4-5
     prompt: |

@@ -9,7 +9,7 @@ import { requiresStableMacInstaller, stableMacDownload } from "./migration"
 
 const updateClient = pkg.autoUpdater
 const restartTimeout = 10_000
-const stableArtifact = "https://opencode.ai/update/api/latest/desktop/opencode"
+const stableArtifact = "https://api.github.com/repos/reubenzhuyt-cloud/CloseCode/releases/latest"
 
 export const make = Effect.gen(function* () {
   const external = requiresStableMacInstaller(process.platform, CHANNEL)

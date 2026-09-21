@@ -181,8 +181,9 @@ function getConfig() {
         productName: "CloseCode Beta",
         protocols: { name: "CloseCode Beta", schemes: ["opencode"] },
         publish: {
-          provider: "generic",
-          url: "https://opencode.ai/update/api/beta/desktop/opencode/",
+          provider: "github",
+          owner: "reubenzhuyt-cloud",
+          repo: "CloseCode",
           channel: "latest",
         },
         deb: { fpm: [metainfoFpm(appId)] },
@@ -196,8 +197,9 @@ function getConfig() {
         productName: "CloseCode",
         protocols: { name: "CloseCode", schemes: ["opencode"] },
         publish: {
-          provider: "generic",
-          url: "https://opencode.ai/update/api/latest/desktop/opencode/",
+          provider: "github",
+          owner: "reubenzhuyt-cloud",
+          repo: "CloseCode",
           channel: "latest",
         },
         deb: { fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },

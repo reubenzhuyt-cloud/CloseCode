@@ -61,7 +61,7 @@ await Bun.write(
     `pkgver=${pkgver}`,
     "pkgrel=1",
     "pkgdesc='CloseCode beta - the AI coding agent for the terminal'",
-    "url='https://github.com/anomalyco/opencode'",
+    "url='https://github.com/reubenzhuyt-cloud/CloseCode'",
     "arch=('x86_64' 'aarch64')",
     "license=('MIT')",
     "depends=('glibc' 'gcc-libs' 'ripgrep')",

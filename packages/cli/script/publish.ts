@@ -72,7 +72,7 @@ async function publishDistribution(input: {
         scripts: { postinstall: "node ./postinstall.mjs" },
         version,
         license: pkg.license,
-        repository: { type: "git", url: "git+https://github.com/anomalyco/opencode.git" },
+        repository: { type: "git", url: "git+https://github.com/reubenzhuyt-cloud/CloseCode.git" },
         os: ["darwin", "linux", "win32"],
         cpu: ["arm64", "x64"],
         optionalDependencies: binaries,
@@ -144,7 +144,7 @@ if (Script.channel !== "latest" && existsSync(path.join(root, "node"))) {
 }
 
 if (Script.channel === "latest" && Script.release && !dryRun) {
-  await $`docker buildx build --platform linux/amd64,linux/arm64 --tag ghcr.io/anomalyco/opencode:${Script.version} --push .`
+  await $`docker buildx build --platform linux/amd64,linux/arm64 --tag ghcr.io/reubenzhuyt-cloud/closecode:${Script.version} --push .`
 }
 
 if ((Script.channel === "beta" || Script.channel === "latest") && Script.release) {

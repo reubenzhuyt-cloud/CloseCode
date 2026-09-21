@@ -141,7 +141,7 @@ for (const target of targets) {
         name: `@opencode/${name}`,
         version: Script.version,
         license: pkg.license,
-        repository: { type: "git", url: "git+https://github.com/anomalyco/opencode.git" },
+        repository: { type: "git", url: "git+https://github.com/reubenzhuyt-cloud/CloseCode.git" },
         os: [target.platform],
         cpu: [target.arch],
       },

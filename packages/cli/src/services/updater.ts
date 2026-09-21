@@ -53,7 +53,6 @@ const make = Effect.gen(function* () {
   const global = yield* Global.Service
   const appProcess = yield* AppProcess.Service
   const installedVersion = yield* Ref.make(OPENCODE_VERSION)
-  const channel = OPENCODE_CHANNEL.replace(/[^a-zA-Z0-9._-]/g, "-")
   const installedPackage = yield* Effect.gen(function* () {
     const executable = yield* fs.realPath(process.execPath)
     const directory = path.dirname(path.dirname(executable))
@@ -153,24 +152,24 @@ const make = Effect.gen(function* () {
   }
 
   const release = Effect.fnUntraced(function* (method?: Method) {
-    const distribution = method === "brew" ? "homebrew" : "npm"
     const response = yield* Effect.tryPromise({
       try: (signal) =>
-        fetch(
-          `https://opencode.ai/update/api/${encodeURIComponent(channel)}/${encodeURIComponent(OPENCODE_ARTIFACT)}/${distribution}?current=${encodeURIComponent(OPENCODE_VERSION)}`,
-          {
-            signal: AbortSignal.any([signal, AbortSignal.timeout(10_000)]),
-          },
-        ),
-      catch: (cause) => new Error("Failed to check for updates", { cause }),
+        fetch("https://api.github.com/repos/reubenzhuyt-cloud/CloseCode/releases/latest", {
+          headers: { accept: "application/vnd.github+json" },
+          signal: AbortSignal.any([signal, AbortSignal.timeout(10_000)]),
+        }),
+      catch: (cause) => new Error(`Failed to check for updates with ${method ?? "auto"}`, { cause }),
     })
     if (!response.ok) return yield* Effect.fail(new Error(`Update check failed with status ${response.status}`))
-    const data: { version: string; metadata?: { package?: string } } = yield* Effect.tryPromise({
+    // The fork publishes GitHub releases, so accept either the fork update
+    // payload or the GitHub Releases API shape (`tag_name`).
+    const data: { version?: string; tag_name?: string; metadata?: { package?: string } } = yield* Effect.tryPromise({
       try: () => response.json(),
       catch: (cause) => new Error("Failed to read update information", { cause }),
     })
-    if (!data.metadata?.package) return yield* Effect.fail(new Error("Update information did not include a package"))
-    return { package: data.metadata.package, version: data.version }
+    const version = String(data.version ?? data.tag_name ?? "").replace(/^v/, "")
+    if (!version) return yield* Effect.fail(new Error("Update information did not include a version"))
+    return { package: data.metadata?.package ?? "@opencode/cli", version }
   })
 
   const latest = () =>
@@ -224,7 +223,13 @@ const make = Effect.gen(function* () {
           const directory = yield* temporaryDirectory("update-")
           const installer = path.join(directory, "install")
           const download = yield* exec(
-            ["curl", "-fsSL", "-o", installer, "https://opencode.ai/v2/install"],
+            [
+              "curl",
+              "-fsSL",
+              "-o",
+              installer,
+              "https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install",
+            ],
             "5 minutes",
           )
           if (download.code !== 0) return download
@@ -239,7 +244,12 @@ const make = Effect.gen(function* () {
   })
 
   const inspect = Effect.fnUntraced(function* () {
-    if (OPENCODE_LOCAL || ["1", "true"].includes(process.env.OPENCODE_DISABLE_AUTOUPDATE?.toLowerCase() ?? "")) {
+    // The fork has no update backend, so self-update is disabled by default.
+    // An explicit OPENCODE_DISABLE_AUTOUPDATE=0/false opts back in.
+    const autoupdate = process.env.OPENCODE_DISABLE_AUTOUPDATE?.toLowerCase()
+    const autoupdateDisabled =
+      autoupdate === undefined || autoupdate === "" || autoupdate === "1" || autoupdate === "true"
+    if (OPENCODE_LOCAL || autoupdateDisabled) {
       yield* Effect.logInfo("update check skipped", {
         reason: OPENCODE_LOCAL ? "local-install" : "disabled",
         version: OPENCODE_VERSION,

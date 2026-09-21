@@ -69,7 +69,7 @@ await Bun.write(
     "",
     `class ${formulaClass} < Formula`,
     `  desc "CloseCode V2${Script.channel === "beta" ? " beta" : ""} - the AI coding agent for the terminal"`,
-    '  homepage "https://github.com/anomalyco/opencode"',
+    '  homepage "https://github.com/reubenzhuyt-cloud/CloseCode"',
     `  version "${Script.version}"`,
     '  license "MIT"',
     "",
