@@ -20,7 +20,7 @@ opencode integruje się z przepływem pracy w GitHub. Wspomnij o `/opencode` lub
 Uruchomione dalsze postępowanie w przypadku wystąpienia w repozytorium GitHub:
 
 ```bash
-opencode github install
+closecode github install
 ```
 
 Aby przeprowadzić Cię przez proces instalacji aplikacji GitHub, utwórz działanie i skonfiguruj wpisy tajnych.
@@ -40,7 +40,7 @@ Można też uszkodzić to rozwiązanie.
    Dodaj zdalny plik pracy do `.github/workflows/opencode.yml` w swoim repozytorium. wystąpił, że ustawiłeś sędziego `model` i wymagany klucz API w `env`.
 
    ```yml title=".github/workflows/opencode.yml" {24,26}
-   name: opencode
+   name: closecode
 
    on:
      issue_comment:
@@ -63,7 +63,7 @@ Można też uszkodzić to rozwiązanie.
               fetch-depth: 1
               persist-credentials: false
 
-          - name: Run OpenCode
+          - name: Run CloseCode
            uses: anomalyco/opencode/github@latest
            env:
              ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -119,7 +119,7 @@ opencode może zostać wywołany przez zdarzenie GitHub:
 Uruchamiaj opencode zgodnie z harmonogramem, aby wykonać zautomatyzowane zadania:
 
 ```yaml title=".github/workflows/opencode-scheduled.yml"
-name: Scheduled OpenCode Task
+name: Scheduled CloseCode Task
 
 on:
   schedule:
@@ -139,7 +139,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run OpenCode
+      - name: Run CloseCode
         uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

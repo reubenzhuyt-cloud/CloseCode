@@ -170,7 +170,7 @@ export type { KeymapCommand, KeymapLayer } from "@opencode/plugin/tui/context"
 export interface Keymap {
   /** Dispatches a reachable command by ID. */
   dispatch(id: string, input?: string): void
-  /** Controls mutually exclusive OpenCode input modes. */
+  /** Controls mutually exclusive CloseCode input modes. */
   readonly mode: {
     /** Returns the active mode. */
     current(): string

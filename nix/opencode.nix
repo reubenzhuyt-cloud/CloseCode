@@ -63,10 +63,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
-    install -Dm755 dist/cli-*/bin/opencode $out/bin/opencode
+    install -Dm755 dist/cli-*/bin/closecode $out/bin/closecode
 
     # OpenTUI dlopens Wayland for clipboard images.
-    wrapProgram $out/bin/opencode \
+    wrapProgram $out/bin/closecode \
       --prefix PATH : ${
         lib.makeBinPath (
           [
@@ -79,16 +79,16 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ wayland ]}
       ''}
 
-    ln -s opencode $out/bin/opencode2
+    ln -s closecode $out/bin/opencode2
 
     runHook postInstall
   '';
 
   postInstall = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
     # trick yargs into also generating zsh completions
-    installShellCompletion --cmd opencode \
-      --bash <($out/bin/opencode completion) \
-      --zsh <(SHELL=/bin/zsh $out/bin/opencode completion)
+    installShellCompletion --cmd closecode \
+      --bash <($out/bin/closecode completion) \
+      --zsh <(SHELL=/bin/zsh $out/bin/closecode completion)
 
     installShellCompletion --cmd opencode2 \
       --bash <($out/bin/opencode2 completion) \
@@ -111,7 +111,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     description = "The open source coding agent";
     homepage = "https://opencode.ai";
     license = lib.licenses.mit;
-    mainProgram = "opencode";
+    mainProgram = "closecode";
     inherit (node_modules.meta) platforms;
   };
 })

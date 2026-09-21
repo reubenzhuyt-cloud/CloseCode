@@ -616,23 +616,23 @@ function App(props: { pair?: DialogPairCredentials }) {
     if (!terminalTitleEnabled()) return
 
     if (route.data.type === "home") {
-      renderer.setTerminalTitle("OpenCode")
+      renderer.setTerminalTitle("CloseCode")
       return
     }
 
     if (route.data.type === "session") {
       const title = session?.title
       if (!title || isFallbackTitle(title)) {
-        renderer.setTerminalTitle("OpenCode")
+        renderer.setTerminalTitle("CloseCode")
         return
       }
 
-      renderer.setTerminalTitle(`OC | ${title.length > 40 ? title.slice(0, 37) + "…" : title}`)
+      renderer.setTerminalTitle(`CC | ${title.length > 40 ? title.slice(0, 37) + "…" : title}`)
       return
     }
 
     if (route.data.type === "plugin") {
-      renderer.setTerminalTitle(`OC | ${route.data.name}`)
+      renderer.setTerminalTitle(`CC | ${route.data.name}`)
     }
   })
 
@@ -967,8 +967,8 @@ function App(props: { pair?: DialogPairCredentials }) {
         ? [
             {
               name: "opencode.update",
-              title: "Update OpenCode",
-              description: "Update OpenCode (upgrade)",
+              title: "Update CloseCode",
+              description: "Update CloseCode (upgrade)",
               slash: { name: "update" },
               run: () => updater.open?.("manual"),
               category: "System",

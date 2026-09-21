@@ -125,7 +125,7 @@ opencode поддерживает форматы **JSON** и **JSONC** (JSON с 
 
 ```bash
 export OPENCODE_CONFIG=/path/to/my/custom-config.json
-opencode run "Hello world"
+closecode run "Hello world"
 ```
 
 Пользовательская конфигурация загружается между глобальными и проектными конфигурациями в порядке приоритета.
@@ -138,7 +138,7 @@ opencode run "Hello world"
 
 ```bash
 export OPENCODE_CONFIG_DIR=/path/to/my/config-directory
-opencode run "Hello world"
+closecode run "Hello world"
 ```
 
 Пользовательский каталог загружается после каталогов global config и `.opencode`, поэтому он **может переопределить** их настройки.
@@ -180,7 +180,7 @@ opencode run "Hello world"
 
 ### Сервер
 
-Вы можете настроить параметры сервера для команд `opencode serve` и `opencode web` с помощью опции `server`.
+Вы можете настроить параметры сервера для команд `closecode serve` и `closecode web` с помощью опции `server`.
 
 ```json title="opencode.json"
 {
@@ -352,7 +352,7 @@ Amazon Bedrock поддерживает конфигурацию, специфи
 
 Агент по умолчанию должен быть основным агентом (а не субагентом). Это может быть встроенный агент, например `"build"` или `"plan"`, или [пользовательский агент](/docs/agents), который вы определили. Если указанный агент не существует или является субагентом, opencode вернется к `"build"` с предупреждением.
 
-Этот параметр применяется ко всем интерфейсам: TUI, CLI (`opencode run`), настольному приложению и действию GitHub.
+Этот параметр применяется ко всем интерфейсам: TUI, CLI (`closecode run`), настольному приложению и действию GitHub.
 
 ---
 

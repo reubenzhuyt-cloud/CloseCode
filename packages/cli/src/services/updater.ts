@@ -94,13 +94,12 @@ const make = Effect.gen(function* () {
   })
 
   const method = Effect.fnUntraced(function* () {
-    const binary = path.join(
-      global.home,
-      ".opencode",
-      "bin",
-      process.platform === "win32" ? "opencode.exe" : "opencode",
-    )
-    if (path.resolve(process.execPath) === path.resolve(binary)) return "curl"
+    const extension = process.platform === "win32" ? ".exe" : ""
+    const candidates = [
+      path.join(global.home, ".opencode", "bin", `closecode${extension}`),
+      path.join(global.home, ".opencode", "bin", `opencode${extension}`),
+    ]
+    if (candidates.some((binary) => path.resolve(process.execPath) === path.resolve(binary))) return "curl"
     const executable = yield* fs.realPath(process.execPath).pipe(Effect.orElseSucceed(() => process.execPath))
     if (
       ["opencode-beta", "opencode-v2"].some((name) =>
@@ -265,7 +264,7 @@ const make = Effect.gen(function* () {
       yield* Effect.logInfo("update check done", { action: "up-to-date" })
       return undefined
     }
-    yield* Effect.logInfo("OpenCode update available", { current, latest: version, action: next })
+    yield* Effect.logInfo("CloseCode update available", { current, latest: version, action: next })
     return { policy, version }
   })
 
@@ -278,7 +277,7 @@ const make = Effect.gen(function* () {
     const current = yield* Ref.get(installedVersion)
     yield* upgrade(detected, version)
     yield* Ref.set(installedVersion, version)
-    yield* Effect.logInfo("updated OpenCode", { from: current, to: version, method: detected })
+    yield* Effect.logInfo("updated CloseCode", { from: current, to: version, method: detected })
     return true
   })
 
@@ -290,7 +289,7 @@ const make = Effect.gen(function* () {
     if (OPENCODE_LOCAL)
       return {
         type: "unavailable" as const,
-        message: "This build runs from a source checkout. Use an installed OpenCode release to check for updates.",
+        message: "This build runs from a source checkout. Use an installed CloseCode release to check for updates.",
       }
     const version = yield* latest()
     if (!parseReleaseVersion(version)) return yield* Effect.fail(new Error(`Invalid version: ${version}`))

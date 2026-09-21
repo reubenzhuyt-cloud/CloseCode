@@ -76,7 +76,7 @@ cd "$OPENCODE_SRC"
 bun install --frozen-lockfile 2>/dev/null || bun install
 
 # ── 4. Build (current platform only) ──────────────────────────────────
-info "Building opencode for current platform ..."
+info "Building closecode for current platform ..."
 cd "$OPENCODE_SRC/packages/opencode"
 bun run build --single
 
@@ -90,19 +90,19 @@ ARCH=$(uname -m)
 [ "$PLATFORM" = "darwin" ] && true
 [ "$PLATFORM" = "linux" ] && true
 
-BUILT_BINARY="$OPENCODE_SRC/packages/opencode/dist/opencode-${PLATFORM}-${ARCH}/bin/opencode"
+BUILT_BINARY="$OPENCODE_SRC/packages/opencode/dist/opencode-${PLATFORM}-${ARCH}/bin/closecode"
 
 if [ ! -f "$BUILT_BINARY" ]; then
-  BUILT_BINARY=$(find "$OPENCODE_SRC/packages/opencode/dist" -name "opencode" -type f -executable 2>/dev/null | head -1)
+  BUILT_BINARY=$(find "$OPENCODE_SRC/packages/opencode/dist" -name "closecode" -type f -executable 2>/dev/null | head -1)
 fi
 
 if [ -f "$BUILT_BINARY" ]; then
-  if [ -f "$OPENCODE_DIR/bin/opencode" ]; then
-    cp "$OPENCODE_DIR/bin/opencode" "$OPENCODE_DIR/bin/opencode.bak.$(date +%Y%m%d%H%M%S)"
+  if [ -f "$OPENCODE_DIR/bin/closecode" ]; then
+    cp "$OPENCODE_DIR/bin/closecode" "$OPENCODE_DIR/bin/closecode.bak.$(date +%Y%m%d%H%M%S)"
   fi
-  cp "$BUILT_BINARY" "$OPENCODE_DIR/bin/opencode"
-  chmod +x "$OPENCODE_DIR/bin/opencode"
-  ok "Installed to $OPENCODE_DIR/bin/opencode"
+  cp "$BUILT_BINARY" "$OPENCODE_DIR/bin/closecode"
+  chmod +x "$OPENCODE_DIR/bin/closecode"
+  ok "Installed to $OPENCODE_DIR/bin/closecode"
 else
   err "Build failed - binary not found in dist/"
   info "Try running manually:"

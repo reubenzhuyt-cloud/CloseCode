@@ -20,7 +20,7 @@ opencode, GitHub iş akışınızla bütünleşir. Yorumunuzda `/opencode` veya 
 GitHub deposundaki bir projede aşağıdaki komutu çalıştırın:
 
 ```bash
-opencode github install
+closecode github install
 ```
 
 Bu size GitHub uygulamasını yükleme, iş akışını oluşturma ve gizli dizileri ayarlama adımlarında yol gösterecektir.
@@ -40,7 +40,7 @@ Veya manuel olarak ayarlayabilirsiniz.
    Aşağıdaki iş akışı dosyasını deponuzdaki `.github/workflows/opencode.yml`'a ekleyin. `model`'de uygun `env` ve gerekli API anahtarlarını ayarladığınızdan emin olun.
 
    ```yml title=".github/workflows/opencode.yml" {24,26}
-   name: opencode
+   name: closecode
 
    on:
      issue_comment:
@@ -63,7 +63,7 @@ Veya manuel olarak ayarlayabilirsiniz.
               fetch-depth: 1
               persist-credentials: false
 
-          - name: Run OpenCode
+          - name: Run CloseCode
            uses: anomalyco/opencode/github@latest
            env:
              ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -119,7 +119,7 @@ opencode aşağıdaki GitHub olayları tarafından tetiklenebilir:
 Otomatik görevleri gerçekleştirmek için opencode'u bir zamanlamaya göre çalıştırın:
 
 ```yaml title=".github/workflows/opencode-scheduled.yml"
-name: Scheduled OpenCode Task
+name: Scheduled CloseCode Task
 
 on:
   schedule:
@@ -139,7 +139,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run OpenCode
+      - name: Run CloseCode
         uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

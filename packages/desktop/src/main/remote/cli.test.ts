@@ -44,10 +44,11 @@ posix(
     const home = path.join(dir, "home with ' quotes")
     yield* fs.makeDirectory(path.join(home, ".opencode/bin"), { recursive: true })
     yield* fs.makeDirectory(path.join(dir, "bin"))
-    const managed = path.join(home, ".opencode/bin/opencode")
-    const external = path.join(dir, "bin/opencode")
-    yield* fs.writeFileString(managed, "#!/bin/sh\nprintf 'OpenCode v2.0.0\\n'\n", { mode: 0o755 })
-    yield* fs.writeFileString(external, "#!/bin/sh\nprintf 'OpenCode v2.1.0\\n'\n", { mode: 0o755 })
+    const managed = path.join(home, ".opencode/bin/closecode")
+    const legacy = path.join(home, ".opencode/bin/opencode")
+    const external = path.join(dir, "bin/closecode")
+    yield* fs.writeFileString(managed, "#!/bin/sh\nprintf 'CloseCode v2.0.0\\n'\n", { mode: 0o755 })
+    yield* fs.writeFileString(external, "#!/bin/sh\nprintf 'CloseCode v2.1.0\\n'\n", { mode: 0o755 })
     const run = (script: string) =>
       spawner.string(
         ChildProcess.make("sh", ["-c", script], {
@@ -58,6 +59,10 @@ posix(
     expect((yield* run(RemoteCli.discoverScript({ fromPath: true }))).trim()).toBe(external)
     expect(RemoteCli.parseVersion(yield* run(RemoteCli.versionScript(RemoteCli.quote(managed))))).toBe("2.0.0")
     yield* fs.remove(managed)
+    // Legacy installs that still ship the `opencode` binary stay discoverable.
+    yield* fs.writeFileString(legacy, "#!/bin/sh\nprintf 'CloseCode v2.0.0\\n'\n", { mode: 0o755 })
+    expect((yield* run(RemoteCli.discoverScript())).trim()).toBe(legacy)
+    yield* fs.remove(legacy)
     expect((yield* run(RemoteCli.discoverScript())).trim()).toBe("")
     expect(RemoteCli.parseVersion(yield* run(RemoteCli.versionScript(RemoteCli.quote(managed))))).toBeNull()
   }),
@@ -79,7 +84,7 @@ posix(
     const spawner = yield* ChildProcessSpawner.ChildProcessSpawner
     const dir = yield* fs.makeTempDirectoryScoped({ prefix: "remote-install-" })
     yield* fs.makeDirectory(path.join(dir, "package/bin"), { recursive: true })
-    yield* fs.writeFileString(path.join(dir, "package/bin/opencode"), "#!/bin/sh\nprintf 'OpenCode v2.0.0\\n'\n", {
+    yield* fs.writeFileString(path.join(dir, "package/bin/closecode"), "#!/bin/sh\nprintf 'CloseCode v2.0.0\\n'\n", {
       mode: 0o755,
     })
     const archive = path.join(dir, "archive.tgz")
@@ -101,13 +106,13 @@ posix(
         }),
       )
     expect(yield* run({ version: "2.0.0", source: { type: "download", url: server.url.href } })).toBe(0)
-    expect(yield* fs.readFileString(path.join(dir, ".opencode/bin/opencode"))).toContain("2.0.0")
+    expect(yield* fs.readFileString(path.join(dir, ".opencode/bin/closecode"))).toContain("2.0.0")
     expect(
       yield* run({ version: "2.0.0", directory: ".opencode/desktop-ssh/2.0.0", source: { type: "archive" } }),
     ).toBe(0)
-    expect(yield* fs.readFileString(path.join(dir, ".opencode/desktop-ssh/2.0.0/opencode"))).toContain("2.0.0")
+    expect(yield* fs.readFileString(path.join(dir, ".opencode/desktop-ssh/2.0.0/closecode"))).toContain("2.0.0")
     expect(yield* run({ version: "2.1.0", source: { type: "archive" } })).not.toBe(0)
-    expect(yield* fs.readFileString(path.join(dir, ".opencode/bin/opencode"))).toContain("2.0.0")
-    expect(yield* fs.readDirectory(path.join(dir, ".opencode/bin"))).toEqual(["opencode"])
+    expect(yield* fs.readFileString(path.join(dir, ".opencode/bin/closecode"))).toContain("2.0.0")
+    expect(yield* fs.readDirectory(path.join(dir, ".opencode/bin"))).toEqual(["closecode"])
   }),
 )

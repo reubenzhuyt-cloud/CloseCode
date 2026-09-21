@@ -94,7 +94,7 @@ export async function copyBuiltCliToResources(root: string, dest = windowsify("r
 // 200 MB binary on first launch.
 async function copyCliToResources(pkg: string, dest: string) {
   const cli = getCurrentCli()
-  await copyFile(join(pkg, "bin", cli.os === "win32" ? "opencode.exe" : "opencode"), dest)
+  await copyFile(join(pkg, "bin", cli.os === "win32" ? "closecode.exe" : "closecode"), dest)
   await prepareCli(dest)
   const manifest = (await Bun.file(join(pkg, "package.json")).json()) as { version?: string }
   if (!manifest.version) throw new Error(`Bundled CLI package has no version: ${pkg}`)

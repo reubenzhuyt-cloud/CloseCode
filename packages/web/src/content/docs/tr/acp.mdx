@@ -15,7 +15,7 @@ ACP, kod editörleri ile AI kodlama ajanları arasındaki iletişimi standartla�
 
 ## Yapılandırma
 
-opencode'u ACP aracılığıyla kullanmak için düzenleyicinizi `opencode acp` komutunu çalıştıracak şekilde yapılandırın.
+opencode'u ACP aracılığıyla kullanmak için düzenleyicinizi `closecode acp` komutunu çalıştıracak şekilde yapılandırın.
 
 Komut, opencode'u, editörünüzle stdio aracılığıyla JSON-RPC üzerinden iletişim kuran ACP uyumlu bir alt süreç olarak başlatır.
 
@@ -30,7 +30,7 @@ Aşağıda ACP'yi destekleyen popüler düzenleyicilere ilişkin örnekler veril
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "OpenCode": {
+    "CloseCode": {
       "command": "opencode",
       "args": ["acp"]
     }
@@ -51,7 +51,7 @@ Açmak için **Komut Paleti**'ndeki `agent: new thread` eylemini kullanın.
         {
           "agent": {
             "custom": {
-              "name": "OpenCode",
+              "name": "CloseCode",
               "command": {
                 "command": "opencode",
                 "args": ["acp"]
@@ -74,7 +74,7 @@ Açmak için **Komut Paleti**'ndeki `agent: new thread` eylemini kullanın.
 ```json title="acp.json"
 {
   "agent_servers": {
-    "OpenCode": {
+    "CloseCode": {
       "command": "/absolute/path/bin/opencode",
       "args": ["acp"]
     }
@@ -82,7 +82,7 @@ Açmak için **Komut Paleti**'ndeki `agent: new thread` eylemini kullanın.
 }
 ```
 
-Açmak için AI Chat agent seçicisindeki yeni 'OpenCode' ajanını kullanın.
+Açmak için AI Chat agent seçicisindeki yeni 'CloseCode' ajanını kullanın.
 
 ---
 

@@ -10,7 +10,7 @@ if (Script.channel !== "beta" && Script.channel !== "latest") {
   throw new Error("AUR publishing requires the beta or latest channel")
 }
 const name = "opencode-beta"
-const command = "opencode"
+const command = "closecode"
 const valid =
   Script.channel === "beta"
     ? /^\d+\.\d+\.\d+-beta[.-]\d+(?:\.\d+)?$/.test(Script.version)
@@ -24,7 +24,7 @@ const dryRun = process.argv.includes("--dry-run")
 const pkgver = Script.version.replaceAll("-", ".")
 const license = Bun.file(path.join(dir, "..", "..", "LICENSE"))
 const shim = `#!/bin/sh
-exec "$(dirname "$0")/opencode" "$@"
+exec "$(dirname "$0")/closecode" "$@"
 `
 
 await rm(outdir, { recursive: true, force: true })
@@ -60,7 +60,7 @@ await Bun.write(
     `pkgname=${name}`,
     `pkgver=${pkgver}`,
     "pkgrel=1",
-    "pkgdesc='OpenCode beta - the AI coding agent for the terminal'",
+    "pkgdesc='CloseCode beta - the AI coding agent for the terminal'",
     "url='https://github.com/anomalyco/opencode'",
     "arch=('x86_64' 'aarch64')",
     "license=('MIT')",
@@ -74,7 +74,7 @@ await Bun.write(
     ...sources,
     "",
     "package() {",
-    `  install -Dm755 "$srcdir/package/bin/opencode" "$pkgdir/usr/bin/${command}"`,
+    `  install -Dm755 "$srcdir/package/bin/closecode" "$pkgdir/usr/bin/${command}"`,
     '  install -Dm755 "$srcdir/opencode2" "$pkgdir/usr/bin/opencode2"',
     '  install -Dm644 "$srcdir/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"',
     "}",

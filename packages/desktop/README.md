@@ -1,6 +1,6 @@
-# OpenCode Desktop
+# CloseCode Desktop
 
-The OpenCode Desktop app, built with Electron.
+The CloseCode Desktop app, built with Electron.
 
 ## Development
 
@@ -48,14 +48,14 @@ renderer going idle, so dev-server and bundling costs are not part of the number
 ```bash
 OPENCODE_CHANNEL=dev bun run build && bunx electron-builder --win --dir --config electron-builder.config.ts
 bun run bench:startup -- --runs 5                                  # warm service (started once, reused by every launch)
-bun run bench:startup -- --runs 5 --compare dist/other/OpenCode\ Dev.exe   # A/B: alternate launches of two builds
+bun run bench:startup -- --runs 5 --compare dist/other/CloseCode\ Dev.exe   # A/B: alternate launches of two builds
 bun run bench:startup -- --service cold                            # each launch spawns the service
 bun run bench:startup -- --fresh                                   # first launch after an install (profile wiped each time)
 bun run bench:startup -- --profile-main --profile-renderer --trace # CPU profiles and a Chromium startup trace
 bun run bench:startup -- --seed "%APPDATA%\ai.opencode.desktop.dev"   # restore tabs and drafts from an existing profile
 ```
 
-The app runs in an isolated home (`%TEMP%\opencode-bench-startup`): its own `%APPDATA%`, XDG directories, OpenCode
+The app runs in an isolated home (`%TEMP%\opencode-bench-startup`): its own `%APPDATA%`, XDG directories, CloseCode
 database, config and service registration, with the developer's `OPENCODE_*` and `OTEL_*` environment stripped
 (an inherited OTLP endpoint alone adds a network round trip to every CLI exit). It never attaches to or restarts the
 developer's live service, and only ever kills the process tree it spawned. `--service cold` stops the service before

@@ -3,7 +3,7 @@ title: Server MCP
 description: Aggiungi strumenti MCP locali e remoti.
 ---
 
-Puoi aggiungere strumenti esterni a OpenCode usando il _Model Context Protocol_, o MCP. OpenCode supporta sia server locali sia remoti.
+Puoi aggiungere strumenti esterni a CloseCode usando il _Model Context Protocol_, o MCP. CloseCode supporta sia server locali sia remoti.
 
 Una volta aggiunti, gli strumenti MCP sono automaticamente disponibili all'LLM insieme agli strumenti integrati.
 
@@ -23,7 +23,7 @@ Alcuni server MCP, come il server MCP di GitHub, tendono ad aggiungere molti tok
 
 ## Abilita
 
-Puoi definire server MCP nella tua [OpenCode Config](https://opencode.ai/docs/config/) sotto `mcp`. Aggiungi ogni MCP con un nome univoco. Puoi riferirti a quell'MCP per nome quando fai prompt all'LLM.
+Puoi definire server MCP nella tua [CloseCode Config](https://opencode.ai/docs/config/) sotto `mcp`. Aggiungi ogni MCP con un nome univoco. Puoi riferirti a quell'MCP per nome quando fai prompt all'LLM.
 
 ```jsonc title="opencode.jsonc" {6}
 {
@@ -165,7 +165,7 @@ Aggiungi server MCP remoti impostando `type` a `"remote"`.
 
 ## OAuth
 
-OpenCode gestisce automaticamente l'autenticazione OAuth per i server MCP remoti. Quando un server richiede autenticazione, OpenCode:
+CloseCode gestisce automaticamente l'autenticazione OAuth per i server MCP remoti. Quando un server richiede autenticazione, CloseCode:
 
 1. Rileva la risposta 401 e avvia il flusso OAuth
 2. Usa **Dynamic Client Registration (RFC 7591)** se supportato dal server
@@ -189,7 +189,7 @@ Per la maggior parte dei server MCP con OAuth, non serve alcuna configurazione s
 }
 ```
 
-Se il server richiede autenticazione, OpenCode ti chiedera' di autenticarti la prima volta che provi a usarlo. In caso contrario, puoi [attivare manualmente il flusso](#authenticating) con `opencode mcp auth <server-name>`.
+Se il server richiede autenticazione, CloseCode ti chiedera' di autenticarti la prima volta che provi a usarlo. In caso contrario, puoi [attivare manualmente il flusso](#authenticating) con `closecode mcp auth <server-name>`.
 
 ---
 
@@ -223,22 +223,22 @@ Puoi avviare manualmente l'autenticazione o gestire le credenziali.
 Autentica con un server MCP specifico:
 
 ```bash
-opencode mcp auth my-oauth-server
+closecode mcp auth my-oauth-server
 ```
 
 Elenca tutti i server MCP e il loro stato di autenticazione:
 
 ```bash
-opencode mcp list
+closecode mcp list
 ```
 
 Rimuovi credenziali memorizzate:
 
 ```bash
-opencode mcp logout my-oauth-server
+closecode mcp logout my-oauth-server
 ```
 
-Il comando `mcp auth` aprira' il browser per l'autorizzazione. Dopo l'autorizzazione, OpenCode memorizzera' i token in modo sicuro in `~/.local/share/opencode/mcp-auth.json`.
+Il comando `mcp auth` aprira' il browser per l'autorizzazione. Dopo l'autorizzazione, CloseCode memorizzera' i token in modo sicuro in `~/.local/share/opencode/mcp-auth.json`.
 
 ---
 
@@ -279,10 +279,10 @@ Se un server MCP remoto non riesce ad autenticarsi, puoi diagnosticare i problem
 
 ```bash
 # View auth status for all OAuth-capable servers
-opencode mcp auth list
+closecode mcp auth list
 
 # Debug connection and OAuth flow for a specific server
-opencode mcp debug my-oauth-server
+closecode mcp debug my-oauth-server
 ```
 
 Il comando `mcp debug` mostra lo stato di autenticazione corrente, testa la connettivita' HTTP e prova il flusso di discovery OAuth.
@@ -291,7 +291,7 @@ Il comando `mcp debug` mostra lo stato di autenticazione corrente, testa la conn
 
 ## Gestione
 
-I tuoi MCP sono disponibili come strumenti in OpenCode insieme agli strumenti integrati. Quindi puoi gestirli tramite la configurazione OpenCode come qualunque altro strumento.
+I tuoi MCP sono disponibili come strumenti in CloseCode insieme agli strumenti integrati. Quindi puoi gestirli tramite la configurazione CloseCode come qualunque altro strumento.
 
 ---
 
@@ -420,10 +420,10 @@ Aggiungi il [server MCP di Sentry](https://mcp.sentry.dev) per interagire con i 
 Dopo aver aggiunto la configurazione, autentica con Sentry:
 
 ```bash
-opencode mcp auth sentry
+closecode mcp auth sentry
 ```
 
-Questo aprira' una finestra del browser per completare il flusso OAuth e collegare OpenCode al tuo account Sentry.
+Questo aprira' una finestra del browser per completare il flusso OAuth e collegare CloseCode al tuo account Sentry.
 
 Una volta autenticato, puoi usare gli strumenti Sentry nei tuoi prompt per interrogare issue, progetti e dati sugli errori.
 

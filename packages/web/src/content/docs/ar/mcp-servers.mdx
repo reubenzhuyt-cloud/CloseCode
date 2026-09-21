@@ -3,7 +3,7 @@ title: خوادم MCP
 description: أضف أدوات MCP محلية وبعيدة.
 ---
 
-يمكنك إضافة أدوات خارجية إلى OpenCode باستخدام _Model Context Protocol_، أو MCP. يدعم OpenCode خوادم محلية وبعيدة.
+يمكنك إضافة أدوات خارجية إلى CloseCode باستخدام _Model Context Protocol_، أو MCP. يدعم CloseCode خوادم محلية وبعيدة.
 
 بعد إضافتها، تصبح أدوات MCP متاحة تلقائيا للـ LLM إلى جانب الأدوات المضمنة.
 
@@ -23,7 +23,7 @@ description: أضف أدوات MCP محلية وبعيدة.
 
 ## التمكين
 
-يمكنك تعريف خوادم MCP في [إعدادات OpenCode](https://opencode.ai/docs/config/) ضمن `mcp`. أضف كل خادم MCP باسم فريد. ويمكنك الإشارة إلى ذلك الخادم بالاسم عند توجيه الطلب إلى الـ LLM.
+يمكنك تعريف خوادم MCP في [إعدادات CloseCode](https://opencode.ai/docs/config/) ضمن `mcp`. أضف كل خادم MCP باسم فريد. ويمكنك الإشارة إلى ذلك الخادم بالاسم عند توجيه الطلب إلى الـ LLM.
 
 ```jsonc title="opencode.jsonc" {6}
 {
@@ -165,7 +165,7 @@ use the mcp_everything tool to add the number 3 and 4
 
 ## OAuth
 
-يتولى OpenCode تلقائيا معالجة مصادقة OAuth لخوادم MCP البعيدة. عندما يتطلب خادم ما المصادقة، سيقوم OpenCode بما يلي:
+يتولى CloseCode تلقائيا معالجة مصادقة OAuth لخوادم MCP البعيدة. عندما يتطلب خادم ما المصادقة، سيقوم CloseCode بما يلي:
 
 1. اكتشاف استجابة 401 وبدء تدفق OAuth
 2. استخدام **Dynamic Client Registration (RFC 7591)** إذا كان الخادم يدعمه
@@ -189,7 +189,7 @@ use the mcp_everything tool to add the number 3 and 4
 }
 ```
 
-إذا كان الخادم يتطلب المصادقة، فسيطلب منك OpenCode المصادقة عند أول محاولة لاستخدامه. وإذا لم يحدث ذلك، يمكنك [تشغيل التدفق يدويا](#authenticating) باستخدام `opencode mcp auth <server-name>`.
+إذا كان الخادم يتطلب المصادقة، فسيطلب منك CloseCode المصادقة عند أول محاولة لاستخدامه. وإذا لم يحدث ذلك، يمكنك [تشغيل التدفق يدويا](#authenticating) باستخدام `closecode mcp auth <server-name>`.
 
 ---
 
@@ -223,22 +223,22 @@ use the mcp_everything tool to add the number 3 and 4
 صادِق مع خادم MCP معيّن:
 
 ```bash
-opencode mcp auth my-oauth-server
+closecode mcp auth my-oauth-server
 ```
 
 اعرض جميع خوادم MCP وحالة المصادقة الخاصة بها:
 
 ```bash
-opencode mcp list
+closecode mcp list
 ```
 
 احذف بيانات الاعتماد المخزنة:
 
 ```bash
-opencode mcp logout my-oauth-server
+closecode mcp logout my-oauth-server
 ```
 
-سيفتح أمر `mcp auth` متصفحك للتفويض. بعد إكمال التفويض، سيخزّن OpenCode الرموز بشكل آمن في `~/.local/share/opencode/mcp-auth.json`.
+سيفتح أمر `mcp auth` متصفحك للتفويض. بعد إكمال التفويض، سيخزّن CloseCode الرموز بشكل آمن في `~/.local/share/opencode/mcp-auth.json`.
 
 ---
 
@@ -279,10 +279,10 @@ opencode mcp logout my-oauth-server
 
 ```bash
 # عرض حالة المصادقة لجميع الخوادم القادرة على OAuth
-opencode mcp auth list
+closecode mcp auth list
 
 # تصحيح الاتصال وتدفق OAuth لخادم محدد
-opencode mcp debug my-oauth-server
+closecode mcp debug my-oauth-server
 ```
 
 يعرض أمر `mcp debug` حالة المصادقة الحالية، ويختبر اتصال HTTP، ويحاول تنفيذ تدفق اكتشاف OAuth.
@@ -291,7 +291,7 @@ opencode mcp debug my-oauth-server
 
 ## الإدارة
 
-تتوفر خوادم MCP لديك كأدوات داخل OpenCode إلى جانب الأدوات المضمنة. لذا يمكنك إدارتها عبر إعدادات OpenCode مثل أي أداة أخرى.
+تتوفر خوادم MCP لديك كأدوات داخل CloseCode إلى جانب الأدوات المضمنة. لذا يمكنك إدارتها عبر إعدادات CloseCode مثل أي أداة أخرى.
 
 ---
 
@@ -420,10 +420,10 @@ opencode mcp debug my-oauth-server
 بعد إضافة الإعدادات، قم بالمصادقة مع Sentry:
 
 ```bash
-opencode mcp auth sentry
+closecode mcp auth sentry
 ```
 
-سيؤدي ذلك إلى فتح نافذة متصفح لإكمال تدفق OAuth وربط OpenCode بحساب Sentry الخاص بك.
+سيؤدي ذلك إلى فتح نافذة متصفح لإكمال تدفق OAuth وربط CloseCode بحساب Sentry الخاص بك.
 
 بعد المصادقة، يمكنك استخدام أدوات Sentry في طلباتك للاستعلام عن القضايا والمشاريع وبيانات الأخطاء.
 

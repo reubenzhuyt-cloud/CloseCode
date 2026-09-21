@@ -69,7 +69,7 @@ export const dict = {
   "ui.sessionTurn.error.addCredits": "ເພີ່ມເຄຣດິດ",
   "dialog.usageExceeded.freeTier.title": "ຮອດຂີດຈຳກັດຟຣີແລ້ວ",
   "dialog.usageExceeded.freeTier.description":
-    "ສະໝັກໃຊ້ OpenCode Go ເພື່ອເຂົ້າເຖິງຮູບແບບໂອເພນຊອດທີ່ດີທີ່ສຸດ, ເລີ່ມຕົ້ນທີ່ $5/ເດືອນ.",
+    "ສະໝັກໃຊ້ CloseCode Go ເພື່ອເຂົ້າເຖິງຮູບແບບໂອເພນຊອດທີ່ດີທີ່ສຸດ, ເລີ່ມຕົ້ນທີ່ $5/ເດືອນ.",
   "dialog.usageExceeded.freeTier.actionLabel": "ຈອງ",
   "dialog.usageExceeded.accountRateLimit.title": "ໄປຮອດຂີດຈຳກັດແລ້ວ",
   "dialog.usageExceeded.accountRateLimit.description":

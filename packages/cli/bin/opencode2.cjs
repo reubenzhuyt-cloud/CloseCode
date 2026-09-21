@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 
-require("./opencode.cjs")
+require("./closecode.cjs")

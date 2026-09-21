@@ -35,7 +35,7 @@ WSL oferuje lepsza wydajnosc systemu plikow, pelna obsluge terminala i zgodnosc 
 
    ```bash
    cd /mnt/c/Users/YourName/project
-   opencode
+   closecode
    ```
 
 </Steps>
@@ -49,7 +49,7 @@ Jesli wolisz aplikacje desktopowa opencode, ale chcesz uruchamiac serwer w WSL:
 1. **Uruchom serwer w WSL** z `--hostname 0.0.0.0`, aby zezwolic na polaczenia zewnetrzne:
 
    ```bash
-   opencode serve --hostname 0.0.0.0 --port 4096
+   closecode serve --hostname 0.0.0.0 --port 4096
    ```
 
 2. **Polacz aplikacje desktopowa** z `http://localhost:4096`
@@ -62,7 +62,7 @@ Jesli `localhost` nie dziala w Twojej konfiguracji, polacz sie przez adres IP WS
 Przy uzyciu `--hostname 0.0.0.0` ustaw `OPENCODE_SERVER_PASSWORD`, aby zabezpieczyc serwer.
 
 ```bash
-OPENCODE_SERVER_PASSWORD=your-password opencode serve --hostname 0.0.0.0
+OPENCODE_SERVER_PASSWORD=your-password closecode serve --hostname 0.0.0.0
 ```
 
 :::
@@ -73,15 +73,15 @@ OPENCODE_SERVER_PASSWORD=your-password opencode serve --hostname 0.0.0.0
 
 Dla najlepszej pracy w przegladarce na Windows:
 
-1. **Uruchamiaj `opencode web` w terminalu WSL**, a nie w PowerShell:
+1. **Uruchamiaj `closecode web` w terminalu WSL**, a nie w PowerShell:
 
    ```bash
-   opencode web --hostname 0.0.0.0
+   closecode web --hostname 0.0.0.0
    ```
 
 2. **Otworz w przegladarce Windows** pod adresem `http://localhost:<port>` (opencode wypisze URL)
 
-Uruchamianie `opencode web` z WSL zapewnia poprawny dostep do systemu plikow i integracje z terminalem, a nadal pozostaje dostepne z przegladarki Windows.
+Uruchamianie `closecode web` z WSL zapewnia poprawny dostep do systemu plikow i integracje z terminalem, a nadal pozostaje dostepne z przegladarki Windows.
 
 ---
 
@@ -97,7 +97,7 @@ Przyklad:
 
 ```bash
 cd /mnt/c/Users/YourName/Documents/project
-opencode
+closecode
 ```
 
 :::tip

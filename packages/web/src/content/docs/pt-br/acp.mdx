@@ -15,7 +15,7 @@ O ACP é um protocolo aberto que padroniza a comunicação entre editores de có
 
 ## Configuração
 
-Para usar opencode via ACP, configure seu editor para executar o comando `opencode acp`.
+Para usar opencode via ACP, configure seu editor para executar o comando `closecode acp`.
 
 Este comando inicia o opencode como um subprocesso compatível com ACP que se comunica com seu editor via JSON-RPC através do stdio.
 
@@ -30,7 +30,7 @@ Adicione à sua configuração do [Zed](https://zed.dev) (`~/.config/zed/setting
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "OpenCode": {
+    "CloseCode": {
       "command": "opencode",
       "args": ["acp"]
     }
@@ -51,7 +51,7 @@ Você também pode vincular um atalho de teclado editando seu `keymap.json`:
         {
           "agent": {
             "custom": {
-              "name": "OpenCode",
+              "name": "CloseCode",
               "command": {
                 "command": "opencode",
                 "args": ["acp"]
@@ -74,7 +74,7 @@ Adicione ao seu acp.json do [JetBrains IDE](https://www.jetbrains.com/) de acord
 ```json title="acp.json"
 {
   "agent_servers": {
-    "OpenCode": {
+    "CloseCode": {
       "command": "/absolute/path/bin/opencode",
       "args": ["acp"]
     }
@@ -150,7 +150,7 @@ Alguns comandos de barra integrados, como `/undo` e `/redo`, atualmente não sã
 
 - Ferramentas integradas (operações de arquivo, comandos de terminal, etc.)
 - Ferramentas personalizadas e comandos de barra
-- Servidores MCP configurados na sua configuração do opencode
+- Servidores MCP configurados na sua configuração do closecode
 - Regras específicas do projeto do `AGENTS.md`
 - Formatadores e linters personalizados
 - Sistema de agentes e permissões

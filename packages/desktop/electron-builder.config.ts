@@ -127,7 +127,7 @@ const getBase = (appId: string): Configuration => ({
     sign: true,
   },
   protocols: {
-    name: "OpenCode",
+    name: "CloseCode",
     schemes: ["opencode"],
   },
   win: {
@@ -169,7 +169,7 @@ function getConfig() {
       return {
         ...base,
         appId,
-        productName: "OpenCode Dev",
+        productName: "CloseCode Dev",
         deb: { fpm: [metainfoFpm(appId)] },
         rpm: { packageName: "opencode-dev", fpm: [metainfoFpm(appId)] },
       }
@@ -178,8 +178,8 @@ function getConfig() {
       return {
         ...base,
         appId,
-        productName: "OpenCode Beta",
-        protocols: { name: "OpenCode Beta", schemes: ["opencode"] },
+        productName: "CloseCode Beta",
+        protocols: { name: "CloseCode Beta", schemes: ["opencode"] },
         publish: {
           provider: "generic",
           url: "https://opencode.ai/update/api/beta/desktop/opencode/",
@@ -193,8 +193,8 @@ function getConfig() {
       return {
         ...base,
         appId,
-        productName: "OpenCode",
-        protocols: { name: "OpenCode", schemes: ["opencode"] },
+        productName: "CloseCode",
+        protocols: { name: "CloseCode", schemes: ["opencode"] },
         publish: {
           provider: "generic",
           url: "https://opencode.ai/update/api/latest/desktop/opencode/",

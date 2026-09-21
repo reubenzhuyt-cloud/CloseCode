@@ -1,15 +1,15 @@
 ---
 title: Configurazione
-description: Usa la configurazione JSON di OpenCode.
+description: Usa la configurazione JSON di CloseCode.
 ---
 
-Puoi configurare OpenCode usando un file di configurazione JSON.
+Puoi configurare CloseCode usando un file di configurazione JSON.
 
 ---
 
 ## Formato
 
-OpenCode supporta sia **JSON** sia **JSONC** (JSON con commenti).
+CloseCode supporta sia **JSON** sia **JSONC** (JSON con commenti).
 
 ```jsonc title="opencode.jsonc"
 {
@@ -95,7 +95,7 @@ Puoi abilitare server specifici nella tua configurazione locale:
 
 ### Configurazione globale
 
-Metti la configurazione globale di OpenCode in `~/.config/opencode/opencode.json`. Usa la configurazione globale per preferenze server/runtime valide per l'utente come provider, modelli e permessi.
+Metti la configurazione globale di CloseCode in `~/.config/opencode/opencode.json`. Usa la configurazione globale per preferenze server/runtime valide per l'utente come provider, modelli e permessi.
 
 Per le impostazioni specifiche della TUI, usa `~/.config/opencode/tui.json`.
 
@@ -113,7 +113,7 @@ Per le impostazioni TUI specifiche del progetto, aggiungi `tui.json` nella stess
 Metti la configurazione specifica del progetto nella root del progetto.
 :::
 
-Quando OpenCode si avvia, cerca un file di configurazione nella directory corrente oppure risale fino alla directory Git piu vicina.
+Quando CloseCode si avvia, cerca un file di configurazione nella directory corrente oppure risale fino alla directory Git piu vicina.
 
 Questo file puo essere tranquillamente versionato in Git e usa lo stesso schema di quello globale.
 
@@ -125,7 +125,7 @@ Specifica un percorso personalizzato per il file di configurazione usando la var
 
 ```bash
 export OPENCODE_CONFIG=/path/to/my/custom-config.json
-opencode run "Hello world"
+closecode run "Hello world"
 ```
 
 La configurazione personalizzata viene caricata tra quella globale e quella di progetto nell'ordine di precedenza.
@@ -138,7 +138,7 @@ Specifica una directory di configurazione personalizzata usando la variabile d'a
 
 ```bash
 export OPENCODE_CONFIG_DIR=/path/to/my/config-directory
-opencode run "Hello world"
+closecode run "Hello world"
 ```
 
 La directory personalizzata viene caricata dopo la configurazione globale e le directory `.opencode`, quindi **puo sovrascrivere** le loro impostazioni.
@@ -180,7 +180,7 @@ Le chiavi legacy `theme`, `keybinds` e `tui` in `opencode.json` sono deprecate e
 
 ### Server
 
-Puoi configurare le impostazioni del server per i comandi `opencode serve` e `opencode web` tramite l'opzione `server`.
+Puoi configurare le impostazioni del server per i comandi `closecode serve` e `closecode web` tramite l'opzione `server`.
 
 ```json title="opencode.json"
 {
@@ -199,7 +199,7 @@ Opzioni disponibili:
 
 - `port` - Porta su cui ascoltare.
 - `hostname` - Nome host su cui ascoltare. Quando `mdns` e abilitato e non e impostato alcun hostname, il default e `0.0.0.0`.
-- `mdns` - Abilita la scoperta del servizio mDNS. Questo permette ad altri dispositivi sulla rete di scoprire il tuo server OpenCode.
+- `mdns` - Abilita la scoperta del servizio mDNS. Questo permette ad altri dispositivi sulla rete di scoprire il tuo server CloseCode.
 - `mdnsDomain` - Nome di dominio personalizzato per il servizio mDNS. Predefinito: `opencode.local`. Utile per eseguire piu istanze sulla stessa rete.
 - `cors` - Origini aggiuntive da consentire per CORS quando usi il server HTTP da un client basato su browser. I valori devono essere origini complete (schema + host + porta opzionale), ad es. `https://app.example.com`.
 
@@ -227,7 +227,7 @@ Puoi gestire gli strumenti che un LLM puo usare tramite l'opzione `tools`.
 
 ### Modelli
 
-Puoi configurare provider e modelli da usare in OpenCode tramite le opzioni `provider`, `model` e `small_model`.
+Puoi configurare provider e modelli da usare in CloseCode tramite le opzioni `provider`, `model` e `small_model`.
 
 ```json title="opencode.json"
 {
@@ -238,7 +238,7 @@ Puoi configurare provider e modelli da usare in OpenCode tramite le opzioni `pro
 }
 ```
 
-L'opzione `small_model` configura un modello separato per task leggeri come la generazione dei titoli. Per impostazione predefinita, OpenCode prova a usare un modello più economico se disponibile dal tuo provider, altrimenti fa fallback sul tuo modello principale.
+L'opzione `small_model` configura un modello separato per task leggeri come la generazione dei titoli. Per impostazione predefinita, CloseCode prova a usare un modello più economico se disponibile dal tuo provider, altrimenti fa fallback sul tuo modello principale.
 
 Le opzioni del provider possono includere `timeout` e `setCacheKey`:
 
@@ -350,9 +350,9 @@ Puoi impostare l'agente predefinito usando l'opzione `default_agent`. Questo det
 }
 ```
 
-L'agente predefinito deve essere un agente primary (non un subagent). Puo essere un agente integrato come `"build"` o `"plan"`, oppure un [agente personalizzato](/docs/agents) che hai definito. Se l'agente specificato non esiste o e un subagent, OpenCode fara fallback su `"build"` mostrando un avviso.
+L'agente predefinito deve essere un agente primary (non un subagent). Puo essere un agente integrato come `"build"` o `"plan"`, oppure un [agente personalizzato](/docs/agents) che hai definito. Se l'agente specificato non esiste o e un subagent, CloseCode fara fallback su `"build"` mostrando un avviso.
 
-Questa impostazione si applica a tutte le interfacce: TUI, CLI (`opencode run`), app desktop e GitHub Action.
+Questa impostazione si applica a tutte le interfacce: TUI, CLI (`closecode run`), app desktop e GitHub Action.
 
 ---
 
@@ -420,7 +420,7 @@ Personalizza i keybind in `tui.json`.
 
 ### Aggiornamenti automatici
 
-OpenCode scarichera automaticamente eventuali aggiornamenti quando si avvia. Puoi disabilitare questa funzione con l'opzione `autoupdate`.
+CloseCode scarichera automaticamente eventuali aggiornamenti quando si avvia. Puoi disabilitare questa funzione con l'opzione `autoupdate`.
 
 ```json title="opencode.json"
 {
@@ -535,7 +535,7 @@ Puoi configurare i server MCP che vuoi usare tramite l'opzione `mcp`.
 
 ### Plugin
 
-[I plugin](/docs/plugins) estendono OpenCode con strumenti personalizzati, hook e integrazioni.
+[I plugin](/docs/plugins) estendono CloseCode con strumenti personalizzati, hook e integrazioni.
 
 Metti i file dei plugin in `.opencode/plugins/` o `~/.config/opencode/plugins/`. Puoi anche caricare plugin da npm tramite l'opzione `plugin`.
 
@@ -599,7 +599,7 @@ Puoi specificare un'allowlist di provider tramite l'opzione `enabled_providers`.
 }
 ```
 
-E utile quando vuoi limitare OpenCode a usare solo alcuni provider invece di disabilitarli uno per uno.
+E utile quando vuoi limitare CloseCode a usare solo alcuni provider invece di disabilitarli uno per uno.
 
 :::note
 `disabled_providers` ha priorita su `enabled_providers`.

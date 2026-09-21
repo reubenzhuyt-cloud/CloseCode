@@ -16,7 +16,7 @@ Pliki logów są zapisywane w:
 
 Nazwy plików dziennika zawierają znaczniki czasu (np. `2025-01-09T123456.log`) i przechowywanych jest 10 ostatnich plików dziennika.
 
-Możesz ustawić poziom dziennika za pomocą opcji wiersza poleceń `--log-level`, aby uzyskać bardziej szczegółowe informacje debugowania. Na przykład `opencode --log-level DEBUG`.
+Możesz ustawić poziom dziennika za pomocą opcji wiersza poleceń `--log-level`, aby uzyskać bardziej szczegółowe informacje debugowania. Na przykład `closecode --log-level DEBUG`.
 
 ---
 
@@ -25,7 +25,7 @@ Możesz ustawić poziom dziennika za pomocą opcji wiersza poleceń `--log-level
 opencode przechowuje dane sesji i inne dane aplikacji na dysku pod adresem:
 
 - **macOS/Linux**: `~/.local/share/opencode/`
-- **Windows**: Naciśnij `WIN+R` i wklej `%USERPROFILE%\.local\share\opencode`
+- **Windows**: Naciśnij `WIN+R` i wklej `%USERPROFILE%\.local\share\closecode`
 
 Ten katalog zawiera:
 
@@ -45,7 +45,7 @@ opencode Desktop uruchamia w tle lokalny serwer opencode (sidecar `opencode-cli`
 
 - Całkowicie zakończ i uruchom ponownie aplikację.
 - Jeśli aplikacja wyświetli ekran błędu, kliknij **Uruchom ponownie** i skopiuj szczegóły błędu.
-- Tylko macOS: menu `OpenCode` -> **Załaduj ponownie przeglądarkę internetową** (pomaga, jeśli interfejs użytkownika jest pusty/zawieszony).
+- Tylko macOS: menu `CloseCode` -> **Załaduj ponownie przeglądarkę internetową** (pomaga, jeśli interfejs użytkownika jest pusty/zawieszony).
 
 ---
 
@@ -93,7 +93,7 @@ Jeśli wyłączenie wtyczek nie pomoże (lub instalacja wtyczki utknęła), wycz
 
 - **macOS**: Finder -> `Cmd+Shift+G` -> paste `~/.cache/opencode`
 - **Linux**: usuń `~/.cache/opencode` (lub uruchom `rm -rf ~/.cache/opencode`)
-- **Windows**: Naciśnij `WIN+R` i wklej `%USERPROFILE%\.cache\opencode`
+- **Windows**: Naciśnij `WIN+R` i wklej `%USERPROFILE%\.cache\closecode`
 
 3. Uruchom ponownie opencode Desktop.
 
@@ -199,7 +199,7 @@ Oto kilka typowych problemów i sposobów ich rozwiązania.
 
 1. Sprawdź dzienniki pod kątem komunikatów o błędach
 2. Spróbuj uruchomić z `--print-logs`, aby zobaczyć dane wyjściowe w terminalu
-3. Upewnij się, że masz najnowszą wersję z `opencode upgrade`
+3. Upewnij się, że masz najnowszą wersję z `closecode upgrade`
 
 ---
 
@@ -227,7 +227,7 @@ Przykłady:
 - `openrouter/google/gemini-2.5-flash`
 - `opencode/kimi-k2`
 
-Aby dowiedzieć się, do jakich modeli masz dostęp, uruchom `opencode models`
+Aby dowiedzieć się, do jakich modeli masz dostęp, uruchom `closecode models`
 
 ---
 
@@ -244,7 +244,7 @@ Aby rozwiązać ten problem:
    rm -rf ~/.local/share/opencode
    ```
 
-   W systemie Windows naciśnij `WIN+R` i usuń: `%USERPROFILE%\.local\share\opencode`
+   W systemie Windows naciśnij `WIN+R` i usuń: `%USERPROFILE%\.local\share\closecode`
 
 3. Ponownie uwierzytelnij się u swojego dostawcy za pomocą polecenia `/connect` w TUI.
 
@@ -262,7 +262,7 @@ Aby rozwiązać problemy z pakietem dostawcy:
    rm -rf ~/.cache/opencode
    ```
 
-   W systemie Windows naciśnij `WIN+R` i usuń: `%USERPROFILE%\.cache\opencode`
+   W systemie Windows naciśnij `WIN+R` i usuń: `%USERPROFILE%\.cache\closecode`
 
 2. Uruchom ponownie kod opencode, aby ponownie zainstalować najnowsze pakiety dostawców
 

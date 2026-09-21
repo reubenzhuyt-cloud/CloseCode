@@ -16,7 +16,7 @@ Os arquivos de log são gravados em:
 
 Os arquivos de log são nomeados com timestamps (por exemplo, `2025-01-09T123456.log`) e os 10 arquivos de log mais recentes são mantidos.
 
-Você pode definir o nível de log com a opção de linha de comando `--log-level` para obter informações de depuração mais detalhadas. Por exemplo, `opencode --log-level DEBUG`.
+Você pode definir o nível de log com a opção de linha de comando `--log-level` para obter informações de depuração mais detalhadas. Por exemplo, `closecode --log-level DEBUG`.
 
 ---
 
@@ -25,7 +25,7 @@ Você pode definir o nível de log com a opção de linha de comando `--log-leve
 O opencode armazena dados de sessão e outros dados do aplicativo no disco em:
 
 - **macOS/Linux**: `~/.local/share/opencode/`
-- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.local\share\opencode`
+- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.local\share\closecode`
 
 Este diretório contém:
 
@@ -45,7 +45,7 @@ O opencode Desktop executa um servidor opencode local (o sidecar `opencode-cli`)
 
 - Saia completamente do aplicativo e reinicie-o.
 - Se o aplicativo mostrar uma tela de erro, clique em **Reiniciar** e copie os detalhes do erro.
-- Apenas macOS: menu `OpenCode` -> **Recarregar Webview** (ajuda se a interface estiver em branco/congelada).
+- Apenas macOS: menu `CloseCode` -> **Recarregar Webview** (ajuda se a interface estiver em branco/congelada).
 
 ---
 
@@ -93,7 +93,7 @@ Se desativar plugins não ajudar (ou se a instalação de um plugin estiver trav
 
 - **macOS**: Finder -> `Cmd+Shift+G` -> cole `~/.cache/opencode`
 - **Linux**: exclua `~/.cache/opencode` (ou execute `rm -rf ~/.cache/opencode`)
-- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.cache\opencode`
+- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.cache\closecode`
 
 3. Reinicie o opencode Desktop.
 
@@ -199,7 +199,7 @@ Aqui estão alguns problemas comuns e como resolvê-los.
 
 1. Verifique os logs em busca de mensagens de erro
 2. Tente executar com `--print-logs` para ver a saída no terminal
-3. Certifique-se de que você tem a versão mais recente com `opencode upgrade`
+3. Certifique-se de que você tem a versão mais recente com `closecode upgrade`
 
 ---
 
@@ -226,7 +226,7 @@ Exemplos:
 - `openrouter/google/gemini-2.5-flash`
 - `opencode/kimi-k2`
 
-Para descobrir quais modelos você tem acesso, execute `opencode models`
+Para descobrir quais modelos você tem acesso, execute `closecode models`
 
 ---
 
@@ -243,7 +243,7 @@ Para resolver isso:
    rm -rf ~/.local/share/opencode
    ```
 
-   No Windows, pressione `WIN+R` e exclua: `%USERPROFILE%\.local\share\opencode`
+   No Windows, pressione `WIN+R` e exclua: `%USERPROFILE%\.local\share\closecode`
 
 3. Reautentique-se com seu provedor usando o comando `/connect` na TUI.
 
@@ -261,7 +261,7 @@ Para resolver problemas com pacotes de provedores:
    rm -rf ~/.cache/opencode
    ```
 
-   No Windows, pressione `WIN+R` e exclua: `%USERPROFILE%\.cache\opencode`
+   No Windows, pressione `WIN+R` e exclua: `%USERPROFILE%\.cache\closecode`
 
 2. Reinicie o opencode para reinstalar os pacotes de provedores mais recentes
 

@@ -46,15 +46,15 @@ Você pode personalizar a URL base para qualquer provedor definindo a opção `b
 
 ---
 
-## OpenCode Zen
+## CloseCode Zen
 
-OpenCode Zen é uma lista de modelos fornecidos pela equipe do opencode que foram testados e verificados para funcionar bem com o opencode. [Saiba mais](/docs/zen).
+CloseCode Zen é uma lista de modelos fornecidos pela equipe do opencode que foram testados e verificados para funcionar bem com o opencode. [Saiba mais](/docs/zen).
 
 :::tip
-Se você é novo, recomendamos começar com o OpenCode Zen.
+Se você é novo, recomendamos começar com o CloseCode Zen.
 :::
 
-1. Execute o comando `/connect` no TUI, selecione `OpenCode Zen` e acesse [opencode.ai/zen](https://opencode.ai/zen).
+1. Execute o comando `/connect` no TUI, selecione `CloseCode Zen` e acesse [opencode.ai/zen](https://opencode.ai/zen).
 
    ```txt
    /connect
@@ -81,12 +81,12 @@ Funciona como qualquer outro provedor no opencode e é completamente opcional.
 
 ---
 
-## OpenCode Go
+## CloseCode Go
 
-OpenCode Go é um plano de assinatura de baixo custo que fornece acesso confiável a modelos de codificação abertos populares fornecidos pela equipe do opencode que foram
+CloseCode Go é um plano de assinatura de baixo custo que fornece acesso confiável a modelos de codificação abertos populares fornecidos pela equipe do opencode que foram
 testados e verificados para funcionar bem com o opencode.
 
-1. Execute o comando `/connect` no TUI, selecione `OpenCode Go` e acesse [opencode.ai/zen](https://opencode.ai/zen).
+1. Execute o comando `/connect` no TUI, selecione `CloseCode Go` e acesse [opencode.ai/zen](https://opencode.ai/zen).
 
    ```txt
    /connect
@@ -170,13 +170,13 @@ Para usar o Amazon Bedrock com o opencode:
 
    ```bash
    # Option 1: Using AWS access keys
-   AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=YYY opencode
+   AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=YYY closecode
 
    # Option 2: Using named AWS profile
-   AWS_PROFILE=my-profile opencode
+   AWS_PROFILE=my-profile closecode
 
    # Option 3: Using Bedrock bearer token
-   AWS_BEARER_TOKEN_BEDROCK=XXX opencode
+   AWS_BEARER_TOKEN_BEDROCK=XXX closecode
    ```
 
    Ou adicione-as ao seu perfil bash:
@@ -397,7 +397,7 @@ Se você encontrar erros "Desculpe, mas não posso ajudar com esse pedido", tent
 5. Defina o nome do seu recurso como uma variável de ambiente:
 
    ```bash
-   AZURE_RESOURCE_NAME=XXX opencode
+   AZURE_RESOURCE_NAME=XXX closecode
    ```
 
    Ou adicione ao seu perfil bash:
@@ -444,7 +444,7 @@ Se você encontrar erros "Desculpe, mas não posso ajudar com esse pedido", tent
 5. Defina o nome do seu recurso como uma variável de ambiente:
 
    ```bash
-   AZURE_COGNITIVE_SERVICES_RESOURCE_NAME=XXX opencode
+   AZURE_COGNITIVE_SERVICES_RESOURCE_NAME=XXX closecode
    ```
 
    Ou adicione ao seu perfil bash:
@@ -735,7 +735,7 @@ GitLab Duo fornece um chat agente com suporte a ferramentas nativas através do 
    #### Usando Token de Acesso Pessoal
    1. Vá para [Configurações do Usuário do GitLab > Tokens de Acesso](https://gitlab.com/-/user_settings/personal_access_tokens)
    2. Clique em **Adicionar novo token**
-   3. Nome: `OpenCode`, Escopos: `api`
+   3. Nome: `CloseCode`, Escopos: `api`
    4. Copie o token (começa com `glpat-`)
    5. Insira-o no terminal
 
@@ -759,7 +759,7 @@ armazenar o token no armazenamento de autenticação do opencode.
 
 :::note[nota de conformidade]
 opencode usa um pequeno modelo para algumas tarefas de AI, como gerar o título da sessão.
-Ele está configurado para usar gpt-5-nano por padrão, hospedado pela Zen. Para bloquear o opencode
+Ele está configurado para usar gpt-5-nano por padrão, hospedado pela Zen. Para bloquear o closecode
 para usar apenas sua própria instância hospedada do GitLab, adicione o seguinte ao seu
 arquivo `opencode.json`. Também é recomendado desativar o compartilhamento de sessões.
 
@@ -909,7 +909,7 @@ Para usar o Google Vertex AI com o opencode:
    Defina-as ao executar o opencode.
 
    ```bash
-   GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json GOOGLE_CLOUD_PROJECT=your-project-id opencode
+   GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json GOOGLE_CLOUD_PROJECT=your-project-id closecode
    ```
 
    Ou adicione-as ao seu perfil bash.
@@ -1399,13 +1399,13 @@ Se você já tiver uma chave da API, pode selecionar **Inserir chave da API manu
 
 ---
 
-### OpenCode Zen
+### CloseCode Zen
 
-OpenCode Zen é uma lista de modelos testados e verificados fornecidos pela equipe do opencode. [Saiba mais](/docs/zen).
+CloseCode Zen é uma lista de modelos testados e verificados fornecidos pela equipe do opencode. [Saiba mais](/docs/zen).
 
-1. Faça login em **<a href={console}>OpenCode Zen</a>** e clique em **Criar Chave da API**.
+1. Faça login em **<a href={console}>CloseCode Zen</a>** e clique em **Criar Chave da API**.
 
-2. Execute o comando `/connect` e procure por **OpenCode Zen**.
+2. Execute o comando `/connect` e procure por **CloseCode Zen**.
 
    ```txt
    /connect
@@ -1520,7 +1520,7 @@ SAP AI Core fornece acesso a mais de 40 modelos do OpenAI, Anthropic, Google, Am
    Ou defina a variável de ambiente `AICORE_SERVICE_KEY`:
 
    ```bash
-   AICORE_SERVICE_KEY='{"clientid":"...","clientsecret":"...","url":"...","serviceurls":{"AI_API_URL":"..."}}' opencode
+   AICORE_SERVICE_KEY='{"clientid":"...","clientsecret":"...","url":"...","serviceurls":{"AI_API_URL":"..."}}' closecode
    ```
 
    Ou adicione ao seu perfil bash:
@@ -1532,7 +1532,7 @@ SAP AI Core fornece acesso a mais de 40 modelos do OpenAI, Anthropic, Google, Am
 4. Opcionalmente, defina o ID de implantação e o grupo de recursos:
 
    ```bash
-   AICORE_DEPLOYMENT_ID=your-deployment-id AICORE_RESOURCE_GROUP=your-resource-group opencode
+   AICORE_DEPLOYMENT_ID=your-deployment-id AICORE_RESOURCE_GROUP=your-resource-group closecode
    ```
 
    :::note
@@ -1978,7 +1978,7 @@ Os campos `limit` permitem que o opencode entenda quanto contexto você tem disp
 
 Se você estiver tendo problemas para configurar um provedor, verifique o seguinte:
 
-1. **Verifique a configuração de autenticação**: Execute `opencode auth list` para ver se as credenciais
+1. **Verifique a configuração de autenticação**: Execute `closecode auth list` para ver se as credenciais
    para o provedor estão adicionadas à sua configuração.
 
    Isso não se aplica a provedores como Amazon Bedrock, que dependem de variáveis de ambiente para sua autenticação.

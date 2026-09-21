@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=OpenCode
-Exec=/opt/OpenCode/ai.opencode.desktop %U
+Name=CloseCode
+Exec=/opt/CloseCode/ai.opencode.desktop %U
 Terminal=false
 Type=Application
 Icon=ai.opencode.desktop

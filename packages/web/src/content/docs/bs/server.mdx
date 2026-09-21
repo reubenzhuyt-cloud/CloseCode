@@ -6,14 +6,14 @@ description: Komunicirajte s opencode serverom preko HTTP-a.
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-Komanda `opencode serve` pokrece headless HTTP server koji izlaže OpenAPI endpoint koji opencode klijent moze koristiti.
+Komanda `closecode serve` pokrece headless HTTP server koji izlaže OpenAPI endpoint koji opencode klijent moze koristiti.
 
 ---
 
 ### Korištenje
 
 ```bash
-opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
+closecode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 ```
 
 #### Opcije
@@ -29,24 +29,24 @@ opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 `--cors` mozete navesti vise puta:
 
 ```bash
-opencode serve --cors http://localhost:5173 --cors https://app.example.com
+closecode serve --cors http://localhost:5173 --cors https://app.example.com
 ```
 
 ---
 
 ### Autentifikacija
 
-Postavite `OPENCODE_SERVER_PASSWORD` da zastitite server HTTP basic auth mehanizmom. Korisnicko ime je po defaultu `opencode`, ili postavite `OPENCODE_SERVER_USERNAME` za nadjacavanje. Ovo vazi i za `opencode serve` i za `opencode web`.
+Postavite `OPENCODE_SERVER_PASSWORD` da zastitite server HTTP basic auth mehanizmom. Korisnicko ime je po defaultu `closecode`, ili postavite `OPENCODE_SERVER_USERNAME` za nadjacavanje. Ovo vazi i za `closecode serve` i za `closecode web`.
 
 ```bash
-OPENCODE_SERVER_PASSWORD=your-password opencode serve
+OPENCODE_SERVER_PASSWORD=your-password closecode serve
 ```
 
 ---
 
 ### Kako radi
 
-Kada pokrenete `opencode`, pokrecu se TUI i server. TUI je klijent koji komunicira sa serverom. Server izlaže OpenAPI 3.1 spec endpoint koji se koristi i za generisanje [SDK-a](/docs/sdk).
+Kada pokrenete `closecode`, pokrecu se TUI i server. TUI je klijent koji komunicira sa serverom. Server izlaže OpenAPI 3.1 spec endpoint koji se koristi i za generisanje [SDK-a](/docs/sdk).
 
 :::tip
 Koristite opencode server za programsku interakciju sa opencode-om.
@@ -54,7 +54,7 @@ Koristite opencode server za programsku interakciju sa opencode-om.
 
 Ova arhitektura omogucava opencode podrsku za vise klijenata i programsku interakciju.
 
-Mozete pokrenuti `opencode serve` da startate standalone server. Ako je opencode TUI vec pokrenut, `opencode serve` ce pokrenuti novi server.
+Mozete pokrenuti `closecode serve` da startate standalone server. Ako je opencode TUI vec pokrenut, `closecode serve` ce pokrenuti novi server.
 
 ---
 
@@ -62,7 +62,7 @@ Mozete pokrenuti `opencode serve` da startate standalone server. Ako je opencode
 
 Kada pokrenete TUI, port i hostname se nasumicno dodijele. Umjesto toga, mozete zadati `--hostname` i `--port` [zastave](/docs/cli), pa se povezati na taj server.
 
-Endpoint [`/tui`](#tui) mozete koristiti za upravljanje TUI-jem kroz server. Na primjer, mozete unaprijed popuniti ili pokrenuti prompt. Ovaj setup koriste OpenCode [IDE](/docs/ide) pluginovi.
+Endpoint [`/tui`](#tui) mozete koristiti za upravljanje TUI-jem kroz server. Na primjer, mozete unaprijed popuniti ili pokrenuti prompt. Ovaj setup koriste CloseCode [IDE](/docs/ide) pluginovi.
 
 ---
 

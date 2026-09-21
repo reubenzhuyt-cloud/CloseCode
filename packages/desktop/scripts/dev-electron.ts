@@ -14,7 +14,7 @@ export async function prepareDevElectron() {
     .digest("hex")
     .slice(0, 16)
   const root = join(import.meta.dirname, "../node_modules/.cache/opencode-dev", hash)
-  const bundle = join(root, "OpenCode Dev.app")
+  const bundle = join(root, "CloseCode Dev.app")
   // Electron uses the executable's name to distinguish development from packaged apps.
   const executable = join(bundle, "Contents/MacOS/Electron")
   if (await Bun.file(join(root, "ready")).exists()) return executable
@@ -24,7 +24,7 @@ export async function prepareDevElectron() {
   await $`ditto ${join(electron, "dist/Electron.app")} ${bundle}`
   const plist = join(bundle, "Contents/Info.plist")
   for (const key of ["CFBundleName", "CFBundleDisplayName"]) {
-    await $`plutil -replace ${key} -string ${"OpenCode Dev"} ${plist}`
+    await $`plutil -replace ${key} -string ${"CloseCode Dev"} ${plist}`
   }
   await $`plutil -replace CFBundleIdentifier -string ai.opencode.desktop.dev ${plist}`
   await $`plutil -insert NSAutoFillRequiresTextContentTypeForOneTimeCodeOnMac -bool true ${plist}`

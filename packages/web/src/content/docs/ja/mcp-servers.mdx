@@ -3,7 +3,7 @@ title: MCPサーバー
 description: ローカルおよびリモートの MCP ツールを追加します。
 ---
 
-_Model Context Protocol_ (MCP) を使用して、OpenCode に外部ツールを追加できます。 OpenCode は、ローカルサーバーとリモートサーバーの両方をサポートします。
+_Model Context Protocol_ (MCP) を使用して、CloseCode に外部ツールを追加できます。 CloseCode は、ローカルサーバーとリモートサーバーの両方をサポートします。
 
 MCP ツールを追加すると、組み込みツールとともに LLM で自動的に使用できるようになります。
 
@@ -23,7 +23,7 @@ MCP サーバーはコンテキストに追加されるため、どのサーバ�
 
 ## 有効化
 
-MCP サーバーは、`mcp` の下の [OpenCode 設定](https://opencode.ai/docs/config/) で定義できます。各 MCP を一意の名前で追加します。 LLM にプロンプ​​トを表示するときに、その MCP を名前で参照できます。
+MCP サーバーは、`mcp` の下の [CloseCode 設定](https://opencode.ai/docs/config/) で定義できます。各 MCP を一意の名前で追加します。 LLM にプロンプ​​トを表示するときに、その MCP を名前で参照できます。
 
 ```jsonc title="opencode.jsonc" {6}
 {
@@ -165,7 +165,7 @@ use the mcp_everything tool to add the number 3 and 4
 
 ## OAuth
 
-OpenCode は、リモート MCP サーバーの OAuth 認証を自動的に処理します。サーバーが認証を必要とする場合、OpenCode は次のことを行います。
+CloseCode は、リモート MCP サーバーの OAuth 認証を自動的に処理します。サーバーが認証を必要とする場合、CloseCode は次のことを行います。
 
 1. 401 応答を検出し、OAuth フローを開始します。
 2. サーバーでサポートされている場合は **動的クライアント登録 (RFC 7591)** を使用します
@@ -189,7 +189,7 @@ OpenCode は、リモート MCP サーバーの OAuth 認証を自動的に処�
 }
 ```
 
-サーバーが認証を必要とする場合、OpenCode を初めて使用しようとすると、認証を求めるプロンプトが表示されます。そうでない場合は、`opencode mcp auth <server-name>` を使用して [flow](#authenticating) を手動でトリガーできます。
+サーバーが認証を必要とする場合、CloseCode を初めて使用しようとすると、認証を求めるプロンプトが表示されます。そうでない場合は、`closecode mcp auth <server-name>` を使用して [flow](#authenticating) を手動でトリガーできます。
 
 ---
 
@@ -223,22 +223,22 @@ MCP サーバープロバイダーからクライアント認証情報を取得�
 特定の MCP サーバーで認証します。
 
 ```bash
-opencode mcp auth my-oauth-server
+closecode mcp auth my-oauth-server
 ```
 
 すべての MCP サーバーとその認証ステータスをリストします。
 
 ```bash
-opencode mcp list
+closecode mcp list
 ```
 
 保存されている認証情報を削除します。
 
 ```bash
-opencode mcp logout my-oauth-server
+closecode mcp logout my-oauth-server
 ```
 
-`mcp auth` コマンドは、認証のためにブラウザを開きます。承認後、OpenCode はトークンを `~/.local/share/opencode/mcp-auth.json` に安全に保存します。
+`mcp auth` コマンドは、認証のためにブラウザを開きます。承認後、CloseCode はトークンを `~/.local/share/opencode/mcp-auth.json` に安全に保存します。
 
 ---
 
@@ -279,10 +279,10 @@ opencode mcp logout my-oauth-server
 
 ```bash
 # View auth status for all OAuth-capable servers
-opencode mcp auth list
+closecode mcp auth list
 
 # Debug connection and OAuth flow for a specific server
-opencode mcp debug my-oauth-server
+closecode mcp debug my-oauth-server
 ```
 
 `mcp debug` コマンドは、現在の認証ステータスを表示し、HTTP 接続をテストし、OAuth 検出フローを試行します。
@@ -291,7 +291,7 @@ opencode mcp debug my-oauth-server
 
 ## 管理
 
-MCP は、組み込みツールと並んで、OpenCode のツールとして利用できます。したがって、他のツールと同様に、OpenCode 設定を通じてそれらを管理できます。
+MCP は、組み込みツールと並んで、CloseCode のツールとして利用できます。したがって、他のツールと同様に、CloseCode 設定を通じてそれらを管理できます。
 
 ---
 
@@ -420,10 +420,10 @@ MCP サーバーツールはサーバー名をプレフィックスとして登�
 設定を追加した後、Sentry で認証します。
 
 ```bash
-opencode mcp auth sentry
+closecode mcp auth sentry
 ```
 
-これにより、ブラウザウィンドウが開き、OAuth フローが完了し、OpenCode が Sentry アカウントに接続されます。
+これにより、ブラウザウィンドウが開き、OAuth フローが完了し、CloseCode が Sentry アカウントに接続されます。
 
 認証が完了すると、プロンプトで Sentry ツールを使用して、問題、プロジェクト、エラーデータをクエリできるようになります。
 

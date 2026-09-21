@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-APP=opencode
-SOURCE_APP=opencode
+APP=closecode
+SOURCE_APP=closecode
 
 MUTED='\033[0;2m'
 RED='\033[0;31m'
@@ -10,7 +10,7 @@ NC='\033[0m' # No Color
 
 usage() {
     cat <<EOF
-OpenCode Installer
+CloseCode Installer
 
 Usage: install.sh [options]
 
@@ -23,7 +23,7 @@ Options:
 Examples:
     curl -fsSL https://opencode.ai/v2/install | bash
     curl -fsSL https://opencode.ai/v2/install | bash -s -- --version 0.0.0-beta-17236
-    ./install --binary /path/to/opencode
+    ./install --binary /path/to/closecode
 EOF
 }
 
@@ -366,14 +366,14 @@ install_legacy_shim() {
     if [[ "$shim_os" == "windows" ]]; then
         cat > "$INSTALL_DIR/opencode2.cmd" <<'EOF'
 @echo off
-"%~dp0opencode.exe" %*
+"%~dp0closecode.exe" %*
 exit /b %errorlevel%
 EOF
         return
     fi
     cat > "$INSTALL_DIR/opencode2" <<'EOF'
 #!/bin/sh
-exec "$(dirname "$0")/opencode" "$@"
+exec "$(dirname "$0")/closecode" "$@"
 EOF
     chmod 755 "$INSTALL_DIR/opencode2"
 }
@@ -394,9 +394,9 @@ add_to_path() {
     if grep -Fxq "$command" "$config_file"; then
         print_message info "Command already exists in $config_file, skipping write."
     elif [[ -w $config_file ]]; then
-        echo -e "\n# opencode" >> "$config_file"
+        echo -e "\n# closecode" >> "$config_file"
         echo "$command" >> "$config_file"
-        print_message info "${MUTED}Successfully added ${NC}opencode ${MUTED}to \$PATH in ${NC}$config_file"
+        print_message info "${MUTED}Successfully added ${NC}closecode ${MUTED}to \$PATH in ${NC}$config_file"
     else
         print_message warning "Manually add the directory to $config_file (or similar):"
         print_message info "  $command"
@@ -478,10 +478,10 @@ echo -e "${MUTED}█░░█ █░░█ █▀▀▀ █░░█ ${NC}█░
 echo -e "${MUTED}▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ${NC}▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀"
 echo -e ""
 echo -e ""
-echo -e "${MUTED}OpenCode includes free models, to start:${NC}"
+echo -e "${MUTED}CloseCode includes free models, to start:${NC}"
 echo -e ""
 echo -e "cd <project>  ${MUTED}# Open directory${NC}"
-echo -e "opencode      ${MUTED}# Run command${NC}"
+echo -e "closecode     ${MUTED}# Run command${NC}"
 echo -e ""
 echo -e "${MUTED}For more information visit ${NC}https://opencode.ai/v2/docs"
 echo -e ""

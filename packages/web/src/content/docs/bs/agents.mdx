@@ -15,7 +15,7 @@ Možete se prebacivati ​​između agenata tokom sesije ili ih pozvati spominj
 
 ## Vrste
 
-Postoje dvije vrste agenata u OpenCode: primarni agenti i podagenti.
+Postoje dvije vrste agenata u CloseCode: primarni agenti i podagenti.
 
 ---
 
@@ -27,7 +27,7 @@ Primarni agenti su glavni pomoćnici s kojima direktno komunicirate. Možete se 
 Možete koristiti tipku **Tab** za prebacivanje između primarnih agenata tokom sesije.
 :::
 
-OpenCode dolazi sa dva ugrađena primarna agenta, **Build** i **Plan**. Pogledat ćemo ih u nastavku.
+CloseCode dolazi sa dva ugrađena primarna agenta, **Build** i **Plan**. Pogledat ćemo ih u nastavku.
 
 ---
 
@@ -35,13 +35,13 @@ OpenCode dolazi sa dva ugrađena primarna agenta, **Build** i **Plan**. Pogledat
 
 Subagenti su specijalizovani pomoćnici koje primarni agenti mogu pozvati za određene zadatke. Možete ih i ručno pozvati **@ spominjanjem** u svojim porukama.
 
-OpenCode dolazi sa tri ugrađena subagenta, **General**, **Explore** i **Scout**. Ovo ćemo pogledati u nastavku.
+CloseCode dolazi sa tri ugrađena subagenta, **General**, **Explore** i **Scout**. Ovo ćemo pogledati u nastavku.
 
 ---
 
 ## Ugrađeni
 
-OpenCode dolazi sa dva ugrađena primarna agenta i tri ugrađena subagenta.
+CloseCode dolazi sa dva ugrađena primarna agenta i tri ugrađena subagenta.
 
 ---
 
@@ -87,7 +87,7 @@ Brzi agent samo za čitanje za istraživanje kodnih baza. Nije moguće mijenjati
 
 _Režim_: `subagent`
 
-Agent samo za čitanje za istraživanje eksterne dokumentacije i zavisnosti. Koristite ga kada trebate klonirati repozitorij zavisnosti u OpenCode-ov upravljani cache, pregledati izvorni kod biblioteke ili uporediti lokalni kod sa upstream implementacijama bez mijenjanja vašeg radnog prostora.
+Agent samo za čitanje za istraživanje eksterne dokumentacije i zavisnosti. Koristite ga kada trebate klonirati repozitorij zavisnosti u CloseCode-ov upravljani cache, pregledati izvorni kod biblioteke ili uporediti lokalni kod sa upstream implementacijama bez mijenjanja vašeg radnog prostora.
 
 ---
 
@@ -284,7 +284,7 @@ Vrijednosti temperature se obično kreću od 0.0 do 1.0:
 }
 ```
 
-Ako temperatura nije navedena, OpenCode koristi standardne postavke specifične za model; obično 0 za većinu modela, 0.55 za Qwen modele.
+Ako temperatura nije navedena, CloseCode koristi standardne postavke specifične za model; obično 0 za većinu modela, 0.55 za Qwen modele.
 
 ---
 
@@ -344,7 +344,7 @@ Navedite prilagođenu sistemsku prompt datoteku za ovog agenta sa `prompt` konfi
 }
 ```
 
-Ova putanja je relativna u odnosu na mjesto gdje se nalazi konfiguracijski fajl. Dakle, ovo radi i za globalnu OpenCode konfiguraciju i za konfiguraciju specifične za projekat.
+Ova putanja je relativna u odnosu na mjesto gdje se nalazi konfiguracijski fajl. Dakle, ovo radi i za globalnu CloseCode konfiguraciju i za konfiguraciju specifične za projekat.
 
 ---
 
@@ -366,7 +366,7 @@ Ako ne navedete model, primarni agenti koriste [model globalno konfiguriran](/do
 }
 ```
 
-ID modela u vašoj OpenCode konfiguraciji koristi format `provider/model-id`. Na primjer, ako koristite [OpenCode Zen](/docs/zen), koristili biste `opencode/gpt-5.1-codex` za GPT 5.1 Codex.
+ID modela u vašoj CloseCode konfiguraciji koristi format `provider/model-id`. Na primjer, ako koristite [CloseCode Zen](/docs/zen), koristili biste `opencode/gpt-5.1-codex` za GPT 5.1 Codex.
 
 ---
 
@@ -664,7 +664,7 @@ Na primjer, sa OpenAI-jevim modelima rezonovanja, možete kontrolisati napor ras
 Ove dodatne opcije su specifične za model i dobavljača. U dokumentaciji vašeg provajdera provjerite dostupne parametre.
 
 :::tip
-Pokrenite `opencode models` da vidite listu dostupnih modela.
+Pokrenite `closecode models` da vidite listu dostupnih modela.
 :::
 
 ---
@@ -674,7 +674,7 @@ Pokrenite `opencode models` da vidite listu dostupnih modela.
 Možete kreirati nove agente koristeći sljedeću naredbu:
 
 ```bash
-opencode agent create
+closecode agent create
 ```
 
 Ova interaktivna komanda će:

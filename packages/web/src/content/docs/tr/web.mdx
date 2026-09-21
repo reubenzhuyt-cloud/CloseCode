@@ -12,7 +12,7 @@ opencode, tarayıcınızda bir web uygulaması olarak çalışabilir ve bir term
 Aşağıdakileri çalıştırarak web arayüzünü başlatın:
 
 ```bash
-opencode web
+closecode web
 ```
 
 Bu, `127.0.0.1` üzerinde rastgele kullanılabilir bir bağlantı noktasına sahip yerel bir sunucuyu başlatır ve opencode'u varsayılan tarayıcınızda otomatik olarak açar.
@@ -22,7 +22,7 @@ Bu, `127.0.0.1` üzerinde rastgele kullanılabilir bir bağlantı noktasına sah
 :::
 
 :::tip[Windows Kullanıcıları]
-En iyi deneyim için PowerShell yerine `opencode web`'yi [WSL](/docs/windows-wsl)'den çalıştırın. Bu, uygun dosya sistemi erişimini ve terminal entegrasyonunu sağlar.
+En iyi deneyim için PowerShell yerine `closecode web`'yi [WSL](/docs/windows-wsl)'den çalıştırın. Bu, uygun dosya sistemi erişimini ve terminal entegrasyonunu sağlar.
 :::
 
 ---
@@ -36,7 +36,7 @@ Web sunucusunu komut satırı bayraklarıyla veya [config dosyanızda](/docs/con
 opencode varsayılan olarak kullanılabilir bir bağlantı noktasını seçer. Bir bağlantı noktası belirtebilirsiniz:
 
 ```bash
-opencode web --port 4096
+closecode web --port 4096
 ```
 
 ### Ana makine adı
@@ -44,7 +44,7 @@ opencode web --port 4096
 Varsayılan olarak sunucu `127.0.0.1` (yalnızca localhost) öğesine bağlanır. opencode'u ağınızda erişilebilir kılmak için:
 
 ```bash
-opencode web --hostname 0.0.0.0
+closecode web --hostname 0.0.0.0
 ```
 
 `0.0.0.0` kullanıldığında, opencode hem yerel hem de ağ adreslerini gösterecektir:
@@ -59,7 +59,7 @@ opencode web --hostname 0.0.0.0
 Sunucunuzun yerel ağda bulunabilir olmasını sağlamak için mDNS'yi etkinleştirin:
 
 ```bash
-opencode web --mdns
+closecode web --mdns
 ```
 
 Bu, ana bilgisayar adını otomatik olarak `0.0.0.0` olarak ayarlar ve sunucuyu `opencode.local` olarak tanıtır.
@@ -67,7 +67,7 @@ Bu, ana bilgisayar adını otomatik olarak `0.0.0.0` olarak ayarlar ve sunucuyu 
 Aynı ağ üzerinde birden fazla örneği çalıştıracak şekilde mDNS alan adını özelleştirebilirsiniz:
 
 ```bash
-opencode web --mdns --mdns-domain myproject.local
+closecode web --mdns --mdns-domain myproject.local
 ```
 
 ### CORS
@@ -75,7 +75,7 @@ opencode web --mdns --mdns-domain myproject.local
 CORS'a yönelik ek alan adlarına izin vermek için (özel ön uçlar için kullanışlıdır):
 
 ```bash
-opencode web --cors https://example.com
+closecode web --cors https://example.com
 ```
 
 ### Kimlik Doğrulaması
@@ -83,10 +83,10 @@ opencode web --cors https://example.com
 Erişimi korumak için `OPENCODE_SERVER_PASSWORD` ortam değişkenini kullanarak bir parola ayarlayın:
 
 ```bash
-OPENCODE_SERVER_PASSWORD=secret opencode web
+OPENCODE_SERVER_PASSWORD=secret closecode web
 ```
 
-Kullanıcı adı varsayılan olarak `opencode` şeklindedir ancak `OPENCODE_SERVER_USERNAME` ile değiştirilebilir.
+Kullanıcı adı varsayılan olarak `closecode` şeklindedir ancak `OPENCODE_SERVER_USERNAME` ile değiştirilebilir.
 
 ---
 
@@ -114,7 +114,7 @@ Bağlı sunucuları ve durumlarını görüntülemek için "Sunucuları Gör" se
 
 ```bash
 # Start the web server
-opencode web --port 4096
+closecode web --port 4096
 
 # In another terminal, attach the TUI
 opencode attach http://localhost:4096

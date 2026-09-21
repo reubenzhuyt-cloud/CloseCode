@@ -48,13 +48,13 @@ config.
 
 ---
 
-## OpenCode Zen
+## CloseCode Zen
 
-OpenCode Zen, opencode ekibi tarafından sağlanan modellerin bir listesidir.
+CloseCode Zen, opencode ekibi tarafından sağlanan modellerin bir listesidir.
 opencode ile iyi çalıştığı test edilip doğrulandı. [Daha fazla bilgi](/docs/zen).
 
 :::tip
-Yeniyseniz OpenCode Zen ile başlamanızı öneririz.
+Yeniyseniz CloseCode Zen ile başlamanızı öneririz.
 :::
 
 1. TUI'de `/connect` komutunu çalıştırın, opencode'u seçin ve [opencode.ai/auth](https://opencode.ai/auth)'ye gidin.
@@ -84,11 +84,11 @@ opencode'daki diğer sağlayıcılar gibi çalışır ve kullanımı tamamen ist
 
 ---
 
-## OpenCode Go
+## CloseCode Go
 
-OpenCode Go, opencode ile iyi çalıştığı test edilmiş ve doğrulanmış, opencode ekibi tarafından sağlanan popüler açık kodlama modellerine güvenilir erişim sağlayan düşük maliyetli bir abonelik planıdır.
+CloseCode Go, opencode ile iyi çalıştığı test edilmiş ve doğrulanmış, opencode ekibi tarafından sağlanan popüler açık kodlama modellerine güvenilir erişim sağlayan düşük maliyetli bir abonelik planıdır.
 
-1. TUI'de `/connect` komutunu çalıştırın, `OpenCode Go`'yu seçin ve [opencode.ai/auth](https://opencode.ai/zen) adresine gidin.
+1. TUI'de `/connect` komutunu çalıştırın, `CloseCode Go`'yu seçin ve [opencode.ai/auth](https://opencode.ai/zen) adresine gidin.
 
    ```txt
    /connect
@@ -172,13 +172,13 @@ Amazon Bedrock'u opencode ile kullanmak için:
 
    ```bash
    # Option 1: Using AWS access keys
-   AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=YYY opencode
+   AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=YYY closecode
 
    # Option 2: Using named AWS profile
-   AWS_PROFILE=my-profile opencode
+   AWS_PROFILE=my-profile closecode
 
    # Option 3: Using Bedrock bearer token
-   AWS_BEARER_TOKEN_BEDROCK=XXX opencode
+   AWS_BEARER_TOKEN_BEDROCK=XXX closecode
    ```
 
    Veya bunları bash profilinize ekleyin:
@@ -395,7 +395,7 @@ Araç çağrıları iyi çalışmıyorsa, tool calling desteği güçlü olan y�
 5. Kaynak adınızı ortam değişkeni olarak ayarlayın:
 
    ```bash
-   AZURE_RESOURCE_NAME=XXX opencode
+   AZURE_RESOURCE_NAME=XXX closecode
    ```
 
    Veya bash profilinize ekleyin:
@@ -442,7 +442,7 @@ Araç çağrıları iyi çalışmıyorsa, tool calling desteği güçlü olan y�
 5. Kaynak adınızı ortam değişkeni olarak ayarlayın:
 
    ```bash
-   AZURE_COGNITIVE_SERVICES_RESOURCE_NAME=XXX opencode
+   AZURE_COGNITIVE_SERVICES_RESOURCE_NAME=XXX closecode
    ```
 
    Veya bash profilinize ekleyin:
@@ -733,7 +733,7 @@ GitLab Duo, GitLab'ın Anthropic proxy'si aracılığıyla yerel araç çağırm
    #### Kişisel Erişim Simgesini Kullanma
    1. Go to [GitLab User Settings > Access Tokens](https://gitlab.com/-/user_settings/personal_access_tokens)
    2. Click **Add new token**
-   3. Name: `OpenCode`, Scopes: `api`
+   3. Name: `CloseCode`, Scopes: `api`
    4. Belirteci kopyalayın (`glpat-` ile başlar)
    5. Terminale girin
 
@@ -750,7 +750,7 @@ GitLab Duo, GitLab'ın Anthropic proxy'si aracılığıyla yerel araç çağırm
 
 :::note
 İstemiyorsanız 'GITLAB_TOKEN' ortam değişkenini de belirtebilirsiniz.
-to store token in opencode auth storage.
+to store token in closecode auth storage.
 :::
 
 ##### Kendi Kendine Barındırılan GitLab
@@ -908,7 +908,7 @@ Google Vertex AI'yi opencode ile kullanmak için:
    Bunları opencode çalıştırılırken ayarlayın.
 
    ```bash
-   GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json GOOGLE_CLOUD_PROJECT=your-project-id opencode
+   GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json GOOGLE_CLOUD_PROJECT=your-project-id closecode
    ```
 
    Veya bunları bash profilinize ekleyin.
@@ -1398,13 +1398,13 @@ Zaten bir API anahtarınız varsa, **API Anahtarını Manuel Olarak Girin** seç
 
 ---
 
-### OpenCode Zen
+### CloseCode Zen
 
-OpenCode Zen, opencode ekibinin test edip doğruladığı modellerin bir listesidir. [Daha fazla bilgi](/docs/zen).
+CloseCode Zen, opencode ekibinin test edip doğruladığı modellerin bir listesidir. [Daha fazla bilgi](/docs/zen).
 
-1. **<a href={console}>OpenCode Zen</a>**'de oturum açın ve **API Anahtarı Oluştur**'u tıklayın.
+1. **<a href={console}>CloseCode Zen</a>**'de oturum açın ve **API Anahtarı Oluştur**'u tıklayın.
 
-2. `/connect` komutunu çalıştırın ve **OpenCode Zen**'i arayın.
+2. `/connect` komutunu çalıştırın ve **CloseCode Zen**'i arayın.
 
    ```txt
    /connect
@@ -1519,7 +1519,7 @@ SAP AI Core, birleşik bir platform aracılığıyla OpenAI, Anthropic, Google, 
    Veya `AICORE_SERVICE_KEY` ortam değişkenini ayarlayın:
 
    ```bash
-   AICORE_SERVICE_KEY='{"clientid":"...","clientsecret":"...","url":"...","serviceurls":{"AI_API_URL":"..."}}' opencode
+   AICORE_SERVICE_KEY='{"clientid":"...","clientsecret":"...","url":"...","serviceurls":{"AI_API_URL":"..."}}' closecode
    ```
 
    Veya bash profilinize ekleyin:
@@ -1531,7 +1531,7 @@ SAP AI Core, birleşik bir platform aracılığıyla OpenAI, Anthropic, Google, 
 4. İsteğe bağlı olarak dağıtım kimliğini ve kaynak grubunu ayarlayın:
 
    ```bash
-   AICORE_DEPLOYMENT_ID=your-deployment-id AICORE_RESOURCE_GROUP=your-resource-group opencode
+   AICORE_DEPLOYMENT_ID=your-deployment-id AICORE_RESOURCE_GROUP=your-resource-group closecode
    ```
 
    :::note
@@ -1977,7 +1977,7 @@ Yapılandırma ayrıntıları:
 
 Sağlayıcıyı yapılandırma konusunda sorun yaşıyorsanız aşağıdakileri kontrol edin:
 
-1. **Kimlik doğrulama kurulumunu kontrol edin**: Kimlik bilgilerinin geçerli olup olmadığını görmek için `opencode auth list` komutunu çalıştırın.
+1. **Kimlik doğrulama kurulumunu kontrol edin**: Kimlik bilgilerinin geçerli olup olmadığını görmek için `closecode auth list` komutunu çalıştırın.
    sağlayıcı için yapılandırmanıza eklenir.
 
    Bu, kimlik doğrulaması için ortam değişkenlerine güvenen Amazon Bedrock gibi sağlayıcılar için geçerli değildir.

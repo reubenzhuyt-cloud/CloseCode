@@ -8,13 +8,13 @@ import { Tabs, TabItem } from "@astrojs/starlight/components"
 CLI opencode по умолчанию запускает [TUI](/docs/tui) при запуске без каких-либо аргументов.
 
 ```bash
-opencode
+closecode
 ```
 
 Но он также принимает команды, описанные на этой странице. Это позволяет вам программно взаимодействовать с opencode.
 
 ```bash
-opencode run "Explain how closures work in JavaScript"
+closecode run "Explain how closures work in JavaScript"
 ```
 
 ---
@@ -24,7 +24,7 @@ opencode run "Explain how closures work in JavaScript"
 Запустите TUI opencode.
 
 ```bash
-opencode [project]
+closecode [project]
 ```
 
 #### Флаги
@@ -53,7 +53,7 @@ CLI opencode также имеет следующие команды.
 Управляйте агентами для opencode.
 
 ```bash
-opencode agent [command]
+closecode agent [command]
 ```
 
 ---
@@ -70,7 +70,7 @@ opencode attach [url]
 
 ```bash
 # Start the backend server for web/mobile access
-opencode web --port 4096 --hostname 0.0.0.0
+closecode web --port 4096 --hostname 0.0.0.0
 
 # In another terminal, attach the TUI to the running backend
 opencode attach http://10.20.30.40:4096
@@ -85,7 +85,7 @@ opencode attach http://10.20.30.40:4096
 | <nobr><code>{"--session"}</code></nobr>  | `-s`     | Идентификатор сеанса для продолжения                                                             |
 | <nobr><code>{"--fork"}</code></nobr>     |          | Создать ответвление сеанса при продолжении (используйте с `--continue` или `--session`)          |
 | <nobr><code>{"--password"}</code></nobr> | `-p`     | Пароль базовой аутентификации (по умолчанию `OPENCODE_SERVER_PASSWORD`)                          |
-| <nobr><code>{"--username"}</code></nobr> | `-u`     | Имя пользователя базовой аутентификации (по умолчанию `OPENCODE_SERVER_USERNAME` или `opencode`) |
+| <nobr><code>{"--username"}</code></nobr> | `-u`     | Имя пользователя базовой аутентификации (по умолчанию `OPENCODE_SERVER_USERNAME` или `closecode`) |
 
 ---
 
@@ -94,7 +94,7 @@ opencode attach http://10.20.30.40:4096
 Создайте нового агента с пользовательской конфигурацией.
 
 ```bash
-opencode agent create
+closecode agent create
 ```
 
 Эта команда поможет вам создать новый агент с настраиваемой системной подсказкой и настройкой инструмента.
@@ -106,7 +106,7 @@ opencode agent create
 Перечислите всех доступных агентов.
 
 ```bash
-opencode agent list
+closecode agent list
 ```
 
 ---
@@ -116,17 +116,17 @@ opencode agent list
 Команда для управления учетными данными и входом в систему для провайдеров.
 
 ```bash
-opencode auth [command]
+closecode auth [command]
 ```
 
 ---
 
 #### login
 
-opencode использует список провайдеров с [Models.dev](https://models.dev), поэтому вы можете использовать `opencode auth login` для настройки ключей API для любого поставщика, которого вы хотите использовать. Это хранится в `~/.local/share/opencode/auth.json`.
+opencode использует список провайдеров с [Models.dev](https://models.dev), поэтому вы можете использовать `closecode auth login` для настройки ключей API для любого поставщика, которого вы хотите использовать. Это хранится в `~/.local/share/opencode/auth.json`.
 
 ```bash
-opencode auth login
+closecode auth login
 ```
 
 Когда opencode запускается, он загружает поставщиков из файла учетных данных. И если в ваших средах определены какие-либо ключи или файл `.env` в вашем проекте.
@@ -138,13 +138,13 @@ opencode auth login
 Перечисляет всех проверенных поставщиков, которые хранятся в файле учетных данных.
 
 ```bash
-opencode auth list
+closecode auth list
 ```
 
 Или короткая версия.
 
 ```bash
-opencode auth ls
+closecode auth ls
 ```
 
 ---
@@ -154,7 +154,7 @@ opencode auth ls
 Выключает вас из провайдера, удаляя его из файла учетных данных.
 
 ```bash
-opencode auth logout
+closecode auth logout
 ```
 
 ---
@@ -164,7 +164,7 @@ opencode auth logout
 Управляйте агентом GitHub для автоматизации репозитория.
 
 ```bash
-opencode github [command]
+closecode github [command]
 ```
 
 ---
@@ -174,7 +174,7 @@ opencode github [command]
 Установите агент GitHub в свой репозиторий.
 
 ```bash
-opencode github install
+closecode github install
 ```
 
 Это настроит необходимый рабочий процесс GitHub Actions и проведет вас через процесс настройки. [Подробнее](/docs/github).
@@ -186,7 +186,7 @@ opencode github install
 Запустите агент GitHub. Обычно это используется в действиях GitHub.
 
 ```bash
-opencode github run
+closecode github run
 ```
 
 ##### Флаги
@@ -203,7 +203,7 @@ opencode github run
 Управляйте серверами протокола контекста модели.
 
 ```bash
-opencode mcp [command]
+closecode mcp [command]
 ```
 
 ---
@@ -213,7 +213,7 @@ opencode mcp [command]
 Добавьте сервер MCP в свою конфигурацию.
 
 ```bash
-opencode mcp add
+closecode mcp add
 ```
 
 Эта команда поможет вам добавить локальный или удаленный сервер MCP.
@@ -225,13 +225,13 @@ opencode mcp add
 Перечислите все настроенные серверы MCP и состояние их подключения.
 
 ```bash
-opencode mcp list
+closecode mcp list
 ```
 
 Или используйте короткую версию.
 
 ```bash
-opencode mcp ls
+closecode mcp ls
 ```
 
 ---
@@ -241,7 +241,7 @@ opencode mcp ls
 Аутентификация с помощью сервера MCP с поддержкой OAuth.
 
 ```bash
-opencode mcp auth [name]
+closecode mcp auth [name]
 ```
 
 Если вы не укажете имя сервера, вам будет предложено выбрать один из доступных серверов с поддержкой OAuth.
@@ -249,13 +249,13 @@ opencode mcp auth [name]
 Вы также можете перечислить серверы с поддержкой OAuth и их статус аутентификации.
 
 ```bash
-opencode mcp auth list
+closecode mcp auth list
 ```
 
 Или используйте короткую версию.
 
 ```bash
-opencode mcp auth ls
+closecode mcp auth ls
 ```
 
 ---
@@ -265,7 +265,7 @@ opencode mcp auth ls
 Удалите учетные данные OAuth для сервера MCP.
 
 ```bash
-opencode mcp logout [name]
+closecode mcp logout [name]
 ```
 
 ---
@@ -275,7 +275,7 @@ opencode mcp logout [name]
 Отладка проблем с подключением OAuth для сервера MCP.
 
 ```bash
-opencode mcp debug <name>
+closecode mcp debug <name>
 ```
 
 ---
@@ -285,7 +285,7 @@ opencode mcp debug <name>
 Перечислите все доступные модели от настроенных поставщиков.
 
 ```bash
-opencode models [provider]
+closecode models [provider]
 ```
 
 Эта команда отображает все модели, доступные у настроенных вами поставщиков, в формате `provider/model`.
@@ -295,7 +295,7 @@ opencode models [provider]
 При желании вы можете передать идентификатор поставщика, чтобы фильтровать модели по этому поставщику.
 
 ```bash
-opencode models anthropic
+closecode models anthropic
 ```
 
 #### Флаги
@@ -308,7 +308,7 @@ opencode models anthropic
 Используйте флаг `--refresh` для обновления списка кэшированных моделей. Это полезно, когда к поставщику добавлены новые модели и вы хотите увидеть их в opencode.
 
 ```bash
-opencode models --refresh
+closecode models --refresh
 ```
 
 ---
@@ -318,23 +318,23 @@ opencode models --refresh
 Запустите opencode в неинтерактивном режиме, передав приглашение напрямую.
 
 ```bash
-opencode run [message..]
+closecode run [message..]
 ```
 
 Это полезно для создания сценариев, автоматизации или когда вам нужен быстрый ответ без запуска полного TUI. Например.
 
-```bash "opencode run"
-opencode run Explain the use of context in Go
+```bash "closecode run"
+closecode run Explain the use of context in Go
 ```
 
-Вы также можете подключиться к работающему экземпляру `opencode serve`, чтобы избежать холодной загрузки сервера MCP при каждом запуске:
+Вы также можете подключиться к работающему экземпляру `closecode serve`, чтобы избежать холодной загрузки сервера MCP при каждом запуске:
 
 ```bash
 # Start a headless server in one terminal
-opencode serve
+closecode serve
 
 # In another terminal, run commands that attach to it
-opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
+closecode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 ```
 
 #### Флаги
@@ -353,7 +353,7 @@ opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 | <nobr><code>{"--title"}</code></nobr>    |          | Название сеанса (использует усеченное приглашение, если значение не указано)                     |
 | <nobr><code>{"--attach"}</code></nobr>   |          | Подключитесь к работающему серверу opencode (например, http://localhost:4096)                    |
 | <nobr><code>{"--password"}</code></nobr> | `-p`     | Пароль базовой аутентификации (по умолчанию `OPENCODE_SERVER_PASSWORD`)                          |
-| <nobr><code>{"--username"}</code></nobr> | `-u`     | Имя пользователя базовой аутентификации (по умолчанию `OPENCODE_SERVER_USERNAME` или `opencode`) |
+| <nobr><code>{"--username"}</code></nobr> | `-u`     | Имя пользователя базовой аутентификации (по умолчанию `OPENCODE_SERVER_USERNAME` или `closecode`) |
 | <nobr><code>{"--dir"}</code></nobr>      |          | Каталог для выполнения или путь на удалённом сервере при подключении                             |
 | <nobr><code>{"--variant"}</code></nobr>  |          | Вариант модели (уровень рассуждений для провайдера)                                              |
 | <nobr><code>{"--thinking"}</code></nobr> |          | Показать блоки размышлений                                                                       |
@@ -366,10 +366,10 @@ opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 Запустите автономный сервер opencode для доступа к API. Полный HTTP-интерфейс можно найти в [server docs](/docs/server).
 
 ```bash
-opencode serve
+closecode serve
 ```
 
-При этом запускается HTTP-сервер, который обеспечивает доступ API к функциям opencode без интерфейса TUI. Установите `OPENCODE_SERVER_PASSWORD`, чтобы включить базовую аутентификацию HTTP (имя пользователя по умолчанию — `opencode`).
+При этом запускается HTTP-сервер, который обеспечивает доступ API к функциям opencode без интерфейса TUI. Установите `OPENCODE_SERVER_PASSWORD`, чтобы включить базовую аутентификацию HTTP (имя пользователя по умолчанию — `closecode`).
 
 #### Флаги
 
@@ -387,7 +387,7 @@ opencode serve
 Управляйте сессиями opencode.
 
 ```bash
-opencode session [command]
+closecode session [command]
 ```
 
 ---
@@ -397,7 +397,7 @@ opencode session [command]
 Перечислите все сеансы opencode.
 
 ```bash
-opencode session list
+closecode session list
 ```
 
 ##### Флаги
@@ -414,7 +414,7 @@ opencode session list
 Покажите статистику использования токенов и затрат для ваших сеансов opencode.
 
 ```bash
-opencode stats
+closecode stats
 ```
 
 #### Флаги
@@ -433,7 +433,7 @@ opencode stats
 Экспортируйте данные сеанса в формате JSON.
 
 ```bash
-opencode export [sessionID]
+closecode export [sessionID]
 ```
 
 Если вы не укажете идентификатор сеанса, вам будет предложено выбрать один из доступных сеансов.
@@ -445,14 +445,14 @@ opencode export [sessionID]
 Импортируйте данные сеанса из файла JSON или URL-адреса общего ресурса opencode.
 
 ```bash
-opencode import <file>
+closecode import <file>
 ```
 
 Вы можете импортировать из локального файла или URL-адреса общего ресурса opencode.
 
 ```bash
-opencode import session.json
-opencode import https://opncd.ai/s/abc123
+closecode import session.json
+closecode import https://opncd.ai/s/abc123
 ```
 
 ---
@@ -462,10 +462,10 @@ opencode import https://opncd.ai/s/abc123
 Запустите автономный сервер opencode с веб-интерфейсом.
 
 ```bash
-opencode web
+closecode web
 ```
 
-При этом запускается HTTP-сервер и открывается веб-браузер для доступа к opencode через веб-интерфейс. Установите `OPENCODE_SERVER_PASSWORD`, чтобы включить базовую аутентификацию HTTP (имя пользователя по умолчанию — `opencode`).
+При этом запускается HTTP-сервер и открывается веб-браузер для доступа к opencode через веб-интерфейс. Установите `OPENCODE_SERVER_PASSWORD`, чтобы включить базовую аутентификацию HTTP (имя пользователя по умолчанию — `closecode`).
 
 #### Флаги
 
@@ -483,7 +483,7 @@ opencode web
 Запустите сервер ACP (агент-клиентский протокол).
 
 ```bash
-opencode acp
+closecode acp
 ```
 
 Эта команда запускает сервер ACP, который обменивается данными через stdin/stdout с использованием nd-JSON.
@@ -503,7 +503,7 @@ opencode acp
 Удалите opencode и удалите все связанные файлы.
 
 ```bash
-opencode uninstall
+closecode uninstall
 ```
 
 #### Флаги
@@ -522,19 +522,19 @@ opencode uninstall
 Обновляет opencode до последней версии или определенной версии.
 
 ```bash
-opencode upgrade [target]
+closecode upgrade [target]
 ```
 
 Чтобы обновиться до последней версии.
 
 ```bash
-opencode upgrade
+closecode upgrade
 ```
 
 Для обновления до определенной версии.
 
 ```bash
-opencode upgrade v0.1.48
+closecode upgrade v0.1.48
 ```
 
 #### Флаги
@@ -586,7 +586,7 @@ opencode можно настроить с помощью переменных с
 | `OPENCODE_CLIENT`                     | строка              | Идентификатор клиента (по умолчанию `cli`)                                       |
 | `OPENCODE_ENABLE_EXA`                 | логическое значение | Включить инструменты веб-поиска Exa                                              |
 | `OPENCODE_SERVER_PASSWORD`            | строка              | Включить базовую аутентификацию для `serve`/`web`                                |
-| `OPENCODE_SERVER_USERNAME`            | строка              | Переопределить имя пользователя базовой аутентификации (по умолчанию `opencode`) |
+| `OPENCODE_SERVER_USERNAME`            | строка              | Переопределить имя пользователя базовой аутентификации (по умолчанию `closecode`) |
 | `OPENCODE_MODELS_URL`                 | строка              | Пользовательский URL-адрес для получения конфигурации модели                     |
 
 ---

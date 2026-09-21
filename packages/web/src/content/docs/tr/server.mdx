@@ -6,14 +6,14 @@ description: opencode sunucusuyla HTTP uzerinden etkilesin.
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-`opencode serve` komutu, opencode istemcisinin kullanabileceği bir OpenAPI endpoint'i açan headless bir HTTP sunucusu çalıştırır.
+`closecode serve` komutu, opencode istemcisinin kullanabileceği bir OpenAPI endpoint'i açan headless bir HTTP sunucusu çalıştırır.
 
 ---
 
 ### Kullanım
 
 ```bash
-opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
+closecode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 ```
 
 #### Seçenekler
@@ -29,24 +29,24 @@ opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 `--cors` birden fazla kez geçilebilir:
 
 ```bash
-opencode serve --cors http://localhost:5173 --cors https://app.example.com
+closecode serve --cors http://localhost:5173 --cors https://app.example.com
 ```
 
 ---
 
 ### Kimlik Doğrulama
 
-Sunucuyu HTTP temel kimlik doğrulama (basic auth) ile korumak için `OPENCODE_SERVER_PASSWORD` ayarlayın. Kullanıcı adı varsayılan olarak `opencode` değeridir; değiştirmek isterseniz `OPENCODE_SERVER_USERNAME` ayarlayabilirsiniz. Bu ayar hem `opencode serve` hem de `opencode web` için geçerlidir.
+Sunucuyu HTTP temel kimlik doğrulama (basic auth) ile korumak için `OPENCODE_SERVER_PASSWORD` ayarlayın. Kullanıcı adı varsayılan olarak `closecode` değeridir; değiştirmek isterseniz `OPENCODE_SERVER_USERNAME` ayarlayabilirsiniz. Bu ayar hem `closecode serve` hem de `closecode web` için geçerlidir.
 
 ```bash
-OPENCODE_SERVER_PASSWORD=your-password opencode serve
+OPENCODE_SERVER_PASSWORD=your-password closecode serve
 ```
 
 ---
 
 ### Nasıl çalışır
 
-`opencode` çalıştırdığınızda hem TUI hem de sunucu başlar. TUI, sunucuyla konuşan istemci tarafıdır.
+`closecode` çalıştırdığınızda hem TUI hem de sunucu başlar. TUI, sunucuyla konuşan istemci tarafıdır.
 Sunucu bir OpenAPI 3.1 spesifikasyon uç noktası açar. Bu uç nokta [SDK](/docs/sdk) üretiminde de kullanılır.
 
 :::tip
@@ -55,7 +55,7 @@ opencode ile programatik etkileşim için opencode sunucusunu kullanın.
 
 Bu mimari, opencode'un birden fazla istemciyi desteklemesini ve programatik kullanımları mümkün kılmasını sağlar.
 
-`opencode serve` ile bağımsız bir sunucu başlatabilirsiniz. opencode TUI açıksa, `opencode serve` yeni bir sunucu başlatır.
+`closecode serve` ile bağımsız bir sunucu başlatabilirsiniz. opencode TUI açıksa, `closecode serve` yeni bir sunucu başlatır.
 
 ---
 
@@ -63,7 +63,7 @@ Bu mimari, opencode'un birden fazla istemciyi desteklemesini ve programatik kull
 
 TUI başlarken rastgele bir port ve hostname atanır. Bunun yerine `--hostname` ve `--port` [bayraklarını](/docs/cli) verebilirsiniz.
 
-[`/tui`](#tui) uç noktası sunucu üzerinden TUI'yi sürmek için kullanılabilir. Örneğin bir istemi önceden doldurabilir veya çalıştırabilirsiniz. Bu kurulum opencode [IDE](/docs/ide) eklentileri tarafından kullanılır.
+[`/tui`](#tui) uç noktası sunucu üzerinden TUI'yi sürmek için kullanılabilir. Örneğin bir istemi önceden doldurabilir veya çalıştırabilirsiniz. Bu kurulum closecode [IDE](/docs/ide) eklentileri tarafından kullanılır.
 
 ---
 

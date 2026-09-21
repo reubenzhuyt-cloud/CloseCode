@@ -12,7 +12,7 @@ opencode może działać jako aplikacja internetowa w przeglądarce, zapewniają
 Uruchom interfejs sieciowy, uruchamiając:
 
 ```bash
-opencode web
+closecode web
 ```
 
 Spowoduje to uruchomienie lokalnego serwera na `127.0.0.1` z losowo dostępnym portem i automatyczne otwarcie opencode w domyślnej przeglądarce.
@@ -22,7 +22,7 @@ Jeśli `OPENCODE_SERVER_PASSWORD` nie jest ustawione, serwer będzie niezabezpie
 :::
 
 :::tip[Windows Users]
-Aby uzyskać najlepsze wyniki, uruchom `opencode web` z [WSL](/docs/windows-wsl) zamiast programu PowerShell. Zapewnia to prawidłowy dostęp do systemu plików i integrację terminala.
+Aby uzyskać najlepsze wyniki, uruchom `closecode web` z [WSL](/docs/windows-wsl) zamiast programu PowerShell. Zapewnia to prawidłowy dostęp do systemu plików i integrację terminala.
 :::
 
 ---
@@ -36,7 +36,7 @@ Możesz skonfigurować serwer WWW za pomocą flag wiersza poleceń lub w [pliku 
 Domyślnie opencode wybiera dostępny port. Możesz określić port:
 
 ```bash
-opencode web --port 4096
+closecode web --port 4096
 ```
 
 ### Nazwa hosta
@@ -44,7 +44,7 @@ opencode web --port 4096
 Domyślnie serwer łączy się z `127.0.0.1` (tylko localhost). Aby udostępnić opencode w swojej sieci:
 
 ```bash
-opencode web --hostname 0.0.0.0
+closecode web --hostname 0.0.0.0
 ```
 
 Podczas korzystania z `0.0.0.0` opencode wyświetli zarówno adresy lokalne, jak i sieciowe:
@@ -59,7 +59,7 @@ Podczas korzystania z `0.0.0.0` opencode wyświetli zarówno adresy lokalne, jak
 Włącz mDNS, aby Twój serwer był wykrywalny w sieci lokalnej:
 
 ```bash
-opencode web --mdns
+closecode web --mdns
 ```
 
 To automatycznie ustawia nazwę hosta na `0.0.0.0` i anonsuje serwer jako `opencode.local`.
@@ -67,7 +67,7 @@ To automatycznie ustawia nazwę hosta na `0.0.0.0` i anonsuje serwer jako `openc
 Możesz dostosować nazwę domeny mDNS, aby uruchamiała wiele instancji w tej samej sieci:
 
 ```bash
-opencode web --mdns --mdns-domain myproject.local
+closecode web --mdns --mdns-domain myproject.local
 ```
 
 ### CORS
@@ -75,7 +75,7 @@ opencode web --mdns --mdns-domain myproject.local
 Aby zezwolić na dodatkowe domeny dla CORS (przydatne w przypadku niestandardowych interfejsów):
 
 ```bash
-opencode web --cors https://example.com
+closecode web --cors https://example.com
 ```
 
 ### Uwierzytelnianie
@@ -83,10 +83,10 @@ opencode web --cors https://example.com
 Aby chronić dostęp, ustaw hasło za pomocą zmiennej środowiskowej `OPENCODE_SERVER_PASSWORD`:
 
 ```bash
-OPENCODE_SERVER_PASSWORD=secret opencode web
+OPENCODE_SERVER_PASSWORD=secret closecode web
 ```
 
-Domyślna nazwa użytkownika to `opencode`, ale można ją zmienić za pomocą `OPENCODE_SERVER_USERNAME`.
+Domyślna nazwa użytkownika to `closecode`, ale można ją zmienić za pomocą `OPENCODE_SERVER_USERNAME`.
 
 ---
 
@@ -114,7 +114,7 @@ Możesz podłączyć terminal TUI do działającego serwera WWW:
 
 ```bash
 # Start the web server
-opencode web --port 4096
+closecode web --port 4096
 
 # In another terminal, attach the TUI
 opencode attach http://localhost:4096

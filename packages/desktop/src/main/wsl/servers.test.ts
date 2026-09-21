@@ -23,7 +23,7 @@ posix(
     const spawner = yield* ChildProcessSpawner.ChildProcessSpawner
     const dir = yield* fs.makeTempDirectoryScoped({ prefix: "wsl-cli-install-" })
     const binary = path.join(dir, "local build ' cli")
-    yield* fs.writeFileString(binary, "#!/bin/sh\nprintf 'OpenCode v0.0.0-dev-16365\\n'\n", { mode: 0o755 })
+    yield* fs.writeFileString(binary, "#!/bin/sh\nprintf 'CloseCode v0.0.0-dev-16365\\n'\n", { mode: 0o755 })
     yield* fs.writeFileString(path.join(dir, ".bashrc"), "# existing config\n")
     yield* fs.writeFileString(path.join(dir, "installer"), yield* fs.readFileString(path.resolve("../../install")))
     yield* fs.writeFileString(path.join(dir, "curl"), '#!/bin/sh\ncat "$HOME/installer"\n', { mode: 0o755 })
@@ -42,8 +42,8 @@ posix(
       ),
     ).toBe(0)
     expect(yield* fs.readFileString(path.join(dir, "wslpath-input"))).toBe(windows)
-    expect(yield* fs.readFileString(path.join(dir, ".opencode/bin/opencode"))).toContain("0.0.0-dev-16365")
-    expect((yield* fs.readDirectory(path.join(dir, ".opencode/bin"))).toSorted()).toEqual(["opencode", "opencode2"])
+    expect(yield* fs.readFileString(path.join(dir, ".opencode/bin/closecode"))).toContain("0.0.0-dev-16365")
+    expect((yield* fs.readDirectory(path.join(dir, ".opencode/bin"))).toSorted()).toEqual(["closecode", "opencode2"])
     expect(yield* fs.readFileString(path.join(dir, ".bashrc"))).toContain(`export PATH=${dir}/.opencode/bin:$PATH`)
   }),
 )
@@ -57,7 +57,7 @@ test("installs and verifies the bundled CLI version", async () => {
         installCli: async (distro, cli) => {
           installs.push([distro, cli.version])
         },
-        resolveCli: async () => "/home/me/.opencode/bin/opencode",
+        resolveCli: async () => "/home/me/.opencode/bin/closecode",
       }),
     ),
   )
@@ -74,14 +74,14 @@ test("rejects a WSL CLI version that differs from the bundled version", async ()
     createWslServersController(
       testControllerOptions({
         installCli: async () => undefined,
-        resolveCli: async () => "/home/me/.opencode/bin/opencode",
+        resolveCli: async () => "/home/me/.opencode/bin/closecode",
         readCliVersion: async () => "0.0.0-dev-older",
       }),
     ),
   )
 
   await expect(controller.installOpencode("Debian")).rejects.toThrow(
-    "OpenCode update finished but Debian still reports 0.0.0-dev-older; expected 0.0.0-dev-16365",
+    "CloseCode update finished but Debian still reports 0.0.0-dev-older; expected 0.0.0-dev-16365",
   )
 })
 
@@ -166,7 +166,7 @@ test("probes addable distros in parallel before checking OpenCode", async () => 
         },
         resolveCli: async (distro) => {
           opencode.push(distro)
-          return "/home/me/.opencode/bin/opencode"
+          return "/home/me/.opencode/bin/closecode"
         },
       }),
     ),
@@ -201,7 +201,7 @@ test("does not check OpenCode in addable distros that cannot execute commands", 
         }),
         resolveCli: async (distro) => {
           opencode.push(distro)
-          return "/home/me/.opencode/bin/opencode"
+          return "/home/me/.opencode/bin/closecode"
         },
       }),
     ),
@@ -238,7 +238,7 @@ function testControllerOptions(overrides: Partial<ControllerOptions> = {}): Cont
       persistedServers = servers
     },
     readCliVersion: async () => "0.0.0-dev-16365",
-    resolveCli: async () => "/home/me/.opencode/bin/opencode",
+    resolveCli: async () => "/home/me/.opencode/bin/closecode",
     ...overrides,
   }
 }

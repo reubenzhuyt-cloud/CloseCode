@@ -189,7 +189,7 @@ W innym serwerze MCP z włączoną funkcją OAuth nie jest wymagana specjalna fu
 }
 ```
 
-Jeśli serwer wymaga uwierzytelnienia, opencode poprosi Cię o uwierzytelnienie przy próbie jego użycia. Jeśli nie, możesz [ręcznie podłączyć przepływ] (#authenticating) za pomocą `opencode mcp auth <server-name>`.
+Jeśli serwer wymaga uwierzytelnienia, opencode poprosi Cię o uwierzytelnienie przy próbie jego użycia. Jeśli nie, możesz [ręcznie podłączyć przepływ] (#authenticating) za pomocą `closecode mcp auth <server-name>`.
 
 ---
 
@@ -223,19 +223,19 @@ Możesz podać potwierdzenie lub potwierdzenie poświadczenia.
 Uwierzytelnij się za pomocą standardowego serwera MCP:
 
 ```bash
-opencode mcp auth my-oauth-server
+closecode mcp auth my-oauth-server
 ```
 
 Lista wszystkich serwerów MCP i ich status uwierzytelnienia:
 
 ```bash
-opencode mcp list
+closecode mcp list
 ```
 
 Usuń zapisane dane uwierzytelniające:
 
 ```bash
-opencode mcp logout my-oauth-server
+closecode mcp logout my-oauth-server
 ```
 
 Komenda `mcp auth` została udostępniona w celu autoryzacji. Po autoryzacji opencode bezpieczne przechowa tokeny w `~/.local/share/opencode/mcp-auth.json`.
@@ -279,10 +279,10 @@ Jeśli serwer MCP nie może zostać uwierzytelniony, możesz zdiagnozować probl
 
 ```bash
 # View auth status for all OAuth-capable servers
-opencode mcp auth list
+closecode mcp auth list
 
 # Debug connection and OAuth flow for a specific server
-opencode mcp debug my-oauth-server
+closecode mcp debug my-oauth-server
 ```
 
 Komenda `mcp debug` wyświetlanie stanu uwierzytelniania, testuje sprawdzanie protokołu HTTP i sprawdzenie sprawdzenia procesu OAuth.
@@ -420,7 +420,7 @@ Dodaj [serwer Sentry MCP](https://mcp.sentry.dev), aby móc wejść w interakcj�
 Po dodaniu konfiguracji uwierzytelnij się za pomocą Sentry:
 
 ```bash
-opencode mcp auth sentry
+closecode mcp auth sentry
 ```
 
 Spowoduje otwarcie okna konfiguracji, w którym można zakończyć proces OAuth i połączyć opencode z kontem Sentry.

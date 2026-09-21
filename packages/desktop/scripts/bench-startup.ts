@@ -5,7 +5,7 @@
 //                            [--fresh] [--offline] [--seed <userData dir>] [--profile-main] [--profile-renderer]
 //                            [--trace] [--out <dir>] [--home <dir>] [--window-at x,y]
 //
-// The app runs in an isolated home directory (its own %APPDATA%, XDG dirs, OpenCode DB, config and
+// The app runs in an isolated home directory (its own %APPDATA%, XDG dirs, CloseCode DB, config and
 // service registration) with the developer's OPENCODE_* / OTEL_* environment stripped, so it never
 // attaches to, restarts or reads the developer's live service or state and does not inherit their
 // telemetry configuration. `warm` starts one service from the bundled CLI before the runs and lets
@@ -471,9 +471,9 @@ async function mainBootTiming() {
 
 function defaultExe() {
   const unpacked = join(packageDir, "dist", process.platform === "win32" ? "win-unpacked" : process.platform === "darwin" ? "mac" : "linux-unpacked")
-  if (!existsSync(unpacked)) return join(unpacked, "OpenCode Dev.exe")
+  if (!existsSync(unpacked)) return join(unpacked, "CloseCode Dev.exe")
   const candidate = readdirSync(unpacked).find((f) => (process.platform === "win32" ? f.endsWith(".exe") : f.endsWith(".app") || !f.includes(".")))
-  return join(unpacked, candidate ?? "OpenCode Dev.exe")
+  return join(unpacked, candidate ?? "CloseCode Dev.exe")
 }
 
 function appIdFor(executable: string) {

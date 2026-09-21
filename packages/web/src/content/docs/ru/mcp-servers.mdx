@@ -189,7 +189,7 @@ opencode автоматически обрабатывает аутентифи�
 }
 ```
 
-Если сервер требует аутентификации, opencode предложит вам пройти аутентификацию при первой попытке его использования. Если нет, вы можете [вручную запустить поток ](#authenticating) с помощью `opencode mcp auth <server-name>`.
+Если сервер требует аутентификации, opencode предложит вам пройти аутентификацию при первой попытке его использования. Если нет, вы можете [вручную запустить поток ](#authenticating) с помощью `closecode mcp auth <server-name>`.
 
 ---
 
@@ -223,19 +223,19 @@ opencode автоматически обрабатывает аутентифи�
 Аутентификация с помощью определенного сервера MCP:
 
 ```bash
-opencode mcp auth my-oauth-server
+closecode mcp auth my-oauth-server
 ```
 
 Перечислите все серверы MCP и их статус аутентификации:
 
 ```bash
-opencode mcp list
+closecode mcp list
 ```
 
 Удалить сохраненные учетные данные:
 
 ```bash
-opencode mcp logout my-oauth-server
+closecode mcp logout my-oauth-server
 ```
 
 Команда `mcp auth` откроет ваш браузер для авторизации. После того как вы авторизуетесь, opencode надежно сохранит токены в `~/.local/share/opencode/mcp-auth.json`.
@@ -279,10 +279,10 @@ opencode mcp logout my-oauth-server
 
 ```bash
 # View auth status for all OAuth-capable servers
-opencode mcp auth list
+closecode mcp auth list
 
 # Debug connection and OAuth flow for a specific server
-opencode mcp debug my-oauth-server
+closecode mcp debug my-oauth-server
 ```
 
 Команда `mcp debug` показывает текущий статус аутентификации, проверяет соединение HTTP и пытается выполнить поток обнаружения OAuth.
@@ -420,7 +420,7 @@ opencode mcp debug my-oauth-server
 После добавления конфигурации пройдите аутентификацию с помощью Sentry:
 
 ```bash
-opencode mcp auth sentry
+closecode mcp auth sentry
 ```
 
 Откроется окно браузера для завершения процесса OAuth и подключения opencode к вашей учетной записи Sentry.

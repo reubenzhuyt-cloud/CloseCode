@@ -3,7 +3,7 @@ title: MCP-servere
 description: Legg til lokale og eksterne MCP-verktøy.
 ---
 
-Du kan legge til eksterne verktøy i OpenCode ved å bruke _Model Context Protocol_ eller MCP. OpenCode støtter både lokale og eksterne servere.
+Du kan legge til eksterne verktøy i CloseCode ved å bruke _Model Context Protocol_ eller MCP. CloseCode støtter både lokale og eksterne servere.
 
 Når de er lagt til, er MCP-verktøy automatisk tilgjengelige for LLM sammen med innebygde verktøy.
 
@@ -23,7 +23,7 @@ Enkelte MCP-servere, som GitHub MCP-serveren, har en tendens til å legge til ma
 
 ## Aktivering
 
-Du kan definere MCP-servere i [OpenCode Config](https://opencode.ai/docs/config/) under `mcp`. Legg til hver MCP med et unikt navn. Du kan referere til den MCP ved navn når du spør LLM-en.
+Du kan definere MCP-servere i [CloseCode Config](https://opencode.ai/docs/config/) under `mcp`. Legg til hver MCP med et unikt navn. Du kan referere til den MCP ved navn når du spør LLM-en.
 
 ```jsonc title="opencode.jsonc" {6}
 {
@@ -165,7 +165,7 @@ Legg til eksterne MCP-servere ved å sette `type` til `"remote"`.
 
 ## OAuth
 
-OpenCode håndterer automatisk OAuth-autentisering for eksterne MCP-servere. Når en server krever autentisering, vil OpenCode:
+CloseCode håndterer automatisk OAuth-autentisering for eksterne MCP-servere. Når en server krever autentisering, vil CloseCode:
 
 1. Oppdag 401-svaret og start OAuth-flyten
 2. Bruk **Dynamisk klientregistrering (RFC 7591)** hvis det støttes av serveren
@@ -189,7 +189,7 @@ For de fleste OAuth-aktiverte MCP-servere er ingen spesiell konfigurasjon nødve
 }
 ```
 
-Hvis serveren krever autentisering, vil OpenCode be deg om å autentisere når du prøver å bruke den for første gang. Hvis ikke, kan du [utløse flyten manuelt](#authenticating) med `opencode mcp auth <server-name>`.
+Hvis serveren krever autentisering, vil CloseCode be deg om å autentisere når du prøver å bruke den for første gang. Hvis ikke, kan du [utløse flyten manuelt](#authenticating) med `closecode mcp auth <server-name>`.
 
 ---
 
@@ -223,22 +223,22 @@ Du kan utløse autentisering manuelt eller administrere legitimasjon.
 Autentiser med en spesifikk MCP-server:
 
 ```bash
-opencode mcp auth my-oauth-server
+closecode mcp auth my-oauth-server
 ```
 
 Liste alle MCP-servere og deres autentiseringsstatus:
 
 ```bash
-opencode mcp list
+closecode mcp list
 ```
 
 Fjern lagret legitimasjon:
 
 ```bash
-opencode mcp logout my-oauth-server
+closecode mcp logout my-oauth-server
 ```
 
-Kommandoen `mcp auth` åpner nettleseren din for autorisasjon. Etter at du har godkjent, vil OpenCode lagre tokens sikkert i `~/.local/share/opencode/mcp-auth.json`.
+Kommandoen `mcp auth` åpner nettleseren din for autorisasjon. Etter at du har godkjent, vil CloseCode lagre tokens sikkert i `~/.local/share/opencode/mcp-auth.json`.
 
 ---
 
@@ -279,10 +279,10 @@ Hvis en ekstern MCP-server ikke klarer å autentisere, kan du diagnostisere prob
 
 ```bash
 # View auth status for all OAuth-capable servers
-opencode mcp auth list
+closecode mcp auth list
 
 # Debug connection and OAuth flow for a specific server
-opencode mcp debug my-oauth-server
+closecode mcp debug my-oauth-server
 ```
 
 Kommandoen `mcp debug` viser gjeldende autentiseringsstatus, tester HTTP-tilkoblingen og forsøker OAuth-oppdagelsesflyten.
@@ -291,7 +291,7 @@ Kommandoen `mcp debug` viser gjeldende autentiseringsstatus, tester HTTP-tilkobl
 
 ## Administrering
 
-MCP-ene dine er tilgjengelige som verktøy i OpenCode, sammen med innebygde verktøy. Så du kan administrere dem gjennom OpenCode-konfigurasjonen som alle andre verktøy.
+MCP-ene dine er tilgjengelige som verktøy i CloseCode, sammen med innebygde verktøy. Så du kan administrere dem gjennom CloseCode-konfigurasjonen som alle andre verktøy.
 
 ---
 
@@ -420,10 +420,10 @@ Legg til [Sentry MCP-serveren](https://mcp.sentry.dev) for å samhandle med Sent
 Etter å ha lagt til konfigurasjonen, autentiser med Sentry:
 
 ```bash
-opencode mcp auth sentry
+closecode mcp auth sentry
 ```
 
-Dette åpner et nettleservindu for å fullføre OAuth-flyten og koble OpenCode til Sentry-kontoen din.
+Dette åpner et nettleservindu for å fullføre OAuth-flyten og koble CloseCode til Sentry-kontoen din.
 
 Når du er autentisert, kan du bruke Sentry-verktøy i ledetekstene dine for å spørre etter problemer, prosjekter og feildata.
 
@@ -543,7 +543,7 @@ For flere leverandører og avanserte funksjoner som bufring og hastighetsbegrens
 
 #### Valgfrie konfigurasjoner
 
-I tilfelle du ser en funksjon eller modell fra Helicone som ikke konfigureres automatisk gjennom OpenCode, kan du alltid konfigurere den selv.
+I tilfelle du ser en funksjon eller modell fra Helicone som ikke konfigureres automatisk gjennom CloseCode, kan du alltid konfigurere den selv.
 
 Her er [Helicone's Model Directory](https://helicone.ai/models), du trenger denne for å hente ID-ene til modellene du vil legge til.
 
@@ -596,7 +596,7 @@ Helicone støtter tilpassede headere for funksjoner som bufring, brukersporing o
 
 ##### Sesjonssporing
 
-Helicones [Sessions](https://docs.helicone.ai/features/sessions) funksjon lar deg gruppere relaterte LLM forespørsler sammen. Bruk [opencode-helicone-session](https://github.com/H2Shami/opencode-helicone-session) plugin for automatisk å logge hver OpenCode-samtale som en økt i Helicone.
+Helicones [Sessions](https://docs.helicone.ai/features/sessions) funksjon lar deg gruppere relaterte LLM forespørsler sammen. Bruk [opencode-helicone-session](https://github.com/H2Shami/opencode-helicone-session) plugin for automatisk å logge hver CloseCode-samtale som en økt i Helicone.
 
 ```bash
 npm install -g opencode-helicone-session
@@ -610,7 +610,7 @@ Legg den til i konfigurasjonen din.
 }
 ```
 
-Programtillegget injiserer `Helicone-Session-Id` og `Helicone-Session-Name` overskrifter i forespørslene dine. På Helicones Sessions-side vil du se hver OpenCode-samtale oppført som en separat økt.
+Programtillegget injiserer `Helicone-Session-Id` og `Helicone-Session-Name` overskrifter i forespørslene dine. På Helicones Sessions-side vil du se hver CloseCode-samtale oppført som en separat økt.
 
 ##### Vanlige Helicone-headere
 

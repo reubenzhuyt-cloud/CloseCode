@@ -20,7 +20,7 @@ posix(
     const bin = path.join(dir, ".opencode/desktop-ssh", version)
     yield* fs.makeDirectory(bin, { recursive: true })
     yield* fs.writeFileString(
-      path.join(bin, "opencode"),
+      path.join(bin, "closecode"),
       `#!/bin/sh
 set -eu
 case "$1 $2" in

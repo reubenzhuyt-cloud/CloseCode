@@ -29,7 +29,7 @@ const targets = await Promise.all(
     { name: "linux-arm64", archive: "tar.gz" },
     { name: "linux-x64-baseline", archive: "tar.gz" },
   ].map(async (target) => {
-    const filename = `opencode-${target.name}.${target.archive}`
+    const filename = `closecode-${target.name}.${target.archive}`
     const file = Bun.file(path.join(root, filename))
     if (!(await file.exists()) || !file.size) throw new Error(`Missing Homebrew archive: ${filename}`)
     const sha256 = new Bun.CryptoHasher("sha256")
@@ -68,7 +68,7 @@ await Bun.write(
     "# frozen_string_literal: true",
     "",
     `class ${formulaClass} < Formula`,
-    `  desc "OpenCode V2${Script.channel === "beta" ? " beta" : ""} - the AI coding agent for the terminal"`,
+    `  desc "CloseCode V2${Script.channel === "beta" ? " beta" : ""} - the AI coding agent for the terminal"`,
     '  homepage "https://github.com/anomalyco/opencode"',
     `  version "${Script.version}"`,
     '  license "MIT"',
@@ -97,7 +97,7 @@ await Bun.write(
     "  end",
     "",
     "  def install",
-    '    bin.install "opencode"',
+    '    bin.install "closecode"',
     "  end",
     "end",
     "",

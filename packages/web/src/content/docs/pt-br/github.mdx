@@ -20,7 +20,7 @@ O opencode integra-se ao seu fluxo de trabalho do GitHub. Mencione `/opencode` o
 Execute o seguinte comando em um projeto que está em um repositório do GitHub:
 
 ```bash
-opencode github install
+closecode github install
 ```
 
 Isso o guiará pela instalação do aplicativo GitHub, criação do fluxo de trabalho e configuração de segredos.
@@ -40,7 +40,7 @@ Ou você pode configurá-lo manualmente.
    Adicione o seguinte arquivo de fluxo de trabalho em `.github/workflows/opencode.yml` no seu repositório. Certifique-se de definir o `model` apropriado e as chaves de API necessárias em `env`.
 
    ```yml title=".github/workflows/opencode.yml" {24,26}
-   name: opencode
+   name: closecode
 
    on:
      issue_comment:
@@ -63,7 +63,7 @@ Ou você pode configurá-lo manualmente.
               fetch-depth: 1
               persist-credentials: false
 
-          - name: Run OpenCode
+          - name: Run CloseCode
            uses: anomalyco/opencode/github@latest
            env:
              ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -119,7 +119,7 @@ O opencode pode ser acionado pelos seguintes eventos do GitHub:
 Execute o opencode em um cronograma para realizar tarefas automatizadas:
 
 ```yaml title=".github/workflows/opencode-scheduled.yml"
-name: Scheduled OpenCode Task
+name: Scheduled CloseCode Task
 
 on:
   schedule:
@@ -139,7 +139,7 @@ jobs:
         with:
           persist-credentials: false
 
-       - name: Run OpenCode
+       - name: Run CloseCode
          uses: anomalyco/opencode/github@latest
          env:
            ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

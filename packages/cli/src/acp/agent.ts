@@ -5,7 +5,7 @@ import { ACPError } from "./error"
 import { ACPService } from "./service"
 
 export function connect(client: OpenCodeClient, stream: Stream) {
-  const connection = agent({ name: "opencode" })
+  const connection = agent({ name: "closecode" })
     .onRequest("initialize", (ctx) => run(service.initialize(ctx.params)))
     .onRequest("authenticate", (ctx) => run(service.authenticate(ctx.params)))
     .onRequest("session/new", (ctx) => run(service.newSession(ctx.params)))

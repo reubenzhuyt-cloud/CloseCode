@@ -90,7 +90,7 @@ stdenv.mkDerivation (finalAttrs: {
     export OPENCODE_CLI_DIST="$TMPDIR/desktop-cli"
     cli_package=$(bun -e 'import { getCurrentCli } from "./scripts/utils.ts"; console.log(getCurrentCli().package.replace("@opencode/", ""))')
     mkdir -p "$OPENCODE_CLI_DIST/$cli_package/bin"
-    cp ${lib.getExe opencode} "$OPENCODE_CLI_DIST/$cli_package/bin/opencode"
+    cp ${lib.getExe opencode} "$OPENCODE_CLI_DIST/$cli_package/bin/closecode"
 
     bun run build
     npx electron-builder --dir \
@@ -107,7 +107,7 @@ stdenv.mkDerivation (finalAttrs: {
   + lib.optionalString stdenv.hostPlatform.isDarwin ''
     mkdir -p $out/Applications
     mv dist/mac*/*.app $out/Applications
-    makeWrapper "$out/Applications/OpenCode.app/Contents/MacOS/OpenCode" $out/bin/opencode-desktop
+    makeWrapper "$out/Applications/CloseCode.app/Contents/MacOS/CloseCode" $out/bin/opencode-desktop
   ''
   + lib.optionalString stdenv.hostPlatform.isLinux ''
     mkdir -p $out/opt/opencode-desktop

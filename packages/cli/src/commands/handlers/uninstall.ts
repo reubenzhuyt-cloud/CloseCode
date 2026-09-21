@@ -13,7 +13,7 @@ import { errorMessage } from "../../util/error"
 export default Runtime.handler(
   Commands.commands.uninstall,
   Effect.fn("cli.uninstall")(function* (input) {
-    intro("Uninstall OpenCode")
+    intro("Uninstall CloseCode")
     const fs = yield* FileSystem.FileSystem
     const global = yield* Global.Service
     const updater = yield* Updater.Service
@@ -33,7 +33,7 @@ export default Runtime.handler(
     const shell = method === "curl" ? yield* shellConfigs(global.home) : []
 
     log.info(`Installation method: ${method ?? "unknown"}`)
-    log.message("The following global files will be removed (shared by OpenCode versions and channels):")
+    log.message("The following global files will be removed (shared by CloseCode versions and channels):")
     yield* Effect.forEach(directories, (directory) =>
       Effect.gen(function* () {
         if (!(yield* fs.exists(directory.path))) return

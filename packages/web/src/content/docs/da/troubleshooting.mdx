@@ -3,7 +3,7 @@ title: Fejlfinding
 description: Almindelige problemer, og hvordan de løses.
 ---
 
-For at fejlfinde problemer med OpenCode, start med at tjekke logfilerne og de lokale data, den gemmer på disken.
+For at fejlfinde problemer med CloseCode, start med at tjekke logfilerne og de lokale data, den gemmer på disken.
 
 ---
 
@@ -16,7 +16,7 @@ Logfiler skrives til:
 
 Logfiler navngives med tidsstempler (f.eks. `2025-01-09T123456.log`) og de sidste 10 logfiler beholdes.
 
-Du kan angive logniveauet med kommandolinjeflaget `--log-level` for at få mere detaljeret fejlfindingsinformation. For eksempel `opencode --log-level DEBUG`.
+Du kan angive logniveauet med kommandolinjeflaget `--log-level` for at få mere detaljeret fejlfindingsinformation. For eksempel `closecode --log-level DEBUG`.
 
 ---
 
@@ -25,7 +25,7 @@ Du kan angive logniveauet med kommandolinjeflaget `--log-level` for at få mere 
 opencode gemmer sessionsdata og andre applikationsdata på disken på:
 
 - **macOS/Linux**: `~/.local/share/opencode/`
-- **Windows**: Tryk `WIN+R` og indsæt `%USERPROFILE%\.local\share\opencode`
+- **Windows**: Tryk `WIN+R` og indsæt `%USERPROFILE%\.local\share\closecode`
 
 Denne mappe indeholder:
 
@@ -39,13 +39,13 @@ Denne mappe indeholder:
 
 ## Desktop-app
 
-OpenCode Desktop kører en lokal OpenCode-server (`opencode-cli` sidevognen) i baggrunden. De fleste problemer er forårsaget af et plugin, der fungerer dårligt, en ødelagt cache eller en dårlig serverindstilling.
+CloseCode Desktop kører en lokal CloseCode-server (`opencode-cli` sidevognen) i baggrunden. De fleste problemer er forårsaget af et plugin, der fungerer dårligt, en ødelagt cache eller en dårlig serverindstilling.
 
 ### Hurtige tjek
 
 - Afslut og start appen på ny.
 - Hvis appen viser en fejlskærm, klikker du på **Start på ny** og kopierer fejldetaljerne.
-- Kun macOS: `OpenCode`-menu -> **Genindlæs webvisning** (hjælper hvis UI er tom/frosset).
+- Kun macOS: `CloseCode`-menu -> **Genindlæs webvisning** (hjælper hvis UI er tom/frosset).
 
 ---
 
@@ -72,7 +72,7 @@ Hvis du har konfigureret plugins, deaktiver dem midlertidigt ved at fjerne nøgl
 
 #### Tjek plugin-mapper
 
-OpenCode kan også indlæse lokale plugins fra disken. Flyt disse midlertidigt væk (eller giv mappen nyt navn) og start skrivebordsappen på ny:
+CloseCode kan også indlæse lokale plugins fra disken. Flyt disse midlertidigt væk (eller giv mappen nyt navn) og start skrivebordsappen på ny:
 
 - **Globale plugins**
   - **macOS/Linux**: `~/.config/opencode/plugins/`
@@ -86,22 +86,22 @@ Hvis appen begynder at fungere igen, aktiverer du plugins én ad gangen for at f
 
 ### Ryd cachen
 
-Hvis deaktivering af plugins ikke hjælper (eller en plugin-installation sidder fast), tøm cachen så OpenCode kan genopbygge den.
+Hvis deaktivering af plugins ikke hjælper (eller en plugin-installation sidder fast), tøm cachen så CloseCode kan genopbygge den.
 
-1. Afslut OpenCode Desktop helt.
+1. Afslut CloseCode Desktop helt.
 2. Slet cache-mappen:
 
 - **macOS**: Finder -> `Cmd+Shift+G` -> indsæt `~/.cache/opencode`
 - **Linux**: slet `~/.cache/opencode` (eller kør `rm -rf ~/.cache/opencode`)
-- **Windows**: Tryk `WIN+R` og indsæt `%USERPROFILE%\.cache\opencode`
+- **Windows**: Tryk `WIN+R` og indsæt `%USERPROFILE%\.cache\closecode`
 
-3. Start OpenCode Desktop på ny.
+3. Start CloseCode Desktop på ny.
 
 ---
 
 ### Løs problemer med serverforbindelse
 
-OpenCode Desktop kan enten starte sin egen lokale server (standard) eller forbinde til en server URL, du har konfigureret.
+CloseCode Desktop kan enten starte sin egen lokale server (standard) eller forbinde til en server URL, du har konfigureret.
 
 Hvis du ser en **"Forbindelse mislykkedes"**-dialogboks (eller appen kommer aldrig forbi splash-skærmen), se efter en brugerdefineret server URL.
 
@@ -132,21 +132,21 @@ På Linux kan nogle Wayland-opsætninger forårsage tomme vinduer eller komposit
 
 ### Windows: WebView2-runtime
 
-På Windows kræver OpenCode Desktop Microsoft Edge **WebView2 Runtime**. Hvis appen åbnes i et tomt vindue eller ikke starter, installer/opdater WebView2 og prøv igen.
+På Windows kræver CloseCode Desktop Microsoft Edge **WebView2 Runtime**. Hvis appen åbnes i et tomt vindue eller ikke starter, installer/opdater WebView2 og prøv igen.
 
 ---
 
 ### Windows: Generelle ydeevneproblemer
 
-Hvis du oplever langsom ydeevne, problemer med filadgang eller terminalproblemer på Windows, kan du prøve at bruge [WSL (Windows Subsystem for Linux)](/docs/windows-wsl). WSL giver et Linux-miljø som fungerer mere sømløst med funktionerne i OpenCode.
+Hvis du oplever langsom ydeevne, problemer med filadgang eller terminalproblemer på Windows, kan du prøve at bruge [WSL (Windows Subsystem for Linux)](/docs/windows-wsl). WSL giver et Linux-miljø som fungerer mere sømløst med funktionerne i CloseCode.
 
 ---
 
 ### Meddelelser vises ikke
 
-OpenCode Desktop viser kun systemvarsler når:
+CloseCode Desktop viser kun systemvarsler når:
 
-- varsler er aktiveret for OpenCode i dine OS-indstillinger, og
+- varsler er aktiveret for CloseCode i dine OS-indstillinger, og
 - appvinduet ikke er fokuseret.
 
 ---
@@ -155,8 +155,8 @@ OpenCode Desktop viser kun systemvarsler når:
 
 Hvis appen ikke starter og du ikke kan slette indstillingerne fra UI, nulstil skrivebordsappens gemte tilstand.
 
-1. Afslut OpenCode Desktop.
-2. Find og slet disse filer (de findes i OpenCode Desktop-appens datamappe):
+1. Afslut CloseCode Desktop.
+2. Find og slet disse filer (de findes i CloseCode Desktop-appens datamappe):
 
 - `opencode.settings.dat` (skrivebordsstandardserver URL)
 - `opencode.global.dat` og `opencode.workspace.*.dat` (UI tilstand som nylige servere/projekter)
@@ -171,7 +171,7 @@ Sådan finder du mappen hurtigt:
 
 ## Få hjælp
 
-Hvis du oplever problemer med OpenCode:
+Hvis du oplever problemer med CloseCode:
 
 1. **Rapporter problemer på GitHub**
 
@@ -195,11 +195,11 @@ Her er nogle almindelige problemer og hvordan du kan løse dem.
 
 ---
 
-### OpenCode vil ikke starte
+### CloseCode vil ikke starte
 
 1. Tjek logfilerne for fejlmeddelelser
 2. Prøv at køre med `--print-logs` for at se output i terminalen
-3. Sørg for at du har den nyeste version med `opencode upgrade`
+3. Sørg for at du har den nyeste version med `closecode upgrade`
 
 ---
 
@@ -227,7 +227,7 @@ Eksempler:
 - `openrouter/google/gemini-2.5-flash`
 - `opencode/kimi-k2`
 
-For at finde ud af hvilke modeller du har adgang til, kør `opencode models`
+For at finde ud af hvilke modeller du har adgang til, kør `closecode models`
 
 ---
 
@@ -244,7 +244,7 @@ For at løse dette:
    rm -rf ~/.local/share/opencode
    ```
 
-   På Windows, tryk `WIN+R` og slet: `%USERPROFILE%\.local\share\opencode`
+   På Windows, tryk `WIN+R` og slet: `%USERPROFILE%\.local\share\closecode`
 
 3. Godkend på ny med din udbyder ved at bruge kommandoen `/connect` i TUI.
 
@@ -262,7 +262,7 @@ For at løse problemer med udbyderpakke:
    rm -rf ~/.cache/opencode
    ```
 
-   På Windows, tryk `WIN+R` og slet: `%USERPROFILE%\.cache\opencode`
+   På Windows, tryk `WIN+R` og slet: `%USERPROFILE%\.cache\closecode`
 
 2. Start opencode på ny for at installere de nyeste udbyderpakker på ny
 

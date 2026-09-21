@@ -69,7 +69,7 @@ export const dict: Record<string, string> = {
   "ui.sessionTurn.error.addCredits": "Shto kredite",
   "dialog.usageExceeded.freeTier.title": "U arrit kufiri falas",
   "dialog.usageExceeded.freeTier.description":
-    "Abonohu në OpenCode Go për qasje të besueshme në modelet më të mira me burim të hapur, duke filluar nga 5 dollarë/muaj.",
+    "Abonohu në CloseCode Go për qasje të besueshme në modelet më të mira me burim të hapur, duke filluar nga 5 dollarë/muaj.",
   "dialog.usageExceeded.freeTier.actionLabel": "Abonohu",
   "dialog.usageExceeded.accountRateLimit.title": "U arrit kufiri i lëvizjes",
   "dialog.usageExceeded.accountRateLimit.description":

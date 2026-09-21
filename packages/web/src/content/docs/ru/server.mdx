@@ -6,14 +6,14 @@ description: Взаимодействуйте с сервером opencode че�
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-Команда `opencode serve` запускает автономный HTTP-сервер, который предоставляет конечную точку OpenAPI, которую может использовать клиент с открытым кодом.
+Команда `closecode serve` запускает автономный HTTP-сервер, который предоставляет конечную точку OpenAPI, которую может использовать клиент с открытым кодом.
 
 ---
 
 ### Использование
 
 ```bash
-opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
+closecode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 ```
 
 #### Параметры
@@ -29,24 +29,24 @@ opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 `--cors` можно передать несколько раз:
 
 ```bash
-opencode serve --cors http://localhost:5173 --cors https://app.example.com
+closecode serve --cors http://localhost:5173 --cors https://app.example.com
 ```
 
 ---
 
 ### Аутентификация
 
-Установите `OPENCODE_SERVER_PASSWORD`, чтобы защитить сервер с помощью базовой аутентификации HTTP. Имя пользователя по умолчанию — `opencode` или установите `OPENCODE_SERVER_USERNAME`, чтобы переопределить его. Это относится как к `opencode serve`, так и к `opencode web`.
+Установите `OPENCODE_SERVER_PASSWORD`, чтобы защитить сервер с помощью базовой аутентификации HTTP. Имя пользователя по умолчанию — `closecode` или установите `OPENCODE_SERVER_USERNAME`, чтобы переопределить его. Это относится как к `closecode serve`, так и к `closecode web`.
 
 ```bash
-OPENCODE_SERVER_PASSWORD=your-password opencode serve
+OPENCODE_SERVER_PASSWORD=your-password closecode serve
 ```
 
 ---
 
 ### Как это работает
 
-Когда вы запускаете `opencode`, он запускает TUI и сервер. Где находится TUI
+Когда вы запускаете `closecode`, он запускает TUI и сервер. Где находится TUI
 клиент, который общается с сервером. Сервер предоставляет спецификацию OpenAPI 3.1.
 конечная точка. Эта конечная точка также используется для создания файла [SDK](/docs/sdk).
 
@@ -56,8 +56,8 @@ OPENCODE_SERVER_PASSWORD=your-password opencode serve
 
 Эта архитектура позволяет открытому коду поддерживать несколько клиентов и позволяет программно взаимодействовать с открытым кодом.
 
-Вы можете запустить `opencode serve`, чтобы запустить автономный сервер. Если у вас есть
-TUI с открытым кодом запущен, `opencode serve` запустит новый сервер.
+Вы можете запустить `closecode serve`, чтобы запустить автономный сервер. Если у вас есть
+TUI с открытым кодом запущен, `closecode serve` запустит новый сервер.
 
 ---
 
@@ -65,7 +65,7 @@ TUI с открытым кодом запущен, `opencode serve` запуст
 
 Когда вы запускаете TUI, он случайным образом назначает порт и имя хоста. Вместо этого вы можете передать `--hostname` и `--port` [flags](/docs/cli). Затем используйте это для подключения к его серверу.
 
-Конечную точку [`/tui`](#tui) можно использовать для управления TUI через сервер. Например, вы можете предварительно заполнить или запустить подсказку. Эта настройка используется плагинами opencode [IDE](/docs/ide).
+Конечную точку [`/tui`](#tui) можно использовать для управления TUI через сервер. Например, вы можете предварительно заполнить или запустить подсказку. Эта настройка используется плагинами closecode [IDE](/docs/ide).
 
 ---
 

@@ -1,17 +1,17 @@
 ---
 title: ผู้ให้บริการ
-description: ใช้ผู้ให้บริการ LLM ใน OpenCode
+description: ใช้ผู้ให้บริการ LLM ใน CloseCode
 ---
 
 import config from "../../../../config.mjs"
 export const console = config.console
 
-OpenCode ใช้ [AI SDK](https://ai-sdk.dev/) และ [Models.dev](https://models.dev) เพื่อรองรับผู้ให้บริการ **75+ LLM** และรองรับการใช้งานโมเดลท้องถิ่น
+CloseCode ใช้ [AI SDK](https://ai-sdk.dev/) และ [Models.dev](https://models.dev) เพื่อรองรับผู้ให้บริการ **75+ LLM** และรองรับการใช้งานโมเดลท้องถิ่น
 
 หากต้องการเพิ่มผู้ให้บริการ คุณต้อง:
 
 1. เพิ่มคีย์ API สำหรับผู้ให้บริการโดยใช้คำสั่ง `/connect`
-2. กำหนดค่าผู้ให้บริการในการกำหนดค่า OpenCode ของคุณ
+2. กำหนดค่าผู้ให้บริการในการกำหนดค่า CloseCode ของคุณ
 
 ---
 
@@ -24,7 +24,7 @@ OpenCode ใช้ [AI SDK](https://ai-sdk.dev/) และ [Models.dev](https://
 
 ### การกำหนดค่า
 
-คุณสามารถปรับแต่งผู้ให้บริการได้ผ่านทางส่วน `provider` ใน OpenCode ของคุณ
+คุณสามารถปรับแต่งผู้ให้บริการได้ผ่านทางส่วน `provider` ใน CloseCode ของคุณ
 กำหนดค่า
 
 ---
@@ -48,13 +48,13 @@ OpenCode ใช้ [AI SDK](https://ai-sdk.dev/) และ [Models.dev](https://
 
 ---
 
-## OpenCode Zen
+## CloseCode Zen
 
-OpenCode Zen คือรายชื่อโมเดลที่จัดทำโดยทีมงาน OpenCode ที่ได้รับ
-ทดสอบและตรวจสอบแล้วว่าทำงานได้ดีกับ OpenCode [เรียนรู้เพิ่มเติม](/docs/zen)
+CloseCode Zen คือรายชื่อโมเดลที่จัดทำโดยทีมงาน CloseCode ที่ได้รับ
+ทดสอบและตรวจสอบแล้วว่าทำงานได้ดีกับ CloseCode [เรียนรู้เพิ่มเติม](/docs/zen)
 
 :::tip
-หากคุณยังใหม่ เราขอแนะนำให้เริ่มต้นด้วย OpenCode Zen
+หากคุณยังใหม่ เราขอแนะนำให้เริ่มต้นด้วย CloseCode Zen
 :::
 
 1. เรียกใช้คำสั่ง `/connect` ใน TUI เลือก opencode และไปที่ [opencode.ai/auth](https://opencode.ai/auth)
@@ -80,15 +80,15 @@ OpenCode Zen คือรายชื่อโมเดลที่จัดท�
    /models
    ```
 
-มันทำงานเหมือนกับผู้ให้บริการรายอื่นใน OpenCode และเป็นทางเลือกในการใช้งานโดยสมบูรณ์
+มันทำงานเหมือนกับผู้ให้บริการรายอื่นใน CloseCode และเป็นทางเลือกในการใช้งานโดยสมบูรณ์
 
 ---
 
-## OpenCode Go
+## CloseCode Go
 
-OpenCode Go คือแผนการสมัครสมาชิกราคาประหยัดที่ให้การเข้าถึงโมเดลการเขียนโค้ดแบบเปิดยอดนิยมที่เชื่อถือได้ ซึ่งจัดเตรียมโดยทีมงาน OpenCode ที่ได้รับการทดสอบและตรวจสอบแล้วว่าทำงานได้ดีกับ OpenCode
+CloseCode Go คือแผนการสมัครสมาชิกราคาประหยัดที่ให้การเข้าถึงโมเดลการเขียนโค้ดแบบเปิดยอดนิยมที่เชื่อถือได้ ซึ่งจัดเตรียมโดยทีมงาน CloseCode ที่ได้รับการทดสอบและตรวจสอบแล้วว่าทำงานได้ดีกับ CloseCode
 
-1. เรียกใช้คำสั่ง `/connect` ใน TUI เลือก `OpenCode Go` และไปที่ [opencode.ai/auth](https://opencode.ai/zen)
+1. เรียกใช้คำสั่ง `/connect` ใน TUI เลือก `CloseCode Go` และไปที่ [opencode.ai/auth](https://opencode.ai/zen)
 
    ```txt
    /connect
@@ -111,7 +111,7 @@ OpenCode Go คือแผนการสมัครสมาชิกรา�
    /models
    ```
 
-มันทำงานเหมือนกับผู้ให้บริการรายอื่นใน OpenCode และเป็นทางเลือกในการใช้งานโดยสมบูรณ์
+มันทำงานเหมือนกับผู้ให้บริการรายอื่นใน CloseCode และเป็นทางเลือกในการใช้งานโดยสมบูรณ์
 
 ---
 
@@ -155,7 +155,7 @@ OpenCode Go คือแผนการสมัครสมาชิกรา�
 
 ### Amazon Bedrock
 
-วิธีใช้ Amazon Bedrock กับ OpenCode:
+วิธีใช้ Amazon Bedrock กับ CloseCode:
 
 1. ไปที่ **แค็ตตาล็อกโมเดล** ในคอนโซล Amazon Bedrock และขอ
    เข้าถึงโมเดลที่คุณต้องการ
@@ -172,13 +172,13 @@ OpenCode Go คือแผนการสมัครสมาชิกรา�
 
    ```bash
    # Option 1: Using AWS access keys
-   AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=YYY opencode
+   AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=YYY closecode
 
    # Option 2: Using named AWS profile
-   AWS_PROFILE=my-profile opencode
+   AWS_PROFILE=my-profile closecode
 
    # Option 3: Using Bedrock bearer token
-   AWS_BEARER_TOKEN_BEDROCK=XXX opencode
+   AWS_BEARER_TOKEN_BEDROCK=XXX closecode
    ```
 
    หรือเพิ่มลงในโปรไฟล์ทุบตีของคุณ:
@@ -310,7 +310,7 @@ OpenCode Go คือแผนการสมัครสมาชิกรา�
    ```
 
 :::info
-การใช้การสมัครสมาชิก Claude Pro/Max ใน OpenCode ไม่ได้รับการสนับสนุนอย่างเป็นทางการจาก [Anthropic](https://anthropic.com)
+การใช้การสมัครสมาชิก Claude Pro/Max ใน CloseCode ไม่ได้รับการสนับสนุนอย่างเป็นทางการจาก [Anthropic](https://anthropic.com)
 :::
 
 ##### การใช้ API Key
@@ -393,7 +393,7 @@ OpenCode Go คือแผนการสมัครสมาชิกรา�
 5. ตั้งชื่อทรัพยากรของคุณเป็นตัวแปรสภาพแวดล้อม:
 
    ```bash
-   AZURE_RESOURCE_NAME=XXX opencode
+   AZURE_RESOURCE_NAME=XXX closecode
    ```
 
    หรือเพิ่มลงในโปรไฟล์ทุบตีของคุณ:
@@ -440,7 +440,7 @@ OpenCode Go คือแผนการสมัครสมาชิกรา�
 5. ตั้งชื่อทรัพยากรของคุณเป็นตัวแปรสภาพแวดล้อม:
 
    ```bash
-   AZURE_COGNITIVE_SERVICES_RESOURCE_NAME=XXX opencode
+   AZURE_COGNITIVE_SERVICES_RESOURCE_NAME=XXX closecode
    ```
 
    หรือเพิ่มลงในโปรไฟล์ทุบตีของคุณ:
@@ -732,7 +732,7 @@ GitLab Duo ให้การแชทแบบเอเจนต์ที่ข
 
 1.  ไปที่ [GitLab User Settings > Access Tokens](https://gitlab.com/-/user_settings/personal_access_tokens)
 2.  คลิก **เพิ่มโทเค็นใหม่**
-3.  ชื่อ: `OpenCode`, ขอบเขต: `api`
+3.  ชื่อ: `CloseCode`, ขอบเขต: `api`
 4.  คัดลอกโทเค็น (เริ่มต้นด้วย `glpat-`)
 5.  ป้อนลงใน terminal
 
@@ -749,14 +749,14 @@ GitLab Duo ให้การแชทแบบเอเจนต์ที่ข
 
 :::note
 คุณยังสามารถระบุตัวแปรสภาพแวดล้อม 'GITLAB_TOKEN' ได้หากคุณไม่ต้องการ
-เพื่อจัดเก็บโทเค็นในที่เก็บข้อมูลการรับรองความถูกต้องของ opencode
+เพื่อจัดเก็บโทเค็นในที่เก็บข้อมูลการรับรองความถูกต้องของ closecode
 :::
 
 ##### GitLab ที่โฮสต์เอง
 
 :::note[บันทึกการปฏิบัติตาม]
-OpenCode ใช้โมเดลขนาดเล็กสำหรับงาน AI บางอย่าง เช่น การสร้างชื่อเซสชัน
-มีการกำหนดค่าให้ใช้ gpt-5-nano ตามค่าเริ่มต้น ซึ่งโฮสต์โดย Zen เพื่อล็อค OpenCode
+CloseCode ใช้โมเดลขนาดเล็กสำหรับงาน AI บางอย่าง เช่น การสร้างชื่อเซสชัน
+มีการกำหนดค่าให้ใช้ gpt-5-nano ตามค่าเริ่มต้น ซึ่งโฮสต์โดย Zen เพื่อล็อค CloseCode
 หากต้องการใช้เฉพาะอินสแตนซ์ที่โฮสต์บน GitLab ของคุณเอง ให้เพิ่มสิ่งต่อไปนี้ในของคุณ
 `opencode.json` ไฟล์. ขอแนะนำให้ปิดใช้งานการแชร์เซสชันด้วย
 
@@ -889,7 +889,7 @@ subscription](https://github.com/features/copilot/plans) เพื่อใช�
 
 ### Google Vertex AI
 
-วิธีใช้ Google Vertex AI กับ OpenCode:
+วิธีใช้ Google Vertex AI กับ CloseCode:
 
 1. ไปที่ **Model Garden** ใน Google Cloud Console แล้วตรวจสอบ
    รุ่นที่มีในภูมิภาคของคุณ
@@ -905,10 +905,10 @@ subscription](https://github.com/features/copilot/plans) เพื่อใช�
      - `GOOGLE_APPLICATION_CREDENTIALS`: เส้นทางไปยังบัญชีบริการของคุณ JSON ไฟล์คีย์
      - ตรวจสอบสิทธิ์โดยใช้ gcloud CLI: `gcloud auth application-default login`
 
-   ตั้งค่าในขณะที่เรียกใช้ opencode
+   ตั้งค่าในขณะที่เรียกใช้ closecode
 
    ```bash
-   GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json GOOGLE_CLOUD_PROJECT=your-project-id opencode
+   GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json GOOGLE_CLOUD_PROJECT=your-project-id closecode
    ```
 
    หรือเพิ่มลงในโปรไฟล์ทุบตีของคุณ
@@ -1071,7 +1071,7 @@ Helicone รองรับส่วนหัวแบบกำหนดเอ�
 
 ##### การติดตามเซสชัน
 
-คุณลักษณะ [เซสชัน](https://docs.helicone.ai/features/sessions) ของ Helicone ช่วยให้คุณสามารถจัดกลุ่มคำขอ LLM ที่เกี่ยวข้องเข้าด้วยกันได้ ใช้ปลั๊กอิน [opencode-helicone-session](https://github.com/H2Shami/opencode-helicone-session) เพื่อบันทึกการสนทนา OpenCode แต่ละรายการเป็นเซสชันใน Helicone โดยอัตโนมัติ
+คุณลักษณะ [เซสชัน](https://docs.helicone.ai/features/sessions) ของ Helicone ช่วยให้คุณสามารถจัดกลุ่มคำขอ LLM ที่เกี่ยวข้องเข้าด้วยกันได้ ใช้ปลั๊กอิน [opencode-helicone-session](https://github.com/H2Shami/opencode-helicone-session) เพื่อบันทึกการสนทนา CloseCode แต่ละรายการเป็นเซสชันใน Helicone โดยอัตโนมัติ
 
 ```bash
 npm install -g opencode-helicone-session
@@ -1085,7 +1085,7 @@ npm install -g opencode-helicone-session
 }
 ```
 
-ปลั๊กอินจะแทรกส่วนหัว `Helicone-Session-Id` และ `Helicone-Session-Name` ลงในคำขอของคุณ ในหน้าเซสชันของ Helicone คุณจะเห็นการสนทนา OpenCode แต่ละรายการแยกเป็นเซสชันแยกกัน
+ปลั๊กอินจะแทรกส่วนหัว `Helicone-Session-Id` และ `Helicone-Session-Name` ลงในคำขอของคุณ ในหน้าเซสชันของ Helicone คุณจะเห็นการสนทนา CloseCode แต่ละรายการแยกเป็นเซสชันแยกกัน
 
 ##### ส่วนหัวของ Helicone ทั่วไป
 
@@ -1289,7 +1289,7 @@ IO.NET มี 17 โมเดลที่ได้รับการปรับ
 คุณสามารถกำหนดค่า opencode เพื่อใช้โมเดลท้องถิ่นผ่าน Ollama
 
 :::tip
-Ollama สามารถกำหนดค่าตัวเองสำหรับ OpenCode ได้โดยอัตโนมัติ ดู [เอกสารการบูรณาการ Ollama](https://docs.ollama.com/integrations/opencode) เพื่อดูรายละเอียด
+Ollama สามารถกำหนดค่าตัวเองสำหรับ CloseCode ได้โดยอัตโนมัติ ดู [เอกสารการบูรณาการ Ollama](https://docs.ollama.com/integrations/opencode) เพื่อดูรายละเอียด
 :::
 
 ```json title="opencode.json" "ollama" {5, 6, 8, 10-14}
@@ -1328,13 +1328,13 @@ Ollama สามารถกำหนดค่าตัวเองสำหร�
 
 ### Ollama Cloud
 
-วิธีใช้ Ollama Cloud กับ OpenCode:
+วิธีใช้ Ollama Cloud กับ CloseCode:
 
 1. ไปที่ [https://ollama.com/](https://ollama.com/) แล้วลงชื่อเข้าใช้หรือสร้างบัญชี
 
 2. ไปที่ **Settings** > **Keys** แล้วคลิก **Add API Key** เพื่อสร้างคีย์ API ใหม่
 
-3. คัดลอกคีย์ API เพื่อใช้ใน OpenCode
+3. คัดลอกคีย์ API เพื่อใช้ใน CloseCode
 
 4. เรียกใช้คำสั่ง `/connect` และค้นหา **Ollama Cloud**
 
@@ -1351,7 +1351,7 @@ Ollama สามารถกำหนดค่าตัวเองสำหร�
    └ enter
    ```
 
-6. **สำคัญ**: ก่อนที่จะใช้โมเดลคลาวด์ใน OpenCode คุณต้องดึงข้อมูลโมเดลในเครื่อง:
+6. **สำคัญ**: ก่อนที่จะใช้โมเดลคลาวด์ใน CloseCode คุณต้องดึงข้อมูลโมเดลในเครื่อง:
 
    ```bash
    ollama pull gpt-oss:20b-cloud
@@ -1398,19 +1398,19 @@ Ollama สามารถกำหนดค่าตัวเองสำหร�
 
 ---
 
-### OpenCode Zen
+### CloseCode Zen
 
-OpenCode Zen คือรายการโมเดลที่ได้รับการทดสอบและตรวจสอบแล้วโดยทีมงาน OpenCode [เรียนรู้เพิ่มเติม](/docs/zen)
+CloseCode Zen คือรายการโมเดลที่ได้รับการทดสอบและตรวจสอบแล้วโดยทีมงาน CloseCode [เรียนรู้เพิ่มเติม](/docs/zen)
 
-1. ลงชื่อเข้าใช้ **<a href={console}>OpenCode Zen</a>** และคลิก **สร้าง API คีย์**
+1. ลงชื่อเข้าใช้ **<a href={console}>CloseCode Zen</a>** และคลิก **สร้าง API คีย์**
 
-2. เรียกใช้คำสั่ง `/connect` และค้นหา **OpenCode Zen**
+2. เรียกใช้คำสั่ง `/connect` และค้นหา **CloseCode Zen**
 
    ```txt
    /connect
    ```
 
-3. ป้อนคีย์ OpenCode API ของคุณ
+3. ป้อนคีย์ CloseCode API ของคุณ
 
    ```txt
    ┌ API key
@@ -1519,7 +1519,7 @@ SAP AI Core ให้การเข้าถึงโมเดลมากก�
    หรือตั้งค่าตัวแปรสภาพแวดล้อม `AICORE_SERVICE_KEY`:
 
    ```bash
-   AICORE_SERVICE_KEY='{"clientid":"...","clientsecret":"...","url":"...","serviceurls":{"AI_API_URL":"..."}}' opencode
+   AICORE_SERVICE_KEY='{"clientid":"...","clientsecret":"...","url":"...","serviceurls":{"AI_API_URL":"..."}}' closecode
    ```
 
    หรือเพิ่มลงในโปรไฟล์ทุบตีของคุณ:
@@ -1531,7 +1531,7 @@ SAP AI Core ให้การเข้าถึงโมเดลมากก�
 4. เลือกตั้งค่ารหัสการปรับใช้และกลุ่มทรัพยากร:
 
    ```bash
-   AICORE_DEPLOYMENT_ID=your-deployment-id AICORE_RESOURCE_GROUP=your-resource-group opencode
+   AICORE_DEPLOYMENT_ID=your-deployment-id AICORE_RESOURCE_GROUP=your-resource-group closecode
    ```
 
    :::note
@@ -1969,7 +1969,7 @@ Vercel AI Gateway ช่วยให้คุณเข้าถึงโมเ�
 - **limit.context**: โทเค็นอินพุตสูงสุดที่โมเดลยอมรับ
 - **limit.output**: โทเค็นสูงสุดที่โมเดลสามารถสร้างได้
 
-ฟิลด์ `limit` ช่วยให้ OpenCode เข้าใจว่าคุณมีบริบทเหลืออยู่เท่าใด ผู้ให้บริการมาตรฐานจะดึงข้อมูลเหล่านี้จาก models.dev โดยอัตโนมัติ
+ฟิลด์ `limit` ช่วยให้ CloseCode เข้าใจว่าคุณมีบริบทเหลืออยู่เท่าใด ผู้ให้บริการมาตรฐานจะดึงข้อมูลเหล่านี้จาก models.dev โดยอัตโนมัติ
 
 ---
 
@@ -1977,7 +1977,7 @@ Vercel AI Gateway ช่วยให้คุณเข้าถึงโมเ�
 
 หากคุณประสบปัญหาในการกำหนดค่าผู้ให้บริการ ให้ตรวจสอบสิ่งต่อไปนี้:
 
-1. **ตรวจสอบการตั้งค่าการรับรองความถูกต้อง**: รัน `opencode auth list` เพื่อดูว่ามีการเพิ่มข้อมูลรับรอง
+1. **ตรวจสอบการตั้งค่าการรับรองความถูกต้อง**: รัน `closecode auth list` เพื่อดูว่ามีการเพิ่มข้อมูลรับรอง
    สำหรับผู้ให้บริการในการกำหนดค่าของคุณหรือไม่
 
    สิ่งนี้ใช้ไม่ได้กับผู้ให้บริการเช่น Amazon Bedrock ซึ่งอาศัยตัวแปรสภาพแวดล้อมสำหรับการตรวจสอบสิทธิ์
@@ -1987,7 +1987,7 @@ Vercel AI Gateway ช่วยให้คุณเข้าถึงโมเ�
    - ใช้แพ็คเกจ npm ที่ถูกต้องสำหรับผู้ให้บริการ ตัวอย่างเช่น ใช้ `@ai-sdk/cerebras` สำหรับ Cerebras และสำหรับผู้ให้บริการอื่นๆ ที่เข้ากันได้กับ OpenAI ให้ใช้ `@ai-sdk/openai-compatible`
    - ตรวจสอบว่าใช้จุดสิ้นสุด API ที่ถูกต้องในฟิลด์ `options.baseURL`
 
-3. ป้อนคีย์ OpenCode API ของคุณ
+3. ป้อนคีย์ CloseCode API ของคุณ
 
    ```txt
    ┌ API key
@@ -2096,7 +2096,7 @@ SAP AI Core ให้การเข้าถึงโมเดลมากก�
    หรือตั้งค่าตัวแปรสภาพแวดล้อม `AICORE_SERVICE_KEY`:
 
    ```bash
-   AICORE_SERVICE_KEY='{"clientid":"...","clientsecret":"...","url":"...","serviceurls":{"AI_API_URL":"..."}}' opencode
+   AICORE_SERVICE_KEY='{"clientid":"...","clientsecret":"...","url":"...","serviceurls":{"AI_API_URL":"..."}}' closecode
    ```
 
    หรือเพิ่มลงในโปรไฟล์ทุบตีของคุณ:
@@ -2108,7 +2108,7 @@ SAP AI Core ให้การเข้าถึงโมเดลมากก�
 4. ตั้งค่า ID การนำไปใช้งานและกลุ่มทรัพยากรเพิ่มเติม:
 
    ```bash
-   AICORE_DEPLOYMENT_ID=your-deployment-id AICORE_RESOURCE_GROUP=your-resource-group opencode
+   AICORE_DEPLOYMENT_ID=your-deployment-id AICORE_RESOURCE_GROUP=your-resource-group closecode
    ```
 
    :::note
@@ -2513,7 +2513,7 @@ Vercel AI Gateway ช่วยให้คุณเข้าถึงโมเ�
 - **limit.context**: Input Tokens สูงสุดที่โมเดลยอมรับ
 - **limit.output**: Output Tokens สูงสุดที่โมเดลสามารถสร้างได้
 
-ช่อง `limit` ช่วยให้ OpenCode เข้าใจบริบทที่คุณเหลืออยู่ ผู้ให้บริการมาตรฐานจะดึงข้อมูลเหล่านี้จาก models.dev โดยอัตโนมัติ
+ช่อง `limit` ช่วยให้ CloseCode เข้าใจบริบทที่คุณเหลืออยู่ ผู้ให้บริการมาตรฐานจะดึงข้อมูลเหล่านี้จาก models.dev โดยอัตโนมัติ
 
 ---
 
@@ -2521,7 +2521,7 @@ Vercel AI Gateway ช่วยให้คุณเข้าถึงโมเ�
 
 หากคุณประสบปัญหาในการกำหนดค่าผู้ให้บริการ ให้ตรวจสอบสิ่งต่อไปนี้:
 
-1. **ตรวจสอบการตั้งค่าการรับรองความถูกต้อง**: เรียกใช้ `opencode auth list` เพื่อดูว่ามีข้อมูลรับรองหรือไม่
+1. **ตรวจสอบการตั้งค่าการรับรองความถูกต้อง**: เรียกใช้ `closecode auth list` เพื่อดูว่ามีข้อมูลรับรองหรือไม่
    สำหรับผู้ให้บริการจะถูกเพิ่มในการกำหนดค่าของคุณ
 
    สิ่งนี้ใช้ไม่ได้กับผู้ให้บริการอย่าง Amazon Bedrock ที่ต้องอาศัยตัวแปรสภาพแวดล้อมสำหรับการตรวจสอบสิทธิ์

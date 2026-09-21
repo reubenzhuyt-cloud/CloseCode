@@ -5,7 +5,8 @@
   "type": "module",
   "license": "MIT",
   "bin": {
-    "opencode": "./bin/opencode.cjs",
+    "closecode": "./bin/closecode.cjs",
+    "opencode": "./bin/closecode.cjs",
     "opencode2": "./bin/opencode2.cjs"
   },
   "files": [

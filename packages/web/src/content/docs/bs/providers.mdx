@@ -1,17 +1,17 @@
 ---
 title: Provajderi
-description: Korištenje bilo kojeg LLM provajdera u OpenCode.
+description: Korištenje bilo kojeg LLM provajdera u CloseCode.
 ---
 
 import config from "../../../../config.mjs"
 export const console = config.console
 
-OpenCode koristi [AI SDK](https://ai-sdk.dev/) i [Models.dev](https://models.dev) za podršku **75+ LLM provajdera** i podržava pokretanje lokalnih modela.
+CloseCode koristi [AI SDK](https://ai-sdk.dev/) i [Models.dev](https://models.dev) za podršku **75+ LLM provajdera** i podržava pokretanje lokalnih modela.
 
 Za dodavanje provajdera potrebno je:
 
 1. Dodajte API ključeve za provajdera koristeći naredbu `/connect`.
-2. Konfigurirajte dobavljača u vašoj OpenCode konfiguraciji.
+2. Konfigurirajte dobavljača u vašoj CloseCode konfiguraciji.
 
 ---
 
@@ -24,7 +24,7 @@ u `~/.local/share/opencode/auth.json`.
 
 ### Konfiguracija
 
-Možete prilagoditi dobavljače putem odjeljka `provider` u vašem OpenCode
+Možete prilagoditi dobavljače putem odjeljka `provider` u vašem CloseCode
 config.
 
 ---
@@ -48,13 +48,13 @@ Možete prilagoditi osnovni URL za bilo kojeg provajdera postavljanjem opcije `b
 
 ---
 
-## OpenCode Zen
+## CloseCode Zen
 
-OpenCode Zen je lista modela koje je obezbedio OpenCode tim koji su bili
-testirano i potvrđeno da dobro radi sa OpenCode. [Saznajte više](/docs/zen).
+CloseCode Zen je lista modela koje je obezbedio CloseCode tim koji su bili
+testirano i potvrđeno da dobro radi sa CloseCode. [Saznajte više](/docs/zen).
 
 :::tip
-Ako ste novi, preporučujemo da počnete sa OpenCode Zen.
+Ako ste novi, preporučujemo da počnete sa CloseCode Zen.
 :::
 
 1. Pokrenite naredbu `/connect` u TUI-u, odaberite opencode i idite na [opencode.ai/auth](https://opencode.ai/auth).
@@ -80,15 +80,15 @@ Ako ste novi, preporučujemo da počnete sa OpenCode Zen.
    /models
 ```
 
-Radi kao i svaki drugi provajder u OpenCode i potpuno je opcionalan za korištenje.
+Radi kao i svaki drugi provajder u CloseCode i potpuno je opcionalan za korištenje.
 
 ---
 
-## OpenCode Go
+## CloseCode Go
 
-OpenCode Go je jeftin plan pretplate koji pruža pouzdan pristup popularnim modelima otvorenog kodiranja koje pruža OpenCode tim i koji su testirani i verificirani da dobro rade s OpenCode-om.
+CloseCode Go je jeftin plan pretplate koji pruža pouzdan pristup popularnim modelima otvorenog kodiranja koje pruža CloseCode tim i koji su testirani i verificirani da dobro rade s CloseCode-om.
 
-1. Pokrenite naredbu `/connect` u TUI-u, odaberite `OpenCode Go` i idite na [opencode.ai/auth](https://opencode.ai/zen).
+1. Pokrenite naredbu `/connect` u TUI-u, odaberite `CloseCode Go` i idite na [opencode.ai/auth](https://opencode.ai/zen).
 
    ```txt
    /connect
@@ -111,7 +111,7 @@ OpenCode Go je jeftin plan pretplate koji pruža pouzdan pristup popularnim mode
    /models
    ```
 
-Radi kao i svaki drugi provajder u OpenCode i potpuno je opcionalan za korištenje.
+Radi kao i svaki drugi provajder u CloseCode i potpuno je opcionalan za korištenje.
 
 ---
 
@@ -155,7 +155,7 @@ Ne vidite provajdera ovdje? Pošaljite PR.
 
 ### Amazon Bedrock
 
-Da biste koristili Amazon Bedrock s OpenCode:
+Da biste koristili Amazon Bedrock s CloseCode:
 
 1. Idite na **Katalog modela** na Amazon Bedrock konzoli i zatražite
    pristup modelima koje želite.
@@ -172,13 +172,13 @@ Da biste koristili Amazon Bedrock s OpenCode:
 
 ```bash
    # Option 1: Using AWS access keys
-   AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=YYY opencode
+   AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=YYY closecode
 
    # Option 2: Using named AWS profile
-   AWS_PROFILE=my-profile opencode
+   AWS_PROFILE=my-profile closecode
 
    # Option 3: Using Bedrock bearer token
-   AWS_BEARER_TOKEN_BEDROCK=XXX opencode
+   AWS_BEARER_TOKEN_BEDROCK=XXX closecode
 ```
 
 Ili ih dodajte na svoj bash profil:
@@ -313,7 +313,7 @@ Za prilagođene profile zaključivanja, koristite ime modela i dobavljača u klj
 ```
 
 :::info
-[Anthropic] (https://anthropic.com) službeno ne podržava korištenje vaše Claude Pro/Max pretplate u OpenCode.
+[Anthropic] (https://anthropic.com) službeno ne podržava korištenje vaše Claude Pro/Max pretplate u CloseCode.
 :::
 
 ##### Korištenje API ključeva
@@ -396,7 +396,7 @@ Ako naiđete na greške "Žao mi je, ali ne mogu pomoći s tim zahtjevom", poku�
 5. Postavite ime vašeg resursa kao varijablu okruženja:
 
 ```bash
-   AZURE_RESOURCE_NAME=XXX opencode
+   AZURE_RESOURCE_NAME=XXX closecode
 ```
 
 Ili ga dodajte na svoj bash profil:
@@ -443,7 +443,7 @@ Ili ga dodajte na svoj bash profil:
 5. Postavite ime vašeg resursa kao varijablu okruženja:
 
 ```bash
-   AZURE_COGNITIVE_SERVICES_RESOURCE_NAME=XXX opencode
+   AZURE_COGNITIVE_SERVICES_RESOURCE_NAME=XXX closecode
 ```
 
 Ili ga dodajte na svoj bash profil:
@@ -735,7 +735,7 @@ Odaberite **OAuth** i vaš pretraživač će se otvoriti za autorizaciju.
 
 1.  Idite na [GitLab korisničke postavke > Pristupni tokeni](https://gitlab.com/-/user_settings/personal_access_tokens)
 2.  Kliknite **Dodaj novi token**
-3.  Naziv: `OpenCode`, opseg: `api`
+3.  Naziv: `CloseCode`, opseg: `api`
 4.  Kopirajte token (počinje sa `glpat-`)
 5.  Unesite ga u terminal
 
@@ -753,14 +753,14 @@ Dostupna su tri modela bazirana na Claudeu:
 
 :::note
 Također možete odrediti 'GITLAB_TOKEN' varijablu okruženja ako ne želite
-da pohrani token u opencode auth memoriju.
+da pohrani token u closecode auth memoriju.
 :::
 
 ##### Samostalni GitLab
 
 :::note[Napomena o usklađenosti]
-OpenCode koristi mali model za neke AI zadatke kao što je generiranje naslova sesije.
-Podrazumevano je konfigurisan da koristi gpt-5-nano, a hostuje ga Zen. Da zaključate OpenCode
+CloseCode koristi mali model za neke AI zadatke kao što je generiranje naslova sesije.
+Podrazumevano je konfigurisan da koristi gpt-5-nano, a hostuje ga Zen. Da zaključate CloseCode
 da biste koristili samo svoju vlastitu instancu koju hostuje GitLab, dodajte sljedeće u svoju
 `opencode.json` fajl. Također se preporučuje da onemogućite dijeljenje sesije.
 
@@ -893,7 +893,7 @@ Neki modeli moraju biti ručno omogućeni u vašim [postavkama GitHub Copilot](h
 
 ### Google Vertex AI
 
-Za korištenje Google Vertex AI s OpenCode:
+Za korištenje Google Vertex AI s CloseCode:
 
 1. Idite do **Model Garden** u Google Cloud Console i provjerite
    modeli dostupni u vašoj regiji.
@@ -912,7 +912,7 @@ Za korištenje Google Vertex AI s OpenCode:
    Postavite ih dok se pokreće opencode.
 
 ```bash
-   GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json GOOGLE_CLOUD_PROJECT=your-project-id opencode
+   GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json GOOGLE_CLOUD_PROJECT=your-project-id closecode
 ```
 
 Ili ih dodajte svom bash profilu.
@@ -1075,7 +1075,7 @@ Helicone podržava prilagođena zaglavlja za funkcije kao što su keširanje, pr
 
 ##### Praćenje sesije
 
-Heliconeova funkcija [Sessions](https://docs.helicone.ai/features/sessions) vam omogućava da grupišete povezane LLM zahtjeve zajedno. Koristite dodatak [opencode-helicone-session](https://github.com/H2Shami/opencode-helicone-session) da automatski prijavite svaki OpenCode razgovor kao sesiju u Helicone-u.
+Heliconeova funkcija [Sessions](https://docs.helicone.ai/features/sessions) vam omogućava da grupišete povezane LLM zahtjeve zajedno. Koristite dodatak [opencode-helicone-session](https://github.com/H2Shami/opencode-helicone-session) da automatski prijavite svaki CloseCode razgovor kao sesiju u Helicone-u.
 
 ```bash
 npm install -g opencode-helicone-session
@@ -1089,7 +1089,7 @@ Dodajte ga u svoju konfiguraciju.
 }
 ```
 
-Dodatak ubacuje zaglavlja `Helicone-Session-Id` i `Helicone-Session-Name` u vaše zahtjeve. Na stranici Helicone Sessions, vidjet ćete svaki OpenCode razgovor naveden kao zasebna sesija.
+Dodatak ubacuje zaglavlja `Helicone-Session-Id` i `Helicone-Session-Name` u vaše zahtjeve. Na stranici Helicone Sessions, vidjet ćete svaki CloseCode razgovor naveden kao zasebna sesija.
 
 ##### Uobičajena Helicone zaglavlja
 
@@ -1293,7 +1293,7 @@ Da biste koristili Kimi K2 iz Moonshot AI:
 Možete konfigurirati opencode za korištenje lokalnih modela putem Ollame.
 
 :::tip
-Ollama se može automatski konfigurirati za OpenCode. Pogledajte [Ollama integracijske dokumente](https://docs.ollama.com/integrations/opencode) za detalje.
+Ollama se može automatski konfigurirati za CloseCode. Pogledajte [Ollama integracijske dokumente](https://docs.ollama.com/integrations/opencode) za detalje.
 :::
 
 ```json title="opencode.json" "ollama" {5, 6, 8, 10-14}
@@ -1332,13 +1332,13 @@ Ako pozivi alata ne rade, pokušajte povećati `num_ctx` u Ollama. Počnite oko 
 
 ### Ollama Cloud
 
-Da biste koristili Ollama Cloud s OpenCode:
+Da biste koristili Ollama Cloud s CloseCode:
 
 1. Idite na [https://ollama.com/](https://ollama.com/) i prijavite se ili kreirajte račun.
 
 2. Idite na **Postavke** > **Ključevi** i kliknite na **Dodaj API ključ** da generišete novi API ključ.
 
-3. Kopirajte API ključ za korištenje u OpenCode.
+3. Kopirajte API ključ za korištenje u CloseCode.
 
 4. Pokrenite naredbu `/connect` i potražite **Ollama Cloud**.
 
@@ -1355,7 +1355,7 @@ Da biste koristili Ollama Cloud s OpenCode:
    └ enter
 ```
 
-6. **Važno**: Prije upotrebe modela oblaka u OpenCode, morate lokalno povući informacije o modelu:
+6. **Važno**: Prije upotrebe modela oblaka u CloseCode, morate lokalno povući informacije o modelu:
 
 ```bash
    ollama pull gpt-oss:20b-cloud
@@ -1402,19 +1402,19 @@ Ako već imate API ključ, možete odabrati **Ručno unesite API ključ** i zali
 
 ---
 
-### OpenCode Zen
+### CloseCode Zen
 
-OpenCode Zen je lista testiranih i verifikovanih modela koju je obezbedio OpenCode tim. [Saznajte više](/docs/zen).
+CloseCode Zen je lista testiranih i verifikovanih modela koju je obezbedio CloseCode tim. [Saznajte više](/docs/zen).
 
-1. Prijavite se na **<a href={console}>OpenCode Zen</a>** i kliknite na **Kreiraj API ključ**.
+1. Prijavite se na **<a href={console}>CloseCode Zen</a>** i kliknite na **Kreiraj API ključ**.
 
-2. Pokrenite naredbu `/connect` i potražite **OpenCode Zen**.
+2. Pokrenite naredbu `/connect` i potražite **CloseCode Zen**.
 
 ```txt
    /connect
 ```
 
-3. Unesite svoj OpenCode API ključ.
+3. Unesite svoj CloseCode API ključ.
 
 ```txt
    ┌ API key
@@ -1523,7 +1523,7 @@ SAP AI Core omogućava pristup preko 40+ modela iz OpenAI, Anthropic, Google, Am
 Ili postavite varijablu okruženja `AICORE_SERVICE_KEY`:
 
 ```bash
-   AICORE_SERVICE_KEY='{"clientid":"...","clientsecret":"...","url":"...","serviceurls":{"AI_API_URL":"..."}}' opencode
+   AICORE_SERVICE_KEY='{"clientid":"...","clientsecret":"...","url":"...","serviceurls":{"AI_API_URL":"..."}}' closecode
 ```
 
 Ili ga dodajte na svoj bash profil:
@@ -1535,7 +1535,7 @@ Ili ga dodajte na svoj bash profil:
 4. Opciono postavite ID implementacije i grupu resursa:
 
 ```bash
-   AICORE_DEPLOYMENT_ID=your-deployment-id AICORE_RESOURCE_GROUP=your-resource-group opencode
+   AICORE_DEPLOYMENT_ID=your-deployment-id AICORE_RESOURCE_GROUP=your-resource-group closecode
 ```
 
 :::note
@@ -1974,7 +1974,7 @@ Detalji konfiguracije:
 - **limit.context**: Maksimalni ulazni tokeni koje model prihvata.
 - **limit.output**: Maksimalni tokeni koje model može generirati.
 
-Polja `limit` omogućavaju OpenCode da shvati koliko vam je konteksta ostalo. Standardni dobavljači ih automatski preuzimaju sa models.dev.
+Polja `limit` omogućavaju CloseCode da shvati koliko vam je konteksta ostalo. Standardni dobavljači ih automatski preuzimaju sa models.dev.
 
 ---
 
@@ -1982,12 +1982,12 @@ Polja `limit` omogućavaju OpenCode da shvati koliko vam je konteksta ostalo. St
 
 Ako imate problema s konfiguracijom provajdera, provjerite sljedeće:
 
-1. **Provjerite postavke autentifikacije**: Pokrenite `opencode auth list` da vidite da li su vjerodajnice
+1. **Provjerite postavke autentifikacije**: Pokrenite `closecode auth list` da vidite da li su vjerodajnice
    za provajdera se dodaju u vašu konfiguraciju.
 
    Ovo se ne odnosi na dobavljače kao što je Amazon Bedrock, koji se oslanjaju na varijable okruženja za svoju autentifikaciju.
 
-2. Za prilagođene provajdere, provjerite OpenCode konfiguraciju i:
+2. Za prilagođene provajdere, provjerite CloseCode konfiguraciju i:
    - Uvjerite se da ID provajdera korišten u naredbi `/connect` odgovara ID-u u vašoj opencode konfiguraciji.
    - Za provajdera se koristi pravi npm paket. Na primjer, koristite `@ai-sdk/cerebras` za Cerebras. A za sve ostale OpenAI kompatibilne provajdere, koristite `@ai-sdk/openai-compatible`.
    - Provjerite da li se ispravna krajnja tačka API-ja koristi u polju `options.baseURL`.

@@ -190,12 +190,12 @@ export function make(input: {
       capabilities.childSessionUpdates = params.clientCapabilities?._meta?.[ChildSessionUpdatesCapability] === true
       const authMethod: AuthMethod = {
         description: "Run `opencode auth login` in the terminal",
-        name: "Login with opencode",
+        name: "Login with CloseCode",
         id: AuthMethodID,
       }
       if (params.clientCapabilities?._meta?.["terminal-auth"] === true) {
         authMethod._meta = {
-          "terminal-auth": { command: "opencode", args: ["auth", "login"], label: "OpenCode Login" },
+          "terminal-auth": { command: "closecode", args: ["auth", "login"], label: "CloseCode Login" },
         }
       }
       return {
@@ -208,7 +208,7 @@ export function make(input: {
           _meta: { [ChildSessionUpdatesCapability]: true },
         },
         authMethods: [authMethod],
-        agentInfo: { name: "OpenCode", version: OPENCODE_VERSION },
+        agentInfo: { name: "CloseCode", version: OPENCODE_VERSION },
       }
     },
     authenticate: async (params) => {

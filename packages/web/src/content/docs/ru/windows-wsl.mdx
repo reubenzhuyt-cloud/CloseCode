@@ -35,7 +35,7 @@ WSL дает более высокую производительность фа
 
    ```bash
    cd /mnt/c/Users/YourName/project
-   opencode
+   closecode
    ```
 
 </Steps>
@@ -49,7 +49,7 @@ WSL дает более высокую производительность фа
 1. **Запустите сервер в WSL** с параметром `--hostname 0.0.0.0`, чтобы разрешить внешние подключения:
 
    ```bash
-   opencode serve --hostname 0.0.0.0 --port 4096
+   closecode serve --hostname 0.0.0.0 --port 4096
    ```
 
 2. **Подключите десктопное приложение** к `http://localhost:4096`
@@ -62,7 +62,7 @@ WSL дает более высокую производительность фа
 При использовании `--hostname 0.0.0.0` задайте `OPENCODE_SERVER_PASSWORD`, чтобы защитить сервер.
 
 ```bash
-OPENCODE_SERVER_PASSWORD=your-password opencode serve --hostname 0.0.0.0
+OPENCODE_SERVER_PASSWORD=your-password closecode serve --hostname 0.0.0.0
 ```
 
 :::
@@ -73,15 +73,15 @@ OPENCODE_SERVER_PASSWORD=your-password opencode serve --hostname 0.0.0.0
 
 Для лучшего веб-опыта в Windows:
 
-1. **Запускайте `opencode web` в терминале WSL**, а не в PowerShell:
+1. **Запускайте `closecode web` в терминале WSL**, а не в PowerShell:
 
    ```bash
-   opencode web --hostname 0.0.0.0
+   closecode web --hostname 0.0.0.0
    ```
 
 2. **Открывайте в браузере Windows** адрес `http://localhost:<port>` (opencode выведет URL)
 
-Запуск `opencode web` из WSL обеспечивает корректный доступ к файловой системе и интеграцию с терминалом, при этом интерфейс остается доступным из браузера Windows.
+Запуск `closecode web` из WSL обеспечивает корректный доступ к файловой системе и интеграцию с терминалом, при этом интерфейс остается доступным из браузера Windows.
 
 ---
 
@@ -97,7 +97,7 @@ WSL может получать доступ ко всем вашим файла
 
 ```bash
 cd /mnt/c/Users/YourName/Documents/project
-opencode
+closecode
 ```
 
 :::tip

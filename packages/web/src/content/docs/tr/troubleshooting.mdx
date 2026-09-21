@@ -16,7 +16,7 @@ Log dosyalari su konuma yazilir:
 
 Log dosyalari zaman damgasiyla adlandirilir (ornegin `2025-01-09T123456.log`) ve en yeni 10 log dosyasi tutulur.
 
-Daha ayrintili ayiklama bilgisi icin `--log-level` komut satiri secenegini kullanabilirsiniz. Ornek: `opencode --log-level DEBUG`.
+Daha ayrintili ayiklama bilgisi icin `--log-level` komut satiri secenegini kullanabilirsiniz. Ornek: `closecode --log-level DEBUG`.
 
 ---
 
@@ -25,7 +25,7 @@ Daha ayrintili ayiklama bilgisi icin `--log-level` komut satiri secenegini kulla
 opencode, oturum verilerini ve diger uygulama verilerini diskte su konumda saklar:
 
 - **macOS/Linux**: `~/.local/share/opencode/`
-- **Windows**: `WIN+R` tuslayip `%USERPROFILE%\.local\share\opencode` yapistirin
+- **Windows**: `WIN+R` tuslayip `%USERPROFILE%\.local\share\closecode` yapistirin
 
 Bu dizin sunlari icerir:
 
@@ -45,7 +45,7 @@ opencode Desktop arka planda yerel bir opencode sunucusu (`opencode-cli` sidecar
 
 - Uygulamayi tamamen kapatip yeniden acin
 - Uygulama hata ekrani gosteriyorsa **Restart**'a tiklayip hata detaylarini kopyalayin
-- Yalnizca macOS: `opencode` menusu -> **Reload Webview** (arayuz bos/donukse yardimci olur)
+- Yalnizca macOS: `closecode` menusu -> **Reload Webview** (arayuz bos/donukse yardimci olur)
 
 ---
 
@@ -93,7 +93,7 @@ Pluginleri kapatmak ise yaramazsa (veya plugin kurulumu takili kaldiysa), openco
 
 - **macOS**: Finder -> `Cmd+Shift+G` -> `~/.cache/opencode`
 - **Linux**: `~/.cache/opencode` dizinini silin (veya `rm -rf ~/.cache/opencode` calistirin)
-- **Windows**: `WIN+R` tuslayip `%USERPROFILE%\.cache\opencode` yapistirin
+- **Windows**: `WIN+R` tuslayip `%USERPROFILE%\.cache\closecode` yapistirin
 
 3. opencode Desktop'u yeniden baslatin
 
@@ -199,7 +199,7 @@ Asagida yaygin sorunlar ve cozumleri yer aliyor.
 
 1. Hata mesaji icin loglari kontrol edin
 2. Terminalde cikti gormek icin `--print-logs` ile calistirin
-3. `opencode upgrade` ile en guncel surumu kullandiginizdan emin olun
+3. `closecode upgrade` ile en guncel surumu kullandiginizdan emin olun
 
 ---
 
@@ -226,7 +226,7 @@ Ornekler:
 - `openrouter/google/gemini-2.5-flash`
 - `opencode/kimi-k2`
 
-Erisiminiz olan modelleri gormek icin `opencode models` calistirin.
+Erisiminiz olan modelleri gormek icin `closecode models` calistirin.
 
 ---
 
@@ -243,7 +243,7 @@ Cozum adimlari:
    rm -rf ~/.local/share/opencode
    ```
 
-   Windows'ta `WIN+R` tuslayip su konumu silin: `%USERPROFILE%\.local\share\opencode`
+   Windows'ta `WIN+R` tuslayip su konumu silin: `%USERPROFILE%\.local\share\closecode`
 
 3. TUI'da `/connect` komutuyla provider kimlik dogrulamasini tekrar yapin
 
@@ -261,7 +261,7 @@ Provider paket sorunlarini gidermek icin:
    rm -rf ~/.cache/opencode
    ```
 
-   Windows'ta `WIN+R` tuslayip su konumu silin: `%USERPROFILE%\.cache\opencode`
+   Windows'ta `WIN+R` tuslayip su konumu silin: `%USERPROFILE%\.cache\closecode`
 
 2. En guncel provider paketlerini yeniden kurmak icin opencode'u yeniden baslatin
 

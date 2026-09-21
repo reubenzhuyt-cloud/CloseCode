@@ -121,7 +121,7 @@ Bunun Git'te kontrol edilmesi de güvenlidir ve global olanla aynı şemayı kul
 
 ```bash
 export OPENCODE_CONFIG=/path/to/my/custom-config.json
-opencode run "Hello world"
+closecode run "Hello world"
 ```
 
 Özel yapılandırma genel ve proje yapılandırmaları arasında öncelik sırasına göre yüklenir.
@@ -137,7 +137,7 @@ aynı yapıyı takip edin.
 
 ```bash
 export OPENCODE_CONFIG_DIR=/path/to/my/config-directory
-opencode run "Hello world"
+closecode run "Hello world"
 ```
 
 Özel dizin, genel yapılandırma ve `.opencode` dizinlerinden sonra yüklenir, böylece bunların ayarlarını **geçersiz kılabilir**.
@@ -181,7 +181,7 @@ Mevcut seçenekler:
 
 ### Sunucu
 
-`opencode serve` ve `opencode web` komutları için sunucu ayarlarını `server` seçeneği aracılığıyla yapılandırabilirsiniz.
+`closecode serve` ve `closecode web` komutları için sunucu ayarlarını `server` seçeneği aracılığıyla yapılandırabilirsiniz.
 
 ```json title="opencode.json"
 {
@@ -354,7 +354,7 @@ Agent'ları `~/.config/opencode/agents/` veya `.opencode/agents/` içindeki Mark
 
 Varsayılan agent, birincil agent olmalıdır (alt agent değil). Bu, `"build"` veya `"plan"` gibi yerleşik bir agent ya da tanımladığınız bir [özel agent](/docs/agents) olabilir. Belirtilen agent mevcut değilse veya bir alt agent ise, opencode bir uyarıyla birlikte `"build"`'ye geri döner.
 
-Bu ayar tüm arayüzler için geçerlidir: TUI, CLI (`opencode run`), masaüstü uygulaması ve GitHub Action.
+Bu ayar tüm arayüzler için geçerlidir: TUI, CLI (`closecode run`), masaüstü uygulaması ve GitHub Action.
 
 ---
 

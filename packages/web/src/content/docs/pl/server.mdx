@@ -6,14 +6,14 @@ description: Interakcja z serwerem opencode za pośrednictwem protokołu HTTP.
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-Komenda `opencode serve` uruchamia bezgłowy serwer HTTP, który udostępnia punkt końcowy OpenAPI, z którego może korzystać klient opencode.
+Komenda `closecode serve` uruchamia bezgłowy serwer HTTP, który udostępnia punkt końcowy OpenAPI, z którego może korzystać klient opencode.
 
 ---
 
 ### Użycie
 
 ```bash
-opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
+closecode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 ```
 
 #### Opcje
@@ -29,24 +29,24 @@ opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 `--cors` można przekazać wiele razy:
 
 ```bash
-opencode serve --cors http://localhost:5173 --cors https://app.example.com
+closecode serve --cors http://localhost:5173 --cors https://app.example.com
 ```
 
 ---
 
 ### Uwierzytelnianie
 
-Ustaw `OPENCODE_SERVER_PASSWORD`, aby chronić serwer za pomocą podstawowego uwierzytelniania HTTP. Domyślną nazwą użytkownika jest `opencode` lub ustaw `OPENCODE_SERVER_USERNAME`, aby ją zastąpić. Dotyczy to zarówno `opencode serve`, jak i `opencode web`.
+Ustaw `OPENCODE_SERVER_PASSWORD`, aby chronić serwer za pomocą podstawowego uwierzytelniania HTTP. Domyślną nazwą użytkownika jest `closecode` lub ustaw `OPENCODE_SERVER_USERNAME`, aby ją zastąpić. Dotyczy to zarówno `closecode serve`, jak i `closecode web`.
 
 ```bash
-OPENCODE_SERVER_PASSWORD=your-password opencode serve
+OPENCODE_SERVER_PASSWORD=your-password closecode serve
 ```
 
 ---
 
 ### Jak to działa
 
-Kiedy uruchomisz `opencode`, uruchomi się TUI i serwer. Gdzie jest TUI
+Kiedy uruchomisz `closecode`, uruchomi się TUI i serwer. Gdzie jest TUI
 klient komunikujący się z serwerem. Serwer udostępnia specyfikację OpenAPI 3.1
 punkt końcowy. Ten punkt końcowy jest również używany do generowania [SDK](/docs/sdk).
 
@@ -56,8 +56,8 @@ Użyj serwera opencode do programowej interakcji z opencode.
 
 Ta architektura umożliwia obsługę wielu klientów przez opencode i programową interakcję z kodem otwartym.
 
-Możesz uruchomić `opencode serve`, aby uruchomić samodzielny serwer. Jeśli masz
-opencode TUI działa, `opencode serve` uruchomi nowy serwer.
+Możesz uruchomić `closecode serve`, aby uruchomić samodzielny serwer. Jeśli masz
+opencode TUI działa, `closecode serve` uruchomi nowy serwer.
 
 ---
 
@@ -65,7 +65,7 @@ opencode TUI działa, `opencode serve` uruchomi nowy serwer.
 
 Po uruchomieniu TUI losowo przypisuje port i nazwę hosta. Zamiast tego możesz przekazać `--hostname` i `--port` [flagi](/docs/cli). Następnie użyj tego, aby połączyć się z serwerem.
 
-Punktu końcowego [`/tui`](#TUI) można użyć do sterowania TUI przez serwer. Można na przykład wstępnie wypełnić lub uruchomić monit. Ta konfiguracja jest używana przez wtyczki opencode [IDE](/docs/ide).
+Punktu końcowego [`/tui`](#TUI) można użyć do sterowania TUI przez serwer. Można na przykład wstępnie wypełnić lub uruchomić monit. Ta konfiguracja jest używana przez wtyczki closecode [IDE](/docs/ide).
 
 ---
 

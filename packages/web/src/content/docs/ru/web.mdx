@@ -12,7 +12,7 @@ opencode может работать как веб-приложение в ва�
 Запустите веб-интерфейс, выполнив:
 
 ```bash
-opencode web
+closecode web
 ```
 
 Это запустит локальный сервер `127.0.0.1` со случайным доступным портом и автоматически откроет opencode в браузере по умолчанию.
@@ -22,7 +22,7 @@ opencode web
 :::
 
 :::tip[Пользователи Windows]
-Для получения наилучших результатов запустите `opencode web` из [WSL](/docs/windows-wsl), а не из PowerShell. Это обеспечивает правильный доступ к файловой системе и интеграцию терминала.
+Для получения наилучших результатов запустите `closecode web` из [WSL](/docs/windows-wsl), а не из PowerShell. Это обеспечивает правильный доступ к файловой системе и интеграцию терминала.
 :::
 
 ---
@@ -36,7 +36,7 @@ opencode web
 По умолчанию opencode выбирает доступный порт. Вы можете указать порт:
 
 ```bash
-opencode web --port 4096
+closecode web --port 4096
 ```
 
 ### Имя хоста
@@ -44,7 +44,7 @@ opencode web --port 4096
 По умолчанию сервер привязывается к `127.0.0.1` (только локальный хост). Чтобы сделать opencode доступным в вашей сети:
 
 ```bash
-opencode web --hostname 0.0.0.0
+closecode web --hostname 0.0.0.0
 ```
 
 При использовании `0.0.0.0` opencode будет отображать как локальные, так и сетевые адреса:
@@ -59,7 +59,7 @@ opencode web --hostname 0.0.0.0
 Включите mDNS, чтобы ваш сервер был доступен для обнаружения в локальной сети:
 
 ```bash
-opencode web --mdns
+closecode web --mdns
 ```
 
 Это автоматически устанавливает имя хоста `0.0.0.0` и объявляет сервер как `opencode.local`.
@@ -67,7 +67,7 @@ opencode web --mdns
 Вы можете настроить доменное имя mDNS для запуска нескольких экземпляров в одной сети:
 
 ```bash
-opencode web --mdns --mdns-domain myproject.local
+closecode web --mdns --mdns-domain myproject.local
 ```
 
 ### CORS
@@ -75,7 +75,7 @@ opencode web --mdns --mdns-domain myproject.local
 Чтобы разрешить дополнительные домены для CORS (полезно для пользовательских интерфейсов):
 
 ```bash
-opencode web --cors https://example.com
+closecode web --cors https://example.com
 ```
 
 ### Аутентификация
@@ -83,10 +83,10 @@ opencode web --cors https://example.com
 Чтобы защитить доступ, установите пароль, используя переменную среды `OPENCODE_SERVER_PASSWORD`:
 
 ```bash
-OPENCODE_SERVER_PASSWORD=secret opencode web
+OPENCODE_SERVER_PASSWORD=secret closecode web
 ```
 
-Имя пользователя по умолчанию — `opencode`, но его можно изменить с помощью `OPENCODE_SERVER_USERNAME`.
+Имя пользователя по умолчанию — `closecode`, но его можно изменить с помощью `OPENCODE_SERVER_USERNAME`.
 
 ---
 
@@ -114,7 +114,7 @@ OPENCODE_SERVER_PASSWORD=secret opencode web
 
 ```bash
 # Start the web server
-opencode web --port 4096
+closecode web --port 4096
 
 # In another terminal, attach the TUI
 opencode attach http://localhost:4096

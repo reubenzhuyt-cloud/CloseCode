@@ -126,9 +126,9 @@ async function publishDistribution(input: {
 await publishDistribution({
   root,
   name: pkg.name,
-  command: "opencode",
+  command: "closecode",
   legacyCommand: "opencode2",
-  binary: "opencode",
+  binary: "closecode",
   packagePrefix: "@opencode/cli-",
   artifact: "cli",
 })
@@ -136,8 +136,8 @@ if (Script.channel !== "latest" && existsSync(path.join(root, "node"))) {
   await publishDistribution({
     root: path.join(root, "node"),
     name: "@opencode/cli-node",
-    command: "opencode2-node",
-    binary: "opencode2-node",
+    command: "closecode2-node",
+    binary: "closecode2-node",
     packagePrefix: "@opencode/cli-node-",
     artifact: "cli-node",
   })

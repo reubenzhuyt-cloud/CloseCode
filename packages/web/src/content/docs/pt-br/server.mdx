@@ -6,14 +6,14 @@ description: Interaja com o servidor opencode via HTTP.
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-O comando `opencode serve` executa um servidor HTTP sem cabeça que expõe um endpoint OpenAPI que um cliente opencode pode usar.
+O comando `closecode serve` executa um servidor HTTP sem cabeça que expõe um endpoint OpenAPI que um cliente opencode pode usar.
 
 ---
 
 ### Uso
 
 ```bash
-opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
+closecode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 ```
 
 #### Opções
@@ -29,24 +29,24 @@ opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 `--cors` pode ser passado várias vezes:
 
 ```bash
-opencode serve --cors http://localhost:5173 --cors https://app.example.com
+closecode serve --cors http://localhost:5173 --cors https://app.example.com
 ```
 
 ---
 
 ### Autenticação
 
-Defina `OPENCODE_SERVER_PASSWORD` para proteger o servidor com autenticação básica HTTP. O nome de usuário padrão é `opencode`, ou defina `OPENCODE_SERVER_USERNAME` para substituí-lo. Isso se aplica tanto ao `opencode serve` quanto ao `opencode web`.
+Defina `OPENCODE_SERVER_PASSWORD` para proteger o servidor com autenticação básica HTTP. O nome de usuário padrão é `closecode`, ou defina `OPENCODE_SERVER_USERNAME` para substituí-lo. Isso se aplica tanto ao `closecode serve` quanto ao `closecode web`.
 
 ```bash
-OPENCODE_SERVER_PASSWORD=your-password opencode serve
+OPENCODE_SERVER_PASSWORD=your-password closecode serve
 ```
 
 ---
 
 ### Como funciona
 
-Quando você executa `opencode`, ele inicia um TUI e um servidor. Onde o TUI é o cliente que se comunica com o servidor. O servidor expõe um endpoint de especificação OpenAPI 3.1. Este endpoint também é usado para gerar um [SDK](/docs/sdk).
+Quando você executa `closecode`, ele inicia um TUI e um servidor. Onde o TUI é o cliente que se comunica com o servidor. O servidor expõe um endpoint de especificação OpenAPI 3.1. Este endpoint também é usado para gerar um [SDK](/docs/sdk).
 
 :::tip
 Use o servidor opencode para interagir com o opencode programaticamente.
@@ -54,7 +54,7 @@ Use o servidor opencode para interagir com o opencode programaticamente.
 
 Essa arquitetura permite que o opencode suporte múltiplos clientes e permite que você interaja com o opencode programaticamente.
 
-Você pode executar `opencode serve` para iniciar um servidor autônomo. Se você tiver o TUI do opencode em execução, `opencode serve` iniciará um novo servidor.
+Você pode executar `closecode serve` para iniciar um servidor autônomo. Se você tiver o TUI do opencode em execução, `closecode serve` iniciará um novo servidor.
 
 ---
 
@@ -62,7 +62,7 @@ Você pode executar `opencode serve` para iniciar um servidor autônomo. Se voc�
 
 Quando você inicia o TUI, ele atribui aleatoriamente uma porta e um nome de host. Você pode passar os [flags](/docs/cli) `--hostname` e `--port`. Em seguida, use isso para se conectar ao seu servidor.
 
-O endpoint [`/tui`](#tui) pode ser usado para controlar o TUI através do servidor. Por exemplo, você pode preencher ou executar um prompt. Essa configuração é usada pelos plugins do opencode [IDE](/docs/ide).
+O endpoint [`/tui`](#tui) pode ser usado para controlar o TUI através do servidor. Por exemplo, você pode preencher ou executar um prompt. Essa configuração é usada pelos plugins do closecode [IDE](/docs/ide).
 
 ---
 

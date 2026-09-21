@@ -35,13 +35,13 @@ const PermissionParams = {
   ),
 }
 
-const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME : "opencode", {
-  description: "OpenCode command line interface",
+const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME : "closecode", {
+  description: "CloseCode command line interface",
   params: {
     ...ServerParams,
     ...PermissionParams,
     directory: Argument.string("directory").pipe(
-      Argument.withDescription("Directory to start OpenCode in"),
+      Argument.withDescription("Directory to start CloseCode in"),
       Argument.optional,
     ),
     continue: Flag.boolean("continue").pipe(
@@ -58,7 +58,7 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
   },
   commands: [
     Spec.make("upgrade", {
-      description: "Upgrade OpenCode to the latest or a specific version",
+      description: "Upgrade CloseCode to the latest or a specific version",
       aliases: ["update"],
       params: {
         target: Argument.string("target").pipe(
@@ -73,7 +73,7 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
       },
     }),
     Spec.make("uninstall", {
-      description: "Uninstall OpenCode and remove all related files",
+      description: "Uninstall CloseCode and remove all related files",
       params: {
         keepConfig: Flag.boolean("keep-config").pipe(
           Flag.withAlias("c"),
@@ -352,7 +352,7 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
       },
     }),
     Spec.make("run", {
-      description: "Run OpenCode with a message",
+      description: "Run CloseCode with a message",
       params: {
         ...ServerParams,
         message: Argument.string("message").pipe(

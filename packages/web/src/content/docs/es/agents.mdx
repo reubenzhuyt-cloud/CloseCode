@@ -15,7 +15,7 @@ Puede cambiar entre agentes durante una sesión o invocarlos con la mención `@`
 
 ## Tipos
 
-Hay dos tipos de agentes en OpenCode; agentes primarios y subagentes.
+Hay dos tipos de agentes en CloseCode; agentes primarios y subagentes.
 
 ---
 
@@ -27,7 +27,7 @@ Los agentes primarios son los asistentes principales con los que interactúas di
 Puede utilizar la tecla **Tab** para cambiar entre agentes principales durante una sesión.
 :::
 
-OpenCode viene con dos agentes principales integrados, **Build** y **Plan**. Bien
+CloseCode viene con dos agentes principales integrados, **Build** y **Plan**. Bien
 mira estos a continuación.
 
 ---
@@ -36,13 +36,13 @@ mira estos a continuación.
 
 Los subagentes son asistentes especializados que los agentes principales pueden invocar para tareas específicas. También puedes invocarlos manualmente **@ mencionándolos** en tus mensajes.
 
-OpenCode viene con tres subagentes integrados, **General**, **Explore** y **Scout**. Veremos esto a continuación.
+CloseCode viene con tres subagentes integrados, **General**, **Explore** y **Scout**. Veremos esto a continuación.
 
 ---
 
 ## Integrados
 
-OpenCode viene con dos agentes primarios integrados y tres subagentes integrados.
+CloseCode viene con dos agentes primarios integrados y tres subagentes integrados.
 
 ---
 
@@ -88,7 +88,7 @@ Un agente rápido y de solo lectura para explorar bases de código. No se pueden
 
 _Modo_: `subagent`
 
-Un agente de solo lectura para investigar documentación externa y dependencias. Úsalo cuando necesites clonar el repositorio de una dependencia en la caché administrada de OpenCode, inspeccionar el código fuente de una librería o contrastar el código local con implementaciones upstream sin modificar tu espacio de trabajo.
+Un agente de solo lectura para investigar documentación externa y dependencias. Úsalo cuando necesites clonar el repositorio de una dependencia en la caché administrada de CloseCode, inspeccionar el código fuente de una librería o contrastar el código local con implementaciones upstream sin modificar tu espacio de trabajo.
 
 ---
 
@@ -285,7 +285,7 @@ Los valores de temperatura suelen oscilar entre 0,0 y 1,0:
 }
 ```
 
-Si no se especifica ninguna temperatura, OpenCode utiliza valores predeterminados específicos del modelo; normalmente 0 para la mayoría de los modelos, 0,55 para los modelos Qwen.
+Si no se especifica ninguna temperatura, CloseCode utiliza valores predeterminados específicos del modelo; normalmente 0 para la mayoría de los modelos, 0,55 para los modelos Qwen.
 
 ---
 
@@ -345,7 +345,7 @@ Especifique un archivo de aviso del sistema personalizado para este agente con l
 }
 ```
 
-Esta ruta es relativa a donde se encuentra el archivo de configuración. Entonces esto funciona tanto para la configuración global OpenCode como para la configuración específica del proyecto.
+Esta ruta es relativa a donde se encuentra el archivo de configuración. Entonces esto funciona tanto para la configuración global CloseCode como para la configuración específica del proyecto.
 
 ---
 
@@ -367,7 +367,7 @@ Si no especifica un modelo, los agentes primarios usarán el [modelo configurado
 }
 ```
 
-El ID del modelo en su configuración OpenCode usa el formato `provider/model-id`. Por ejemplo, si usa [OpenCode Zen](/docs/zen), usaría `opencode/gpt-5.1-codex` para GPT 5.1 Codex.
+El ID del modelo en su configuración CloseCode usa el formato `provider/model-id`. Por ejemplo, si usa [CloseCode Zen](/docs/zen), usaría `opencode/gpt-5.1-codex` para GPT 5.1 Codex.
 
 ---
 
@@ -665,7 +665,7 @@ Por ejemplo, con los modelos de razonamiento de OpenAI, puedes controlar el esfu
 Estas opciones adicionales son específicas del modelo y del proveedor. Consulte la documentación de su proveedor para conocer los parámetros disponibles.
 
 :::tip
-Ejecute `opencode models` para ver una lista de los modelos disponibles.
+Ejecute `closecode models` para ver una lista de los modelos disponibles.
 :::
 
 ---
@@ -675,7 +675,7 @@ Ejecute `opencode models` para ver una lista de los modelos disponibles.
 Puede crear nuevos agentes usando el siguiente comando:
 
 ```bash
-opencode agent create
+closecode agent create
 ```
 
 Este comando interactivo:

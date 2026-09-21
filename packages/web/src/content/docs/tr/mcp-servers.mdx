@@ -189,7 +189,7 @@ OAuth'un etkin olduğu çoğu MCP sunucusu için özel bir yapılandırmaya gere
 }
 ```
 
-Sunucu kimlik doğrulama gerektiriyorsa opencode, onu ilk kez kullanmaya çalıştığınızda kimlik doğrulamanızı isteyecektir. Değilse, `opencode mcp auth <server-name>` ile [manually trigger the flow](#authenticating) yapabilirsiniz.
+Sunucu kimlik doğrulama gerektiriyorsa opencode, onu ilk kez kullanmaya çalıştığınızda kimlik doğrulamanızı isteyecektir. Değilse, `closecode mcp auth <server-name>` ile [manually trigger the flow](#authenticating) yapabilirsiniz.
 
 ---
 
@@ -223,19 +223,19 @@ Kimlik doğrulamayı manuel olarak tetikleyebilir veya kimlik bilgilerini yönet
 Belirli bir MCP sunucusuyla kimlik doğrulaması yapın:
 
 ```bash
-opencode mcp auth my-oauth-server
+closecode mcp auth my-oauth-server
 ```
 
 Tüm MCP sunucularını ve kimlik doğrulama durumlarını listeleyin:
 
 ```bash
-opencode mcp list
+closecode mcp list
 ```
 
 Remove stored credentials:
 
 ```bash
-opencode mcp logout my-oauth-server
+closecode mcp logout my-oauth-server
 ```
 
 `mcp auth` komutu tarayıcınızı yetkilendirme için açacaktır. Yetkilendirmenizin ardından opencode, belirteçleri `~/.local/share/opencode/mcp-auth.json`'de güvenli bir şekilde saklar.
@@ -279,10 +279,10 @@ Uzak bir MCP sunucusunun kimlik doğrulaması başarısız olursa aşağıdakile
 
 ```bash
 # View auth status for all OAuth-capable servers
-opencode mcp auth list
+closecode mcp auth list
 
 # Debug connection and OAuth flow for a specific server
-opencode mcp debug my-oauth-server
+closecode mcp debug my-oauth-server
 ```
 
 `mcp debug` komutu mevcut kimlik doğrulama durumunu gösterir, HTTP bağlantısını test eder ve OAuth bulma akışını dener.
@@ -420,7 +420,7 @@ Sentry projelerinizle ve sorunlarınızla etkileşimde bulunmak için [Sentry MC
 Yapılandırmayı ekledikten sonra Sentry ile kimlik doğrulaması yapın:
 
 ```bash
-opencode mcp auth sentry
+closecode mcp auth sentry
 ```
 
 Bu, OAuth akışını tamamlamak ve opencode'u Sentry hesabınıza bağlamak için bir tarayıcı penceresi açacaktır.

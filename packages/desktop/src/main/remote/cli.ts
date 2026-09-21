@@ -24,13 +24,17 @@ export function requireVersion(version: string) {
 }
 
 export function discoverScript(options: { fromPath?: boolean; cache?: { directory: string; prefix: string } } = {}) {
-  return `cli=${options.fromPath ? "$(command -v opencode || true)" : '""'}
+  return `cli=${options.fromPath ? "$(command -v closecode || command -v opencode || true)" : '""'}
+if [ -z "$cli" ] && [ -x "$HOME/.opencode/bin/closecode" ]; then cli="$HOME/.opencode/bin/closecode"; fi
 if [ -z "$cli" ] && [ -x "$HOME/.opencode/bin/opencode" ]; then cli="$HOME/.opencode/bin/opencode"; fi
 ${
   options.cache
     ? `if [ -z "$cli" ]; then
-  for binary in "$HOME"/${quote(options.cache.directory)}/${quote(options.cache.prefix)}*/opencode; do
-    if [ -x "$binary" ]; then cli="$binary"; fi
+  for name in closecode opencode; do
+    for binary in "$HOME"/${quote(options.cache.directory)}/${quote(options.cache.prefix)}*/"$name"; do
+      if [ -x "$binary" ]; then cli="$binary"; fi
+    done
+    if [ -n "$cli" ]; then break; fi
   done
 fi
 `
@@ -80,18 +84,18 @@ export function installScript(input: { version: string; directory?: string; sour
   if (input.source.type === "installer")
     return `set -eu
 curl -fsSL https://raw.githubusercontent.com/anomalyco/opencode/v2/install | bash -s -- ${input.source.binary ? `--binary ${input.source.binary}` : `--version ${quote(version)}`}
-${verifyScript('"$HOME/.opencode/bin/opencode"', version)}
+${verifyScript('"$HOME/.opencode/bin/closecode"', version)}
 `
   return `set -eu
 umask 077
-destination="$HOME"/${quote(`${input.directory ?? ".opencode/bin"}/opencode`)}
+destination="$HOME"/${quote(`${input.directory ?? ".opencode/bin"}/closecode`)}
 mkdir -p "$(dirname "$destination")"
 stage=$(mktemp -d "$(dirname "$destination")/.install-XXXXXX")
 trap 'rm -rf "$stage"' EXIT
 ${stageBinary(input.source)}
-chmod 755 "$stage/package/bin/opencode"
-${verifyScript('"$stage/package/bin/opencode"', version)}
-mv "$stage/package/bin/opencode" "$destination"
+chmod 755 "$stage/package/bin/closecode"
+${verifyScript('"$stage/package/bin/closecode"', version)}
+mv "$stage/package/bin/closecode" "$destination"
 `
 }
 

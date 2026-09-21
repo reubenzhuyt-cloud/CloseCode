@@ -168,7 +168,7 @@ jobs:
           fi
 
           found=0
-          for file in packages/cli/dist/cli-darwin-*/bin/opencode; do
+          for file in packages/cli/dist/cli-darwin-*/bin/closecode; do
             if [ ! -f "$file" ]; then
               continue
             fi
@@ -307,9 +307,9 @@ jobs:
           signing-account-name: ${{ env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE }}
           files: |
-            ${{ github.workspace }}\packages\cli\dist\cli-windows-arm64\bin\opencode.exe
-            ${{ github.workspace }}\packages\cli\dist\cli-windows-x64\bin\opencode.exe
-            ${{ github.workspace }}\packages\cli\dist\cli-windows-x64-baseline\bin\opencode.exe
+            ${{ github.workspace }}\packages\cli\dist\cli-windows-arm64\bin\closecode.exe
+            ${{ github.workspace }}\packages\cli\dist\cli-windows-x64\bin\closecode.exe
+            ${{ github.workspace }}\packages\cli\dist\cli-windows-x64-baseline\bin\closecode.exe
           exclude-environment-credential: true
           exclude-workload-identity-credential: true
           exclude-managed-identity-credential: true
@@ -325,9 +325,9 @@ jobs:
         shell: pwsh
         run: |
           $files = @(
-            "${{ github.workspace }}\packages\cli\dist\cli-windows-arm64\bin\opencode.exe",
-            "${{ github.workspace }}\packages\cli\dist\cli-windows-x64\bin\opencode.exe",
-            "${{ github.workspace }}\packages\cli\dist\cli-windows-x64-baseline\bin\opencode.exe"
+            "${{ github.workspace }}\packages\cli\dist\cli-windows-arm64\bin\closecode.exe",
+            "${{ github.workspace }}\packages\cli\dist\cli-windows-x64\bin\closecode.exe",
+            "${{ github.workspace }}\packages\cli\dist\cli-windows-x64-baseline\bin\closecode.exe"
           )
 
           foreach ($file in $files) {

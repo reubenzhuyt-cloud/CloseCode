@@ -39,9 +39,9 @@ export const make = Effect.gen(function* () {
       try: async () => {
         if (external) {
           const response = await fetch(stableArtifact)
-          if (!response.ok) throw new Error(`Stable OpenCode update check failed: ${response.status}`)
+          if (!response.ok) throw new Error(`Stable CloseCode update check failed: ${response.status}`)
           const download = stableMacDownload(await response.json(), process.arch)
-          if (!download) throw new Error("Stable OpenCode download is unavailable")
+          if (!download) throw new Error("Stable CloseCode download is unavailable")
           return { mode: "external", ...download } as const
         }
         const result = await updateClient.checkForUpdates()
