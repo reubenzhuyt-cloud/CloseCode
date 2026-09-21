@@ -1,5 +1,6 @@
 node_modules
 plans
+goals/
 package.json
 bun.lock
 .gitignore
