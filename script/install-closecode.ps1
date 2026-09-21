@@ -125,16 +125,24 @@ function Get-TargetArch {
 }
 
 function Get-NpmRootGlobal {
-    $npm = Get-Command npm -ErrorAction SilentlyContinue
-    if ($npm) {
+    foreach ($name in @("npm.cmd", "npm")) {
+        $npm = Get-Command $name -ErrorAction SilentlyContinue
+        if (-not $npm) { continue }
         try {
-            $output = (& npm root -g 2> $null | Select-Object -First 1)
-            if ($output) { return ([string] $output).Trim() }
+            $output = (& $npm.Source root -g 2> $null | Select-Object -First 1)
+            $root = ([string] $output).Trim()
+            if ($root -and (Test-Path -LiteralPath $root)) { return $root }
         } catch {
             Write-Note "npm root -g failed: $($_.Exception.Message)"
         }
     }
-    if ($env:APPDATA) { return (Join-Path $env:APPDATA "npm\node_modules") }
+    if ($env:APPDATA) {
+        $fallback = Join-Path $env:APPDATA "npm\node_modules"
+        if (Test-Path -LiteralPath $fallback) {
+            Write-Note "Using npm global root fallback: $fallback"
+            return $fallback
+        }
+    }
     return $null
 }
 
