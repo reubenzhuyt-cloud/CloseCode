@@ -4,6 +4,7 @@ import { makeLocationNode } from "@opencode/util/effect/app-node"
 import { Context, Effect, Layer, Schema } from "effect"
 import { Permission } from "../permission.js"
 import { McpTool } from "../tool/mcp.js"
+import { toolsetAllowsMcp } from "../tool/toolset.js"
 import { Mcp } from "./index.js"
 import { Instructions } from "../instructions/index.js"
 
@@ -55,7 +56,10 @@ const update = (previous: ReadonlyArray<Summary>, current: ReadonlyArray<Summary
 
 export interface Interface {
   /** Lists server instructions reachable under the given ruleset; callers pass the merged agent and Session permissions. */
-  readonly load: (permissions: Permission.Ruleset) => Effect.Effect<Instructions.List>
+  readonly load: (
+    permissions: Permission.Ruleset,
+    toolset: Record<string, boolean> | undefined,
+  ) => Effect.Effect<Instructions.List>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/McpInstructions") {}
@@ -66,7 +70,7 @@ export const layer = Layer.effect(
     const mcp = yield* Mcp.Service
 
     return Service.of({
-      load: Effect.fn("McpInstructions.load")(function* (permissions) {
+      load: Effect.fn("McpInstructions.load")(function* (permissions, toolset) {
         const source = (value: ReadonlyArray<Summary> | Instructions.Removed) =>
           Instructions.make<ReadonlyArray<Summary>>({
             key: Instructions.Key.make("core/mcp-guidance"),
@@ -82,17 +86,21 @@ export const layer = Layer.effect(
           concurrency: "unbounded",
         })
         const canExecute = Permission.evaluate("execute", "*", permissions).effect !== "deny"
-        // Instructions are useful only when this Session can reach at least one server tool.
+        // Instructions are useful only when this Session can reach at least one server tool that both
+        // permission and toolset expose.
         const visible = instructions
           .flatMap((item) => {
             const owned = tools.filter((tool) => tool.server === item.server)
             const codemode = owned[0]?.codemode !== false
             if (codemode && !canExecute) return []
             if (
-              !owned.some(
-                (tool) =>
-                  Permission.evaluate(McpTool.name(tool.server, tool.name), "*", permissions).effect !== "deny",
-              )
+              !owned.some((tool) => {
+                const name = McpTool.name(tool.server, tool.name)
+                return (
+                  Permission.evaluate(name, "*", permissions).effect !== "deny" &&
+                  toolsetAllowsMcp(toolset, [name, `mcp:${tool.server}`])
+                )
+              })
             )
               return []
             return [

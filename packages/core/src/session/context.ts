@@ -136,7 +136,7 @@ const layer = Layer.effect(
           discovery: discovery.load(),
           skills: skillInstructions.load(permissions),
           references: referenceInstructions.load(),
-          mcp: mcpInstructions.load(permissions),
+          mcp: mcpInstructions.load(permissions, agent.info.toolset),
           entries: entries.load(sessionID),
         },
         { concurrency: "unbounded" },

@@ -234,7 +234,6 @@ const layer = Layer.effect(
           for (const [name, tool] of data.tools) {
             if (whollyDisabled(tool.options?.permission ?? name, rules)) continue
             if (
-              toolset &&
               tool.options?.mcpServer !== undefined &&
               !toolsetAllowsMcp(toolset, [name, `mcp:${tool.options.mcpServer}`])
             )

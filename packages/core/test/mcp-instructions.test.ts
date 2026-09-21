@@ -14,6 +14,8 @@ const schema = { type: "object" as const }
 const tool = (server: string, name = "search") =>
   ({ server: Mcp.ServerName.make(server), name, inputSchema: schema }) satisfies Mcp.Tool
 
+const allowAll: Record<string, boolean> = { "*": true }
+
 const layer = (catalog: () => Mcp.ServerInstructions[], tools: () => Mcp.Tool[]) =>
   AppNodeBuilder.build(McpInstructions.node, [
     Mcp.node.replace(
@@ -29,10 +31,13 @@ describe("McpInstructions", () => {
     Effect.gen(function* () {
       const service = yield* McpInstructions.Service
       const generation = yield* service
-        .load([
-          { action: McpTool.name("alpha", "restricted"), resource: "*", effect: "deny" },
-          { action: McpTool.name("hidden", "search"), resource: "*", effect: "deny" },
-        ])
+        .load(
+          [
+            { action: McpTool.name("alpha", "restricted"), resource: "*", effect: "deny" },
+            { action: McpTool.name("hidden", "search"), resource: "*", effect: "deny" },
+          ],
+          allowAll,
+        )
         .pipe(Effect.flatMap(readInitial))
 
       expect(generation.text).toBe(
@@ -69,7 +74,7 @@ describe("McpInstructions", () => {
     Effect.gen(function* () {
       const service = yield* McpInstructions.Service
       const generation = yield* service
-        .load([{ action: "execute", resource: "*", effect: "deny" }])
+        .load([{ action: "execute", resource: "*", effect: "deny" }], allowAll)
         .pipe(Effect.flatMap(readInitial))
 
       expect(generation.text).toBe("")
@@ -87,7 +92,7 @@ describe("McpInstructions", () => {
     Effect.gen(function* () {
       const service = yield* McpInstructions.Service
       const generation = yield* service
-        .load([{ action: "execute", resource: "*", effect: "deny" }])
+        .load([{ action: "execute", resource: "*", effect: "deny" }], allowAll)
         .pipe(Effect.flatMap(readInitial))
 
       expect(generation.text).toBe(
@@ -120,10 +125,10 @@ describe("McpInstructions", () => {
     let tools: Mcp.Tool[] = [tool("alpha")]
     return Effect.gen(function* () {
       const service = yield* McpInstructions.Service
-      const initialized = yield* service.load([]).pipe(Effect.flatMap(readInitial))
+      const initialized = yield* service.load([], allowAll).pipe(Effect.flatMap(readInitial))
 
       tools = [{ ...tool("alpha"), codemode: false }]
-      const changed = yield* readUpdate(yield* service.load([]), initialized)
+      const changed = yield* readUpdate(yield* service.load([], allowAll), initialized)
       expect(changed.text).toBe(
         [
           "The available MCP server instructions have changed. This list supersedes the previous one.",
@@ -149,10 +154,10 @@ describe("McpInstructions", () => {
     const tools = [tool("alpha"), tool("beta")]
     return Effect.gen(function* () {
       const service = yield* McpInstructions.Service
-      const initialized = yield* service.load([]).pipe(Effect.flatMap(readInitial))
+      const initialized = yield* service.load([], allowAll).pipe(Effect.flatMap(readInitial))
 
       catalog = [instructions("alpha", "Alpha instructions"), instructions("beta", "Beta instructions")]
-      const added = yield* readUpdate(yield* service.load([]), initialized)
+      const added = yield* readUpdate(yield* service.load([], allowAll), initialized)
       expect(added.text).toBe(
         [
           "New MCP server instructions are available in addition to those previously listed:",
@@ -164,7 +169,7 @@ describe("McpInstructions", () => {
       )
 
       catalog = [instructions("alpha", "Updated alpha"), instructions("beta", "Beta instructions")]
-      const changed = yield* readUpdate(yield* service.load([]), added)
+      const changed = yield* readUpdate(yield* service.load([], allowAll), added)
       expect(changed.text).toBe(
         [
           "The available MCP server instructions have changed. This list supersedes the previous one.",
@@ -182,11 +187,11 @@ describe("McpInstructions", () => {
       )
 
       catalog = [instructions("beta", "Beta instructions")]
-      const removed = yield* readUpdate(yield* service.load([]), changed)
+      const removed = yield* readUpdate(yield* service.load([], allowAll), changed)
       expect(removed.text).toBe("Instructions for the following MCP servers are no longer available: alpha.")
 
       catalog = []
-      expect((yield* readUpdate(yield* service.load([]), removed)).text).toBe(
+      expect((yield* readUpdate(yield* service.load([], allowAll), removed)).text).toBe(
         "MCP server instructions are no longer available.",
       )
     }).pipe(
@@ -198,4 +203,36 @@ describe("McpInstructions", () => {
       ),
     )
   })
+
+  it.effect("omits servers whose tools the toolset hides", () =>
+    Effect.gen(function* () {
+      const service = yield* McpInstructions.Service
+      const allowed = yield* service
+        .load([], { "mcp:beta": true })
+        .pipe(Effect.flatMap(readInitial))
+      expect(allowed.text).toBe(
+        [
+          "<mcp_instructions>",
+          '  <server name="beta">',
+          '    Use tools from this server through `execute` under `tools["beta"]`.',
+          "    Beta instructions",
+          "  </server>",
+          "</mcp_instructions>",
+        ].join("\n"),
+      )
+
+      const denied = yield* service.load([], { "*": false }).pipe(Effect.flatMap(readInitial))
+      expect(denied.text).toBe("")
+
+      const unspecified = yield* service.load([], undefined).pipe(Effect.flatMap(readInitial))
+      expect(unspecified.text).toBe("")
+    }).pipe(
+      Effect.provide(
+        layer(
+          () => [instructions("alpha", "Alpha instructions"), instructions("beta", "Beta instructions")],
+          () => [tool("alpha"), tool("beta")],
+        ),
+      ),
+    ),
+  )
 })

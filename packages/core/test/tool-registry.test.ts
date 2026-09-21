@@ -1211,7 +1211,7 @@ describe("Tool", () => {
         service
           .snapshot(undefined, toolset)
           .pipe(Effect.map((snapshot) => snapshot.definitions.map((tool) => tool.name)))
-      const runWeather = (toolset: Record<string, boolean>, id: string) =>
+      const runWeather = (toolset: Record<string, boolean> | undefined, id: string) =>
         service.snapshot(undefined, toolset).pipe(
           Effect.flatMap((snapshot) =>
             snapshot.execute({
@@ -1227,14 +1227,18 @@ describe("Tool", () => {
         )
 
       expect(yield* names()).toEqual(["echo", "execute"])
-      expect(yield* catalog()).toEqual([])
       expect(yield* names({ "*": false })).toEqual(["echo", "execute"])
+      expect(yield* names({})).toEqual(["echo", "execute"])
+
+      expect(yield* catalog()).toEqual([])
+      expect(yield* catalog({})).toEqual([])
+      expect(yield* catalog({ "*": false })).toEqual([])
 
       expect(yield* catalog({ "mcp:weather": true })).toEqual(["weather_current"])
       expect(yield* catalog({ weather_current: true })).toEqual(["weather_current"])
       expect(yield* catalog({ "*": true })).toEqual(["weather_current"])
-      expect(yield* catalog({ "*": false })).toEqual([])
 
+      expect((yield* runWeather(undefined, "call-default-hidden")).metadata?.error).toBe(true)
       expect((yield* runWeather({ "*": false }, "call-hidden")).metadata?.error).toBe(true)
       const visible = yield* runWeather({ "mcp:weather": true }, "call-visible")
       expect(visible.metadata?.error).toBeUndefined()
