@@ -374,7 +374,7 @@ test("unrelated managed port occupancy reports an actionable conflict", async ()
     expect(await contender.exited).not.toBe(0)
     const output = (await new Response(contender.stdout).text()) + (await new Response(contender.stderr).text())
     expect(output).toContain(`Managed service port ${port} on 127.0.0.1 is already in use by another process`)
-    expect(output).toContain("opencode service set port <port>")
+    expect(output).toContain("closecode service set port <port>")
     expect(await Bun.file(registration).exists()).toBe(false)
   } finally {
     listener.stop(true)

@@ -429,8 +429,8 @@ export const dict = {
   "server.connect.failed": "Could not connect. Check the server address and password, then try again.",
   "server.connect.pair.description": "Run this command on your computer to get your connection details.",
   "server.connect.scan": "Scan QR code",
-  "server.connect.scan.description": "Point your camera at the QR code shown by opencode pair.",
-  "server.connect.scan.invalid": "This is not an CloseCode pairing code. Scan the code shown by opencode pair.",
+  "server.connect.scan.description": "Point your camera at the QR code shown by closecode pair.",
+  "server.connect.scan.invalid": "This is not an CloseCode pairing code. Scan the code shown by closecode pair.",
   "server.connect.camera": "Pairing camera",
   "server.connect.camera.starting": "Opening camera…",
   "server.connect.mixedContent":

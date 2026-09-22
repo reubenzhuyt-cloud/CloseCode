@@ -284,7 +284,7 @@ export const DESKTOP_NATIVE_ENGLISH = {
   "desktop.updater.dialog.restart": "Restart",
   "desktop.updater.dialog.later": "Later",
   "desktop.cli.installed.title": "CLI Installed",
-  "desktop.cli.installed.message": "CLI installed to {{path}}\n\nRestart your terminal to use the 'opencode' command.",
+  "desktop.cli.installed.message": "CLI installed to {{path}}\n\nRestart your terminal to use the 'closecode' command.",
   "desktop.cli.failed.title": "Installation Failed",
   "desktop.cli.failed.message": "Failed to install CLI: {{error}}",
 
@@ -315,8 +315,8 @@ export const DESKTOP_NATIVE_ENGLISH = {
   "desktop.wsl.error.installDistro": "Failed to install distro: {{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCode installation failed",
   "desktop.wsl.error.alreadyAdded": "{{distro}} is already added",
-  "desktop.wsl.error.opencodeMissing": "opencode is not installed in this distro",
-  "desktop.wsl.error.opencodeCannotRun": "opencode is installed but could not run",
+  "desktop.wsl.error.opencodeMissing": "CloseCode is not installed in this distro",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode is installed but could not run",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode is not installed in {{distro}}",
   "desktop.wsl.error.updateVersion":
     "CloseCode update finished but {{distro}} still reports {{installed}}; expected {{expected}}",

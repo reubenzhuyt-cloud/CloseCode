@@ -189,7 +189,7 @@ export function make(input: {
       capabilities.writeTextFile = params.clientCapabilities?.fs?.writeTextFile === true
       capabilities.childSessionUpdates = params.clientCapabilities?._meta?.[ChildSessionUpdatesCapability] === true
       const authMethod: AuthMethod = {
-        description: "Run `opencode auth login` in the terminal",
+        description: "Run `closecode auth login` in the terminal",
         name: "Login with CloseCode",
         id: AuthMethodID,
       }
