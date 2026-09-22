@@ -45,7 +45,7 @@ posix(
     yield* fs.makeDirectory(path.join(home, ".opencode/bin"), { recursive: true })
     yield* fs.makeDirectory(path.join(dir, "bin"))
     const managed = path.join(home, ".opencode/bin/closecode")
-    const legacy = path.join(home, ".opencode/bin/opencode")
+    const upstream = path.join(home, ".opencode/bin/opencode")
     const external = path.join(dir, "bin/closecode")
     yield* fs.writeFileString(managed, "#!/bin/sh\nprintf 'CloseCode v2.0.0\\n'\n", { mode: 0o755 })
     yield* fs.writeFileString(external, "#!/bin/sh\nprintf 'CloseCode v2.1.0\\n'\n", { mode: 0o755 })
@@ -59,10 +59,10 @@ posix(
     expect((yield* run(RemoteCli.discoverScript({ fromPath: true }))).trim()).toBe(external)
     expect(RemoteCli.parseVersion(yield* run(RemoteCli.versionScript(RemoteCli.quote(managed))))).toBe("2.0.0")
     yield* fs.remove(managed)
-    // Legacy installs that still ship the `opencode` binary stay discoverable.
-    yield* fs.writeFileString(legacy, "#!/bin/sh\nprintf 'CloseCode v2.0.0\\n'\n", { mode: 0o755 })
-    expect((yield* run(RemoteCli.discoverScript())).trim()).toBe(legacy)
-    yield* fs.remove(legacy)
+    // An independent upstream `opencode` binary is never targeted; discovery stays closecode-only.
+    yield* fs.writeFileString(upstream, "#!/bin/sh\nprintf 'OpenCode v9.9.9\\n'\n", { mode: 0o755 })
+    expect((yield* run(RemoteCli.discoverScript())).trim()).toBe("")
+    yield* fs.remove(upstream)
     expect((yield* run(RemoteCli.discoverScript())).trim()).toBe("")
     expect(RemoteCli.parseVersion(yield* run(RemoteCli.versionScript(RemoteCli.quote(managed))))).toBeNull()
   }),

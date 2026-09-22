@@ -27,10 +27,10 @@ case "$1 $2" in
   "service start"|"service restart")
     printf '%s\\n' "$2" >> "$HOME/actions"
     mkdir -p "$XDG_STATE_HOME/opencode"
-    printf '%s' '{"url":"http://127.0.0.1:12345","password":"fixture","version":"${version}","pid":1234}' > "$XDG_STATE_HOME/opencode/service.json"
+    printf '%s' '{"url":"http://127.0.0.1:12345","password":"fixture","version":"${version}","pid":1234}' > "$XDG_STATE_HOME/opencode/closecode-service.json"
     ;;
   "service status")
-    if [ -f "$XDG_STATE_HOME/opencode/service.json" ]; then printf 'http://127.0.0.1:12345\\n'; else printf 'stopped\\n'; fi
+    if [ -f "$XDG_STATE_HOME/opencode/closecode-service.json" ]; then printf 'http://127.0.0.1:12345\\n'; else printf 'stopped\\n'; fi
     ;;
   *) exit 66 ;;
 esac
@@ -61,7 +61,7 @@ posix(
     const spawner = yield* ChildProcessSpawner.ChildProcessSpawner
     const dir = yield* fs.makeTempDirectoryScoped({ prefix: "ssh-discovery-test-" })
     const expected = {
-      url: "http://0.0.0.0:49374",
+      url: "http://0.0.0.0:49376",
       password: 'private"credential',
       version: "0.0.0-beta-19059",
       pid: 1234,
@@ -69,13 +69,13 @@ posix(
     yield* fs.makeDirectory(path.join(dir, ".opencode/bin"), { recursive: true })
     yield* fs.makeDirectory(path.join(dir, "state/opencode"), { recursive: true })
     yield* fs.writeFileString(
-      path.join(dir, ".opencode/bin/opencode"),
-      '#!/bin/sh\n[ "$1 $2" = "service status" ] || exit 66\nprintf "http://0.0.0.0:49374\\n"\n',
+      path.join(dir, ".opencode/bin/closecode"),
+      '#!/bin/sh\n[ "$1 $2" = "service status" ] || exit 66\nprintf "http://0.0.0.0:49376\\n"\n',
       { mode: 0o755 },
     )
-    yield* fs.writeFileString(path.join(dir, "state/opencode/service.json"), JSON.stringify(expected, null, 2))
+    yield* fs.writeFileString(path.join(dir, "state/opencode/closecode-service.json"), JSON.stringify(expected, null, 2))
     yield* fs.writeFileString(
-      path.join(dir, "state/opencode/service-local.json"),
+      path.join(dir, "state/opencode/closecode-service-local.json"),
       JSON.stringify({ ...expected, url: "http://127.0.0.1:7777", password: "other" }),
     )
     const child = yield* spawner.spawn(

@@ -117,7 +117,7 @@ async function waitForRegistration() {
   for (let attempt = 0; attempt < 400; attempt++) {
     const files = await fs.readdir(directory).catch(() => [])
     const file = files.find(
-      (file) => file === "service.json" || (file.startsWith("service-") && file.endsWith(".json")),
+      (file) => file.startsWith("closecode-service") && file.endsWith(".json"),
     )
     if (file) return path.join(directory, file)
     await Bun.sleep(25)

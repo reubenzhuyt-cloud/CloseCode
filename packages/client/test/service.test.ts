@@ -1,7 +1,9 @@
 import { NodeFileSystem } from "@effect/platform-node"
 import { expect, test } from "bun:test"
 import { Effect, FileSystem } from "effect"
-import { writeFile } from "node:fs/promises"
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
+import { tmpdir } from "node:os"
+import { dirname, join } from "node:path"
 import { Service, type EnsureReason } from "../src/effect/service"
 import { serviceFixture } from "./fixture/service-fixture"
 import { accelerate } from "./fixture/service-timing"
@@ -293,6 +295,29 @@ test("replaces an incompatible owner that appears during startup", async () => {
   expect(endpoint.url).toBe(info.url)
   expect(info.version).toBe("test")
   await old.exited
+})
+
+test("discovers the fork fallback registration when no file is given", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "opencode-client-fallback-"))
+  const previous = process.env["XDG_STATE_HOME"]
+  process.env["XDG_STATE_HOME"] = directory
+  const registration = join(directory, "opencode", "closecode-service.json")
+  await mkdir(dirname(registration), { recursive: true })
+  const child = Bun.spawn(
+    [process.execPath, join(import.meta.dir, "fixture/service.ts"), registration, "compatible"],
+    { stdout: "ignore", stderr: "inherit" },
+  )
+  try {
+    for (let attempt = 0; attempt < 600 && !(await Bun.file(registration).exists()); attempt++) await Bun.sleep(5)
+    const endpoint = await run(Service.discover({ version: (version) => version.startsWith("2.") }))
+    expect(endpoint?.url).toBe((await Bun.file(registration).json()).url)
+  } finally {
+    child.kill("SIGTERM")
+    await child.exited
+    if (previous === undefined) delete process.env["XDG_STATE_HOME"]
+    else process.env["XDG_STATE_HOME"] = previous
+    await rm(directory, { recursive: true, force: true })
+  }
 })
 
 function run<A, E>(effect: Effect.Effect<A, E, FileSystem.FileSystem>) {

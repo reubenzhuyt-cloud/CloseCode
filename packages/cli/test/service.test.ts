@@ -12,13 +12,31 @@ import { ServiceRegistration } from "../src/services/service-registration"
 import { isolatedEnv } from "./fixture/environment"
 
 test("managed service ports are stable per installation channel", () => {
-  expect(ServiceConfig.defaultPort("latest")).toBe(0xc0de)
-  expect(ServiceConfig.defaultPort("dev")).toBe(0xc0de)
-  expect(ServiceConfig.defaultPort("beta")).toBe(0xc0de)
-  expect(ServiceConfig.defaultPort("next")).toBe(0xc0de)
-  expect(ServiceConfig.defaultPort("local")).toBe(0xc0df)
+  expect(ServiceConfig.defaultPort("latest")).toBe(0xc0e0)
+  expect(ServiceConfig.defaultPort("dev")).toBe(0xc0e0)
+  expect(ServiceConfig.defaultPort("beta")).toBe(0xc0e0)
+  expect(ServiceConfig.defaultPort("next")).toBe(0xc0e0)
+  expect(ServiceConfig.defaultPort("local")).toBe(0xc0e1)
   expect(ServiceConfig.defaultPort("preview-a")).toBe(ServiceConfig.defaultPort("preview-a"))
   expect(ServiceConfig.defaultPort("preview-a")).not.toBe(ServiceConfig.defaultPort("preview-b"))
+})
+
+test("custom-channel ports never collide with the reserved service ports", () => {
+  // 49374/49375 are upstream opencode's defaults; 49376/49377 are closecode's.
+  const reserved = [0xc0de, 0xc0df, 0xc0e0, 0xc0e1]
+  // The named channels hash directly onto a reserved port before the remap.
+  const channels = [
+    ...Array.from({ length: 2001 }, (_, index) => `preview-${index}`),
+    "preview-44481",
+    "preview-57173",
+    "preview-64705",
+  ]
+  for (const channel of channels) {
+    const port = ServiceConfig.defaultPort(channel)
+    expect(reserved).not.toContain(port)
+    expect(port).toBeGreaterThanOrEqual(10_000)
+    expect(port).toBeLessThanOrEqual(65_535)
+  }
 })
 
 test("local channel stores service config with the local service filename", async () => {
@@ -30,10 +48,10 @@ test("local channel stores service config with the local service filename", asyn
         Effect.provide(NodeFileSystem.layer),
       ),
     )
-    expect(await Bun.file(path.join(root, "config", "service-local.json")).json()).toEqual({
+    expect(await Bun.file(path.join(root, "config", "closecode-service-local.json")).json()).toEqual({
       hostname: "127.0.0.2",
     })
-    expect(await Bun.file(path.join(root, "config", "service.json")).exists()).toBe(false)
+    expect(await Bun.file(path.join(root, "config", "closecode-service.json")).exists()).toBe(false)
   } finally {
     await fs.rm(root, { recursive: true, force: true })
   }
@@ -71,24 +89,41 @@ test("service config manages environment variables", async () => {
         Effect.provide(NodeFileSystem.layer),
       ),
     )
-    expect(await Bun.file(path.join(root, "config", "service-local.json")).json()).toEqual({})
+    expect(await Bun.file(path.join(root, "config", "closecode-service-local.json")).json()).toEqual({})
   } finally {
     await fs.rm(root, { recursive: true, force: true })
   }
 })
 
 test("service filenames share release channels and identify preview channels", () => {
-  expect(ServiceConfig.filename("latest")).toBe("service.json")
-  expect(ServiceConfig.filename("dev")).toBe("service.json")
-  expect(ServiceConfig.filename("beta")).toBe("service.json")
-  expect(ServiceConfig.filename("next")).toBe("service.json")
-  expect(ServiceConfig.filename("local")).toBe("service-local.json")
-  expect(ServiceConfig.filename("preview-a")).toBe("service-preview-a.json")
-  expect(ServiceConfig.filename("preview/a")).toBe("service-preview-a.json")
+  expect(ServiceConfig.filename("latest")).toBe("closecode-service.json")
+  expect(ServiceConfig.filename("dev")).toBe("closecode-service.json")
+  expect(ServiceConfig.filename("beta")).toBe("closecode-service.json")
+  expect(ServiceConfig.filename("next")).toBe("closecode-service.json")
+  expect(ServiceConfig.filename("local")).toBe("closecode-service-local.json")
+  expect(ServiceConfig.filename("preview-a")).toBe("closecode-service-preview-a.json")
+  expect(ServiceConfig.filename("preview/a")).toBe("closecode-service-preview-a.json")
   expect(ServiceConfig.versionBelongsToChannel("0.0.0-preview-a-1234", "preview-a")).toBe(true)
   expect(ServiceConfig.versionBelongsToChannel("0.0.0-preview-a-1234.2", "preview-a")).toBe(true)
   expect(ServiceConfig.versionBelongsToChannel("0.0.0-preview-a-other-1234", "preview-a")).toBe(false)
   expect(ServiceConfig.versionBelongsToChannel("1.2.3", "preview-a")).toBe(false)
+})
+
+test("fork registration names never collide with upstream opencode registrations", () => {
+  for (const channel of ["latest", "dev", "beta", "next", "local", "preview-a"]) {
+    const name = ServiceConfig.filename(channel)
+    expect(name.startsWith("closecode-service")).toBe(true)
+    expect(name).not.toBe("service.json")
+    expect(name).not.toBe("service-local.json")
+  }
+  expect(ServiceConfig.legacyRegistrationFilenames("latest")).toEqual([])
+  for (const channel of ["preview-a", "preview/b"]) {
+    const candidates = ServiceConfig.legacyRegistrationFilenames(channel)
+    expect(candidates).toHaveLength(1)
+    expect(candidates[0]!.startsWith("closecode-service-")).toBe(true)
+    expect(candidates).not.toContain("service.json")
+    expect(candidates).not.toContain("service-local.json")
+  }
 })
 
 test("service config migrates from the hashed channel filename", async () => {
@@ -110,7 +145,7 @@ test("service config migrates from the hashed channel filename", async () => {
 
 test("preview registration migration never moves stable discovery", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-service-migration-"))
-  const legacy = path.join(root, "service.json")
+  const legacy = path.join(root, ServiceConfig.legacyFilename("preview-a")!)
   const target = path.join(root, ServiceConfig.filename("preview-a"))
   try {
     await fs.writeFile(
@@ -226,9 +261,9 @@ test("concurrent service processes elect one server", async () => {
     XDG_STATE_HOME: path.join(root, "state"),
   }
   const command = [process.execPath, path.join(import.meta.dir, "../src/index.ts"), "serve", "--service"]
-  const registration = path.join(root, "state", "opencode", "service-local.json")
+  const registration = path.join(root, "state", "opencode", "closecode-service-local.json")
   const port = await availablePort()
-  const config = path.join(root, "config", "opencode", "service-local.json")
+  const config = path.join(root, "config", "opencode", "closecode-service-local.json")
   await fs.mkdir(path.join(root, "config", "opencode"), { recursive: true })
   await fs.writeFile(config, JSON.stringify({ port }))
   const processes = Array.from({ length: 10 }, () => Bun.spawn(command, { env, stderr: "pipe", stdout: "pipe" }))
@@ -293,8 +328,8 @@ test("configured managed service port overrides the channel default", async () =
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-service-port-"))
   const port = await availablePort()
   const env = serviceEnv(root)
-  const registration = path.join(root, "state", "opencode", "service-local.json")
-  const config = path.join(root, "config", "opencode", "service-local.json")
+  const registration = path.join(root, "state", "opencode", "closecode-service-local.json")
+  const config = path.join(root, "config", "opencode", "closecode-service-local.json")
   await fs.mkdir(path.join(root, "config", "opencode"), { recursive: true })
   await fs.writeFile(config, JSON.stringify({ port, password: "" }))
   const owner = Bun.spawn([process.execPath, path.join(import.meta.dir, "../src/index.ts"), "serve", "--service"], {
@@ -362,9 +397,9 @@ test("unrelated managed port occupancy reports an actionable conflict", async ()
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-service-conflict-"))
   const listener = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: () => new Response("unrelated") })
   const port = listener.port
-  const registration = path.join(root, "state", "opencode", "service-local.json")
+  const registration = path.join(root, "state", "opencode", "closecode-service-local.json")
   await fs.mkdir(path.join(root, "config", "opencode"), { recursive: true })
-  await fs.writeFile(path.join(root, "config", "opencode", "service-local.json"), JSON.stringify({ port }))
+  await fs.writeFile(path.join(root, "config", "opencode", "closecode-service-local.json"), JSON.stringify({ port }))
   const contender = Bun.spawn([process.execPath, path.join(import.meta.dir, "../src/index.ts"), "serve", "--service"], {
     env: serviceEnv(root),
     stderr: "pipe",
@@ -397,11 +432,11 @@ test("unresponsive managed port occupancy reports a bounded conflict", async () 
       return new Promise<Response>(() => {})
     },
   })
-  const registration = path.join(root, "state", "opencode", "service-local.json")
+  const registration = path.join(root, "state", "opencode", "closecode-service-local.json")
   await fs.mkdir(path.join(root, "config", "opencode"), { recursive: true })
   await fs.mkdir(path.dirname(registration), { recursive: true })
   await fs.writeFile(
-    path.join(root, "config", "opencode", "service-local.json"),
+    path.join(root, "config", "opencode", "closecode-service-local.json"),
     JSON.stringify({ port: listener.port }),
   )
   const stale = {
@@ -448,8 +483,8 @@ test("port contender recognizes an incumbent registered during the bind race", a
       )
     },
   })
-  const registration = path.join(root, "state", "opencode", "service-local.json")
-  const config = path.join(root, "config", "opencode", "service-local.json")
+  const registration = path.join(root, "state", "opencode", "closecode-service-local.json")
+  const config = path.join(root, "config", "opencode", "closecode-service-local.json")
   await fs.mkdir(path.dirname(config), { recursive: true })
   await fs.writeFile(config, JSON.stringify({ port: listener.port }))
   await fs.mkdir(path.dirname(registration), { recursive: true })
@@ -492,7 +527,7 @@ test("port contender recognizes an incumbent registered during the bind race", a
 
 test("service registration replaces a stale owner with the bound address", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-service-stale-"))
-  const registration = path.join(root, "state", "opencode", "service-local.json")
+  const registration = path.join(root, "state", "opencode", "closecode-service-local.json")
   await fs.mkdir(path.dirname(registration), { recursive: true })
   await fs.writeFile(
     registration,
@@ -528,7 +563,7 @@ test("a failed service stays registered and owns the selected port until stopped
   const database = path.join(root, "database")
   await fs.mkdir(database)
   await fs.mkdir(path.join(root, "config", "opencode"), { recursive: true })
-  await fs.writeFile(path.join(root, "config", "opencode", "service-local.json"), JSON.stringify({ port }))
+  await fs.writeFile(path.join(root, "config", "opencode", "closecode-service-local.json"), JSON.stringify({ port }))
   const env = {
     ...process.env,
     HOME: root,
@@ -540,7 +575,7 @@ test("a failed service stays registered and owns the selected port until stopped
     XDG_STATE_HOME: path.join(root, "state"),
   }
   const command = [process.execPath, path.join(import.meta.dir, "../src/index.ts"), "serve", "--service"]
-  const registration = path.join(root, "state", "opencode", "service-local.json")
+  const registration = path.join(root, "state", "opencode", "closecode-service-local.json")
   const owner = Bun.spawn(command, { env, stderr: "pipe", stdout: "ignore" })
 
   try {
@@ -615,10 +650,10 @@ function serviceEnv(root: string) {
 async function startManagedService(prefix: string, failBoot = false) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), prefix))
   const port = await availablePort()
-  const registration = path.join(root, "state", "opencode", "service-local.json")
+  const registration = path.join(root, "state", "opencode", "closecode-service-local.json")
   await fs.mkdir(path.join(root, "config", "opencode"), { recursive: true })
   if (failBoot) await fs.mkdir(path.join(root, "database"))
-  await fs.writeFile(path.join(root, "config", "opencode", "service-local.json"), JSON.stringify({ port }))
+  await fs.writeFile(path.join(root, "config", "opencode", "closecode-service-local.json"), JSON.stringify({ port }))
   const owner = Bun.spawn([process.execPath, path.join(import.meta.dir, "../src/index.ts"), "serve", "--service"], {
     env: failBoot ? { ...serviceEnv(root), OPENCODE_DB: path.join(root, "database") } : serviceEnv(root),
     stderr: "pipe",

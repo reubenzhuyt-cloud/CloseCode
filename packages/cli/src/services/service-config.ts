@@ -27,19 +27,35 @@ const decodeInfo = Schema.decodeUnknownEffect(Schema.fromJsonString(Info))
 const decodeRegistration = Schema.decodeUnknownEffect(Schema.fromJsonString(Service.Info))
 
 export function filename(channel = OPENCODE_CHANNEL) {
-  if (channel === "latest" || channel === "dev" || channel === "beta" || channel === "next") return "service.json"
-  return `service-${channel.replace(/[^a-zA-Z0-9._-]/g, "-")}.json`
+  if (channel === "latest" || channel === "dev" || channel === "beta" || channel === "next")
+    return "closecode-service.json"
+  return `closecode-service-${channel.replace(/[^a-zA-Z0-9._-]/g, "-")}.json`
 }
 
 export function defaultPort(channel = OPENCODE_CHANNEL) {
-  if (channel === "latest" || channel === "dev" || channel === "beta" || channel === "next") return 0xc0de
-  if (channel === "local") return 0xc0df
-  return 10_000 + (Number.parseInt(Hash.fast(channel).slice(0, 8), 16) % 50_000)
+  // closecode offsets its managed-service ports so it never contends with an
+  // upstream opencode service, which defaults to 0xc0de (49374) / 0xc0df (49375).
+  // Custom channels hash into 10000..59999; a result inside the reserved
+  // 49374..49377 window (upstream 0xc0de/0xc0df plus closecode's own
+  // 0xc0e0/0xc0e1 defaults) shifts up by 4 so a custom channel can never take a
+  // reserved port that another service owns.
+  if (channel === "latest" || channel === "dev" || channel === "beta" || channel === "next") return 0xc0e0
+  if (channel === "local") return 0xc0e1
+  const port = 10_000 + (Number.parseInt(Hash.fast(channel).slice(0, 8), 16) % 50_000)
+  return port >= 0xc0de && port <= 0xc0e1 ? port + 4 : port
 }
 
 export function legacyFilename(channel = OPENCODE_CHANNEL) {
   if (channel === "latest" || channel === "local") return
-  return `service-${Hash.fast(channel)}.json`
+  return `closecode-service-${Hash.fast(channel)}.json`
+}
+
+// Only closecode's own historical registration names are eligible for adoption.
+// Upstream opencode's service.json / service-<channel>.json / service-local.json
+// must never be read, adopted, or removed here.
+export function legacyRegistrationFilenames(channel = OPENCODE_CHANNEL) {
+  const legacy = legacyFilename(channel)
+  return legacy ? [legacy] : []
 }
 
 export function versionBelongsToChannel(
@@ -92,10 +108,7 @@ const paths = Effect.gen(function* () {
     fs,
     file,
     legacyConfigFile: legacy ? path.join(global.config, legacy) : undefined,
-    legacyRegistrationFiles: [
-      ...(legacy ? [path.join(global.state, legacy)] : []),
-      ...(name !== "service.json" && OPENCODE_CHANNEL !== "local" ? [path.join(global.state, "service.json")] : []),
-    ],
+    legacyRegistrationFiles: legacyRegistrationFilenames().map((legacy) => path.join(global.state, legacy)),
     configFile: path.join(global.config, name),
   }
 })

@@ -24,17 +24,16 @@ export function requireVersion(version: string) {
 }
 
 export function discoverScript(options: { fromPath?: boolean; cache?: { directory: string; prefix: string } } = {}) {
-  return `cli=${options.fromPath ? "$(command -v closecode || command -v opencode || true)" : '""'}
+  // The fork installs only `closecode`; never fall back to an `opencode` binary,
+  // which can be an independent upstream install unrelated to this client. The
+  // `.opencode/bin` DIRECTORY name stays shared, its binary is `closecode`.
+  return `cli=${options.fromPath ? "$(command -v closecode || true)" : '""'}
 if [ -z "$cli" ] && [ -x "$HOME/.opencode/bin/closecode" ]; then cli="$HOME/.opencode/bin/closecode"; fi
-if [ -z "$cli" ] && [ -x "$HOME/.opencode/bin/opencode" ]; then cli="$HOME/.opencode/bin/opencode"; fi
 ${
   options.cache
     ? `if [ -z "$cli" ]; then
-  for name in closecode opencode; do
-    for binary in "$HOME"/${quote(options.cache.directory)}/${quote(options.cache.prefix)}*/"$name"; do
-      if [ -x "$binary" ]; then cli="$binary"; fi
-    done
-    if [ -n "$cli" ]; then break; fi
+  for binary in "$HOME"/${quote(options.cache.directory)}/${quote(options.cache.prefix)}*/closecode; do
+    if [ -x "$binary" ]; then cli="$binary"; fi
   done
 fi
 `

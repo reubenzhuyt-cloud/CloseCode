@@ -1,9 +1,35 @@
 import { expect, test } from "bun:test"
+import { mkdir, mkdtemp, rm } from "node:fs/promises"
+import { tmpdir } from "node:os"
+import { dirname, join } from "node:path"
 import { Service, type EnsureReason } from "../src/promise/service"
 import { serviceFixture } from "./fixture/service-fixture"
 import { accelerate } from "./fixture/service-timing"
 
 const ensure = accelerate(Service.ensure)
+
+test("discovers the fork fallback registration when no file is given", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "opencode-client-fallback-"))
+  const previous = process.env["XDG_STATE_HOME"]
+  process.env["XDG_STATE_HOME"] = directory
+  const registration = join(directory, "opencode", "closecode-service.json")
+  await mkdir(dirname(registration), { recursive: true })
+  const child = Bun.spawn(
+    [process.execPath, join(import.meta.dir, "fixture/service.ts"), registration, "compatible"],
+    { stdout: "ignore", stderr: "inherit" },
+  )
+  try {
+    for (let attempt = 0; attempt < 600 && !(await Bun.file(registration).exists()); attempt++) await Bun.sleep(5)
+    const endpoint = await Service.discover({ version: (version) => version.startsWith("2.") })
+    expect(endpoint?.url).toBe((await Bun.file(registration).json()).url)
+  } finally {
+    child.kill("SIGTERM")
+    await child.exited
+    if (previous === undefined) delete process.env["XDG_STATE_HOME"]
+    else process.env["XDG_STATE_HOME"] = previous
+    await rm(directory, { recursive: true, force: true })
+  }
+})
 
 test("discovers a registered service", async () => {
   await using fixture = await serviceFixture()

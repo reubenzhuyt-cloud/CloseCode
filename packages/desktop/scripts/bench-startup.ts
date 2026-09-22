@@ -88,7 +88,7 @@ const paths = {
   temp: join(home, "AppData", "Local", "Temp"),
   db: join(home, ".local", "share", "opencode", "opencode.db"),
   config: join(home, ".config", "opencode"),
-  registration: join(home, ".local", "state", "opencode", "service.json"),
+  registration: join(home, ".local", "state", "opencode", "closecode-service.json"),
   logs: join(userData, "logs"),
 }
 prepareHome()
@@ -114,7 +114,7 @@ const env = {
 const cdpPort = await freePort()
 // A private service port keeps a cold launch's own service away from the developer's service.
 const servicePort = await freePort()
-writeFileSync(join(paths.config, "service.json"), JSON.stringify({ port: servicePort }))
+writeFileSync(join(paths.config, "closecode-service.json"), JSON.stringify({ port: servicePort }))
 const inspectPort = await freePort()
 let appPid: number | undefined
 let serviceProcess: ReturnType<typeof spawn> | undefined
