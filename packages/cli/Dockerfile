@@ -12,5 +12,5 @@ COPY dist/cli-linux-arm64-musl/bin/closecode /usr/local/bin/closecode
 
 ARG TARGETARCH
 FROM build-${TARGETARCH}
-RUN ln -s closecode /usr/local/bin/opencode && ln -s closecode /usr/local/bin/opencode2 && closecode --version && opencode --version && opencode2 --version
+RUN closecode --version
 ENTRYPOINT ["closecode"]

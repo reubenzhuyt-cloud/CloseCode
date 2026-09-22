@@ -99,13 +99,13 @@ bun dev api <operationId> --param key=value
 - If no compatible background server is registered, `bun dev api` starts one through the daemon service. Use `bun dev service status`, `bun dev service restart`, and `bun dev service stop` when you need explicit lifecycle control.
 - Prefer raw method/path calls for quick server debugging and operation IDs when exercising documented OpenAPI routes with path or query parameters.
 
-## Auditing installed `opencode2` sessions
+## Auditing installed `closecode` sessions
 
-Installed next-channel sessions normally use `~/.local/share/opencode/opencode-next.db` and `~/.local/share/opencode/log/opencode.log`; `OPENCODE_DB` can override the database. Before calling `opencode2 api`, inspect `~/.local/state/opencode/service.json` because the command may start a daemon when none is healthy.
+Installed next-channel sessions normally use `~/.local/share/opencode/opencode-next.db` and `~/.local/share/opencode/log/opencode.log`; `OPENCODE_DB` can override the database. Before calling `closecode api`, inspect `~/.local/state/opencode/service.json` because the command may start a daemon when none is healthy.
 
 For a supplied `ses_...` ID, compare three sources:
 
-- `opencode2 api get /api/session/active` and the Session/message endpoints for live server state.
+- `closecode api get /api/session/active` and the Session/message endpoints for live server state.
 - The database's ordered `event` rows for durable history.
 - `packages/tui/src/context/data.tsx` and the relevant route for client projection and rendering.
 
@@ -141,16 +141,16 @@ grep 'role=server' ~/.local/share/opencode/log/opencode-local.log
 
 ## Heap snapshots
 
-The CLI installs a `SIGUSR1` listener on non-Windows processes in `packages/cli/src/heap.ts`. Use it to capture the installed `opencode2` server without restarting it or attaching an inspector.
+The CLI installs a `SIGUSR1` listener on non-Windows processes in `packages/cli/src/heap.ts`. Use it to capture the installed `closecode` server without restarting it or attaching an inspector.
 
 1. Find the processes and inspect their roles and memory:
 
 ```bash
-pgrep -a -f 'opencode2\.exe|opencode2'
+pgrep -a -f 'closecode\.exe|closecode'
 ps -o pid,ppid,rss,vsz,lstart,etime,cmd -p <pid>,<pid>
 ```
 
-2. Signal the process whose heap needs investigation. For shared-service memory, target the `opencode2.exe serve --service` child, not the short wrapper/TUI process:
+2. Signal the process whose heap needs investigation. For shared-service memory, target the `closecode.exe serve --service` child, not the short wrapper/TUI process:
 
 ```bash
 kill -USR1 <server-pid>
@@ -192,7 +192,7 @@ The CLI installs a `SIGPROF` listener on non-Windows processes in `packages/cli/
 1. Get the PID from the health endpoint. For shared-service performance, target the server PID returned here rather than the short wrapper or TUI process:
 
 ```bash
-opencode2 api get /api/health
+closecode api get /api/health
 ```
 
 Use `bun dev api get /api/health` instead when targeting the local/dev channel.

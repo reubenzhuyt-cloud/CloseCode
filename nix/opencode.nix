@@ -79,8 +79,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ wayland ]}
       ''}
 
-    ln -s closecode $out/bin/opencode2
-
     runHook postInstall
   '';
 
@@ -89,10 +87,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     installShellCompletion --cmd closecode \
       --bash <($out/bin/closecode completion) \
       --zsh <(SHELL=/bin/zsh $out/bin/closecode completion)
-
-    installShellCompletion --cmd opencode2 \
-      --bash <($out/bin/opencode2 completion) \
-      --zsh <(SHELL=/bin/zsh $out/bin/opencode2 completion)
   '';
 
   nativeInstallCheckInputs = [

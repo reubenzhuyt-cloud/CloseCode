@@ -43,7 +43,7 @@ posix(
     ).toBe(0)
     expect(yield* fs.readFileString(path.join(dir, "wslpath-input"))).toBe(windows)
     expect(yield* fs.readFileString(path.join(dir, ".opencode/bin/closecode"))).toContain("0.0.0-dev-16365")
-    expect((yield* fs.readDirectory(path.join(dir, ".opencode/bin"))).toSorted()).toEqual(["closecode", "opencode2"])
+    expect((yield* fs.readDirectory(path.join(dir, ".opencode/bin"))).toSorted()).toEqual(["closecode"])
     expect(yield* fs.readFileString(path.join(dir, ".bashrc"))).toContain(`export PATH=${dir}/.opencode/bin:$PATH`)
   }),
 )

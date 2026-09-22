@@ -281,7 +281,7 @@ test("Node distribution honors the compile-time CLI name", async () => {
       "test",
       import.meta.path,
       "--define",
-      'OPENCODE_CLI_NAME="closecode2-node"',
+      'OPENCODE_CLI_NAME="closecode-node"',
       "--test-name-pattern",
       "^Node distribution resolves the published npm package$",
     ],
@@ -298,7 +298,7 @@ test("Node distribution honors the compile-time CLI name", async () => {
   expect(stderr).toContain("1 pass")
 })
 
-if (typeof OPENCODE_CLI_NAME === "string" && OPENCODE_CLI_NAME === "closecode2-node") {
+if (typeof OPENCODE_CLI_NAME === "string" && OPENCODE_CLI_NAME === "closecode-node") {
   it.live("Node distribution resolves the published npm package", () =>
     Effect.gen(function* () {
       const test = yield* fixture(

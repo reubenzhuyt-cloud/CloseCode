@@ -23,9 +23,6 @@ const outdir = path.join(root, `aur-${name}`)
 const dryRun = process.argv.includes("--dry-run")
 const pkgver = Script.version.replaceAll("-", ".")
 const license = Bun.file(path.join(dir, "..", "..", "LICENSE"))
-const shim = `#!/bin/sh
-exec "$(dirname "$0")/closecode" "$@"
-`
 
 await rm(outdir, { recursive: true, force: true })
 await mkdir(path.dirname(outdir), { recursive: true })
@@ -52,7 +49,6 @@ const sources = await Promise.all(
 )
 
 await Bun.write(path.join(outdir, "LICENSE"), license)
-await Bun.write(path.join(outdir, "opencode2"), shim)
 await Bun.write(
   path.join(outdir, "PKGBUILD"),
   [
@@ -65,17 +61,16 @@ await Bun.write(
     "arch=('x86_64' 'aarch64')",
     "license=('MIT')",
     "depends=('glibc' 'gcc-libs' 'ripgrep')",
-    `provides=('${command}' 'opencode2')`,
-    `conflicts=('${command}' 'opencode2')`,
+    `provides=('${command}')`,
+    `conflicts=('${command}')`,
     // Stripping a compiled Bun executable can damage its embedded application.
     "options=('!strip' '!debug')",
-    "source=('LICENSE' 'opencode2')",
-    `sha256sums=('${new Bun.CryptoHasher("sha256").update(await license.arrayBuffer()).digest("hex")}' '${new Bun.CryptoHasher("sha256").update(shim).digest("hex")}')`,
+    "source=('LICENSE')",
+    `sha256sums=('${new Bun.CryptoHasher("sha256").update(await license.arrayBuffer()).digest("hex")}')`,
     ...sources,
     "",
     "package() {",
     `  install -Dm755 "$srcdir/package/bin/closecode" "$pkgdir/usr/bin/${command}"`,
-    '  install -Dm755 "$srcdir/opencode2" "$pkgdir/usr/bin/opencode2"',
     '  install -Dm644 "$srcdir/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"',
     "}",
     "",
@@ -85,7 +80,7 @@ await Bun.write(path.join(outdir, ".SRCINFO"), await $`makepkg --printsrcinfo`.c
 console.log(`Prepared ${name} ${pkgver} in ${outdir}`)
 if (dryRun) process.exit(0)
 
-await $`git add PKGBUILD .SRCINFO LICENSE opencode2`.cwd(outdir)
+await $`git add PKGBUILD .SRCINFO LICENSE`.cwd(outdir)
 if ((await $`git diff --cached --quiet`.cwd(outdir).nothrow()).exitCode !== 0) {
   await $`git commit -m ${`chore: update ${name} to ${pkgver}`}`.cwd(outdir)
   await $`git push origin master`.cwd(outdir)

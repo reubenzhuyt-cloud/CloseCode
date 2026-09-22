@@ -30,7 +30,6 @@ async function publishDistribution(input: {
   root: string
   name: string
   command: string
-  legacyCommand?: string
   binary: string
   packagePrefix: string
   artifact: string
@@ -66,7 +65,6 @@ async function publishDistribution(input: {
         name: input.name,
         bin: {
           [input.command]: `./bin/${input.command}.exe`,
-          ...(input.legacyCommand ? { [input.legacyCommand]: `./bin/${input.command}.exe` } : {}),
         },
         ...(input.command !== input.binary ? { opencodeSourceBinary: input.binary } : {}),
         scripts: { postinstall: "node ./postinstall.mjs" },
@@ -127,7 +125,6 @@ await publishDistribution({
   root,
   name: pkg.name,
   command: "closecode",
-  legacyCommand: "opencode2",
   binary: "closecode",
   packagePrefix: "@opencode/cli-",
   artifact: "cli",
@@ -136,8 +133,8 @@ if (Script.channel !== "latest" && existsSync(path.join(root, "node"))) {
   await publishDistribution({
     root: path.join(root, "node"),
     name: "@opencode/cli-node",
-    command: "closecode2-node",
-    binary: "closecode2-node",
+    command: "closecode-node",
+    binary: "closecode-node",
     packagePrefix: "@opencode/cli-node-",
     artifact: "cli-node",
   })

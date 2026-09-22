@@ -353,36 +353,12 @@ install_from_binary() {
     chmod 755 "$INSTALL_DIR/$installed_binary"
 }
 
-install_legacy_shim() {
-    local shim_os="${os:-}"
-    if [[ -z "$shim_os" ]]; then
-        case "$(uname -s)" in
-            MINGW*|MSYS*|CYGWIN*) shim_os="windows" ;;
-        esac
-    fi
-    rm -f "$INSTALL_DIR/opencode2" "$INSTALL_DIR/opencode2.exe" "$INSTALL_DIR/opencode2.cmd"
-    if [[ "$shim_os" == "windows" ]]; then
-        cat > "$INSTALL_DIR/opencode2.cmd" <<'EOF'
-@echo off
-"%~dp0closecode.exe" %*
-exit /b %errorlevel%
-EOF
-        return
-    fi
-    cat > "$INSTALL_DIR/opencode2" <<'EOF'
-#!/bin/sh
-exec "$(dirname "$0")/closecode" "$@"
-EOF
-    chmod 755 "$INSTALL_DIR/opencode2"
-}
-
 if [ -n "$binary_path" ]; then
     install_from_binary
 else
     check_version
     download_and_install
 fi
-install_legacy_shim
 
 
 add_to_path() {

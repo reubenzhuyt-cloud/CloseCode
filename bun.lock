@@ -113,7 +113,7 @@
       "name": "@opencode/cli",
       "version": "0.2.0",
       "bin": {
-        "opencode2": "./bin/opencode2.cjs",
+        "closecode": "./bin/closecode.cjs",
       },
       "dependencies": {
         "@agentclientprotocol/sdk": "1.2.1",
