@@ -48,9 +48,9 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Install OpenCode
+      - name: Install CloseCode
         if: steps.changes.outputs.has_changes == 'true'
-        run: curl -fsSL https://opencode.ai/install | bash
+        run: curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
 
       - name: Sync locale docs with OpenCode
         if: steps.changes.outputs.has_changes == 'true'
@@ -67,7 +67,7 @@ jobs:
               }
             }
         run: |
-          opencode run --agent docs --model opencode/gpt-5.3-codex <<'EOF'
+          closecode run --agent docs --model opencode/gpt-5.3-codex <<'EOF'
             Update localized docs to match the latest English docs changes.
 
             Changed English doc files:

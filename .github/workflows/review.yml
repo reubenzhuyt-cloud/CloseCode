@@ -31,8 +31,8 @@ jobs:
 
       - uses: ./.github/actions/setup-bun
 
-      - name: Install opencode
-        run: curl -fsSL https://opencode.ai/install | bash
+      - name: Install CloseCode
+        run: curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
 
       - name: Get PR details
         id: pr-details
@@ -51,7 +51,7 @@ jobs:
           PR_TITLE: ${{ steps.pr-details.outputs.title }}
         run: |
           PR_BODY=$(jq -r .body pr_data.json)
-          opencode run -m opencode/gpt-5.5 --variant medium "A new pull request has been created: '${PR_TITLE}'
+          closecode run -m opencode/gpt-5.5#medium "A new pull request has been created: '${PR_TITLE}'
 
           <pr-number>
           ${{ steps.pr-number.outputs.number }}

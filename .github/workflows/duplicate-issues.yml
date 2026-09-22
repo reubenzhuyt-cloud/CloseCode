@@ -36,9 +36,9 @@ jobs:
       - uses: ./.github/actions/setup-bun
         if: steps.author.outputs.skip != 'true'
 
-      - name: Install opencode
+      - name: Install CloseCode
         if: steps.author.outputs.skip != 'true'
-        run: curl -fsSL https://opencode.ai/install | bash
+        run: curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
 
       - name: Check duplicates and compliance
         if: steps.author.outputs.skip != 'true'
@@ -54,7 +54,7 @@ jobs:
               "webfetch": "deny"
             }
         run: |
-          opencode run -m opencode/claude-sonnet-4-6 "A new issue has been created:
+          closecode run -m opencode/claude-sonnet-4-6 "A new issue has been created:
 
           Issue number: ${{ github.event.issue.number }}
           Issue author association: ${{ github.event.issue.author_association }}
@@ -170,9 +170,9 @@ jobs:
       - uses: ./.github/actions/setup-bun
         if: steps.author.outputs.skip != 'true'
 
-      - name: Install opencode
+      - name: Install CloseCode
         if: steps.author.outputs.skip != 'true'
-        run: curl -fsSL https://opencode.ai/install | bash
+        run: curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
 
       - name: Recheck compliance
         if: steps.author.outputs.skip != 'true'
@@ -188,7 +188,7 @@ jobs:
               "webfetch": "deny"
             }
         run: |
-          opencode run -m opencode/claude-sonnet-4-6 "Issue #${{ github.event.issue.number }} was previously flagged as non-compliant and has been edited.
+          closecode run -m opencode/claude-sonnet-4-6 "Issue #${{ github.event.issue.number }} was previously flagged as non-compliant and has been edited.
           Issue author association: ${{ github.event.issue.author_association }}
 
           Lookup this issue with gh issue view ${{ github.event.issue.number }}.

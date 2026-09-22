@@ -35,9 +35,9 @@ jobs:
         if: steps.team-check.outputs.is_team != 'true'
         run: bun install
 
-      - name: Install opencode
+      - name: Install CloseCode
         if: steps.team-check.outputs.is_team != 'true'
-        run: curl -fsSL https://opencode.ai/install | bash
+        run: curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
 
       - name: Build prompt
         if: steps.team-check.outputs.is_team != 'true'

@@ -67,7 +67,7 @@ export default function Home() {
               <span>
                 <span>curl -fsSL </span>
                 <span data-slot="protocol">https://</span>
-                <span data-slot="highlight">opencode.ai/install</span>
+                <span data-slot="highlight">raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install</span>
                 <span> | bash</span>
               </span>
               <CopyStatus />
@@ -113,7 +113,7 @@ export default function Home() {
             <h3 data-component="title">npm</h3>
             <button data-copy data-slot="button">
               <span>
-                npm install -g <strong>opencode-ai</strong>
+                npm install -g <strong>closecode-ai</strong>
               </span>
               <CopyStatus />
             </button>
@@ -122,29 +122,32 @@ export default function Home() {
             <h3 data-component="title">bun</h3>
             <button data-copy data-slot="button">
               <span>
-                bun install -g <strong>opencode-ai</strong>
+                bun install -g <strong>closecode-ai</strong>
               </span>
               <CopyStatus />
             </button>
           </div>
           <div data-component="method">
-            <h3 data-component="title">homebrew</h3>
+            <h3 data-component="title">windows</h3>
             <button data-copy data-slot="button">
               <span>
-                brew install <strong>opencode</strong>
+                .\script\<strong>install-closecode.ps1</strong>
               </span>
               <CopyStatus />
             </button>
           </div>
           <div data-component="method">
-            <h3 data-component="title">paru</h3>
+            <h3 data-component="title">unix</h3>
             <button data-copy data-slot="button">
               <span>
-                paru -S <strong>opencode-bin</strong>
+                ./<strong>install</strong>
               </span>
               <CopyStatus />
             </button>
           </div>
+          <p data-slot="installation-options">
+            Homebrew, Scoop, Chocolatey, Nix, Arch (AUR) and mise packages are not published for CloseCode yet.
+          </p>
         </section>
 
         <section data-component="screenshots">
@@ -161,7 +164,7 @@ export default function Home() {
             <a href="https://x.com/opencode">{i18n.t("footer.x")}</a>
           </div>
           <div data-slot="cell">
-            <a href="https://github.com/anomalyco/opencode">{i18n.t("footer.github")}</a>
+            <a href="https://github.com/reubenzhuyt-cloud/CloseCode">{i18n.t("footer.github")}</a>
           </div>
           <div data-slot="cell">
             <a href="https://opencode.ai/discord">{i18n.t("footer.discord")}</a>

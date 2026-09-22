@@ -7,7 +7,7 @@ export const config = {
 
   // GitHub
   github: {
-    repoUrl: "https://github.com/anomalyco/opencode",
+    repoUrl: "https://github.com/reubenzhuyt-cloud/CloseCode",
     starsFormatted: {
       compact: "205K",
       full: "205,000",

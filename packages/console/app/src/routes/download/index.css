@@ -512,6 +512,12 @@
     }
   }
 
+  [data-component="cli-note"] {
+    margin: 0.75rem 0 0;
+    font-size: 0.875rem;
+    color: var(--color-text-weaker);
+  }
+
   /* Download Rows */
   [data-component="download-row"] {
     display: flex;
