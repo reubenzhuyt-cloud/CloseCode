@@ -34,99 +34,19 @@ export const console = config.console
 CloseCode를 설치하는 가장 쉬운 방법은 설치 스크립트를 사용하는 것입니다.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+# Install from a clone (CloseCode is not published to npm, Homebrew, or GitHub Releases yet)
+
+# Windows — one-click build + install (overwrites an existing closecode install)
+.\script\install-closecode.ps1
+
+# macOS / Linux — build for this machine, then install the local binary
+bun run --cwd packages/cli build --single
+./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
 ```
-
-다음 명령으로도 설치할 수 있습니다.
-
-- **Node.js 사용**
-
-        <Tabs>
-
-      <TabItem label="npm">
-      ```bash
-      npm install -g opencode-ai
-      ```
-
-          </TabItem>
-
-        <TabItem label="Bun">
-        ```bash
-        bun install -g opencode-ai
-        ```
-
-          </TabItem>
-
-        <TabItem label="pnpm">
-        ```bash
-        pnpm install -g opencode-ai
-        ```
-
-          </TabItem>
-
-        <TabItem label="Yarn">
-        ```bash
-        yarn global add opencode-ai
-        ```
-
-      </TabItem>
-
-  </Tabs>
-
-- **macOS/Linux에서 Homebrew 사용**
-
-  ```bash
-  brew install anomalyco/tap/opencode
-  ```
-
-  > 최신 릴리스를 사용하려면 CloseCode tap 사용을 권장합니다. 공식 `brew install closecode` formula는 Homebrew 팀이 관리하며 업데이트 주기가 더 깁니다.
-
-- **Arch Linux에 설치**
-
-  ```bash
-  sudo pacman -S opencode           # Arch Linux (Stable)
-  paru -S opencode-bin              # Arch Linux (Latest from AUR)
-  ```
-
-#### Windows
 
 :::tip[권장: WSL 사용]
 Windows에서는 [Windows Subsystem for Linux (WSL)](/docs/windows-wsl) 사용을 권장합니다. 성능이 더 좋고 CloseCode 기능과의 완전한 호환성을 제공합니다.
 :::
-
-- **Chocolatey 사용**
-
-  ```bash
-  choco install closecode
-  ```
-
-- **Scoop 사용**
-
-  ```bash
-  scoop install closecode
-  ```
-
-- **NPM 사용**
-
-  ```bash
-  npm install -g opencode-ai
-  ```
-
-- **Mise 사용**
-
-  ```bash
-  mise use -g github:reubenzhuyt-cloud/CloseCode
-  ```
-
-- **Docker 사용**
-
-  ```bash
-  docker run -it --rm ghcr.io/reubenzhuyt-cloud/closecode
-  ```
-
-현재 Windows에서 Bun을 사용한 CloseCode 설치 지원은 준비 중입니다.
-
-[Releases](https://github.com/reubenzhuyt-cloud/CloseCode/releases)에서 바이너리를 직접 받아 설치할 수도 있습니다.
 
 ---
 

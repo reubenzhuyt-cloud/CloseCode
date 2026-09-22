@@ -26,7 +26,10 @@ WSL 提供更出色的文件系统性能、完整的终端支持，以及与 Clo
    WSL 设置完成后，打开 WSL 终端，使用任一[安装方式](/docs/)安装 CloseCode。
 
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+   git clone https://github.com/reubenzhuyt-cloud/CloseCode
+   cd CloseCode
+   bun run --cwd packages/cli build --single
+   ./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
    ```
 
 3. **从 WSL 中使用 CloseCode**

@@ -28,11 +28,6 @@ const docsCliHref = getRelativeLocaleUrl(locale, "cli")
 const docsIdeHref = getRelativeLocaleUrl(locale, "ide")
 const docsGithubHref = getRelativeLocaleUrl(locale, "github")
 
-const command = "curl -fsSL"
-const protocol = "https://"
-const url = "raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install"
-const bash = "| bash"
-
 let darkImage: ImageMetadata | undefined;
 let lightImage: ImageMetadata | undefined;
 let rawHtml: string | undefined;
@@ -67,9 +62,9 @@ if (image) {
         <a href={docsHref}>{t('app.lander.cta.getStarted')}</a>
       </div>
       <div class="col2">
-      <button class="command" data-command={`${command} ${protocol}${url} ${bash}`}>
+      <button class="command" data-command="git clone https://github.com/reubenzhuyt-cloud/CloseCode">
           <code>
-            <span>{command}&nbsp;</span><span class="protocol">{protocol}</span><span class="highlight">{url}</span>&nbsp;{bash}
+            <span>git clone&nbsp;</span><span class="protocol">https://</span><span class="highlight">github.com/reubenzhuyt-cloud/CloseCode</span>
           </code>
           <span class="copy">
             <CopyIcon />
@@ -93,10 +88,10 @@ if (image) {
 
     <section class="alternatives">
       <div class="col1">
-        <h3>npm</h3>
-        <button class="command" data-command="npm install -g opencode-ai">
+        <h3>Clone</h3>
+        <button class="command" data-command="git clone https://github.com/reubenzhuyt-cloud/CloseCode">
           <code>
-            <span>npm install -g</span> <span class="highlight">opencode-ai</span>
+            <span>git clone </span> <span class="highlight">https://github.com/reubenzhuyt-cloud/CloseCode</span>
           </code>
           <span class="copy">
             <CopyIcon />
@@ -105,10 +100,10 @@ if (image) {
         </button>
       </div>
       <div class="col2">
-        <h3>Bun</h3>
-        <button class="command" data-command="bun install -g opencode-ai">
+        <h3>Build</h3>
+        <button class="command" data-command="bun run --cwd packages/cli build --single">
           <code>
-            <span>bun install -g</span> <span class="highlight">opencode-ai</span>
+            <span>bun run --cwd packages/cli build </span> <span class="highlight">--single</span>
           </code>
           <span class="copy">
             <CopyIcon />
@@ -117,10 +112,10 @@ if (image) {
         </button>
       </div>
       <div class="col3">
-        <h3>Homebrew</h3>
-        <button class="command" data-command="brew install opencode">
+        <h3>macOS / Linux</h3>
+        <button class="command" data-command="./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode">
           <code>
-            <span>brew install</span> <span class="highlight">opencode</span>
+            <span>./install --binary </span> <span class="highlight">packages/cli/dist/cli-&lt;os&gt;-&lt;arch&gt;/bin/closecode</span>
           </code>
           <span class="copy">
             <CopyIcon />
@@ -129,22 +124,10 @@ if (image) {
         </button>
       </div>
       <div class="col4">
-        <h3>Paru</h3>
-        <button class="command" data-command="paru -S opencode-bin">
+        <h3>Windows</h3>
+        <button class="command" data-command=".\script\install-closecode.ps1">
           <code>
-            <span>paru -S</span> <span class="highlight">opencode-bin</span>
-          </code>
-          <span class="copy">
-            <CopyIcon />
-            <CheckIcon />
-          </span>
-        </button>
-      </div>
-      <div class="col4">
-        <h3>Mise</h3>
-        <button class="command" data-command="mise use -g github:reubenzhuyt-cloud/CloseCode">
-          <code>
-            <span>mise use -g</span> <span class="highlight">github:reubenzhuyt-cloud/CloseCode</span>
+            <span class="highlight">.\script\install-closecode.ps1</span>
           </code>
           <span class="copy">
             <CopyIcon />

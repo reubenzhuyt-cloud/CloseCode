@@ -10,7 +10,6 @@
 <p align="center">Der Open-Source KI-Coding-Agent.</p>
 <p align="center">
   <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/closecode-ai"><img alt="npm" src="https://img.shields.io/npm/v/closecode-ai?style=flat-square" /></a>
   <a href="https://github.com/reubenzhuyt-cloud/CloseCode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/reubenzhuyt-cloud/CloseCode/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
@@ -46,17 +45,14 @@
 ### Installation
 
 ```bash
-# YOLO
-curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+# Install from a clone (CloseCode is not published to npm, Homebrew, or GitHub Releases yet)
 
-# Windows (Ein-Klick-Build + Installation aus einem Klon)
+# Windows — one-click build + install (overwrites an existing closecode install)
 .\script\install-closecode.ps1
 
-# macOS / Linux (aus einem Klon)
-./install
-
-# npm
-npm i -g closecode-ai
+# macOS / Linux — build for this machine, then install the local binary
+bun run --cwd packages/cli build --single
+./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
 ```
 
 > Homebrew-, Scoop-, Chocolatey-, Nix-, Arch (AUR)- und mise-Pakete sind noch nicht veröffentlicht.
@@ -74,21 +70,6 @@ CloseCode ist auch als Desktop-Anwendung verfügbar. Lade sie direkt von der [Re
 | macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
 | Windows               | `opencode-desktop-win-x64.exe`   |
 | Linux                 | `.deb`, `.rpm` oder AppImage       |
-
-#### Installationsverzeichnis
-
-Das Installationsskript beachtet die folgende Prioritätsreihenfolge für den Installationspfad:
-
-1. `$OPENCODE_INSTALL_DIR` - Benutzerdefiniertes Installationsverzeichnis
-2. `$XDG_BIN_DIR` - XDG Base Directory Specification-konformer Pfad
-3. `$HOME/bin` - Standard-Binärverzeichnis des Users (falls vorhanden oder erstellbar)
-4. `$HOME/.opencode/bin` - Standard-Fallback
-
-```bash
-# Beispiele
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-```
 
 ### Agents
 

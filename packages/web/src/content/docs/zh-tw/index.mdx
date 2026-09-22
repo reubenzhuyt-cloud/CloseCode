@@ -34,99 +34,19 @@ export const console = config.console
 安裝 CloseCode 最簡單的方法是透過安裝指令碼。
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+# Install from a clone (CloseCode is not published to npm, Homebrew, or GitHub Releases yet)
+
+# Windows — one-click build + install (overwrites an existing closecode install)
+.\script\install-closecode.ps1
+
+# macOS / Linux — build for this machine, then install the local binary
+bun run --cwd packages/cli build --single
+./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
 ```
-
-您也可以使用以下方式安裝：
-
-- **使用 Node.js**
-
-        <Tabs>
-
-      <TabItem label="npm">
-      ```bash
-      npm install -g opencode-ai
-      ```
-
-          </TabItem>
-
-        <TabItem label="Bun">
-        ```bash
-        bun install -g opencode-ai
-        ```
-
-          </TabItem>
-
-        <TabItem label="pnpm">
-        ```bash
-        pnpm install -g opencode-ai
-        ```
-
-          </TabItem>
-
-        <TabItem label="Yarn">
-        ```bash
-        yarn global add opencode-ai
-        ```
-
-      </TabItem>
-
-  </Tabs>
-
-- **在 macOS 和 Linux 上使用 Homebrew**
-
-  ```bash
-  brew install anomalyco/tap/opencode
-  ```
-
-  > 我們推薦使用 CloseCode tap 以取得最新版本。官方的 `brew install closecode` formula 由 Homebrew 團隊維護，更新頻率較低。
-
-- **在 Arch Linux 上安裝**
-
-  ```bash
-  sudo pacman -S opencode           # Arch Linux (Stable)
-  paru -S opencode-bin              # Arch Linux (Latest from AUR)
-  ```
-
-#### Windows
 
 :::tip[推薦：使用 WSL]
 為了在 Windows 上獲得最佳體驗，我們推薦使用 [Windows Subsystem for Linux (WSL)](/docs/windows-wsl)。它提供更好的效能，並完全相容 CloseCode 的所有功能。
 :::
-
-- **使用 Chocolatey**
-
-  ```bash
-  choco install closecode
-  ```
-
-- **使用 Scoop**
-
-  ```bash
-  scoop install closecode
-  ```
-
-- **使用 NPM**
-
-  ```bash
-  npm install -g opencode-ai
-  ```
-
-- **使用 Mise**
-
-  ```bash
-  mise use -g github:reubenzhuyt-cloud/CloseCode
-  ```
-
-- **使用 Docker**
-
-  ```bash
-  docker run -it --rm ghcr.io/reubenzhuyt-cloud/closecode
-  ```
-
-在 Windows 上透過 Bun 安裝 CloseCode 的支援目前正在開發中。
-
-您也可以從 [Releases](https://github.com/reubenzhuyt-cloud/CloseCode/releases) 頁面直接下載二進位檔案。
 
 ---
 

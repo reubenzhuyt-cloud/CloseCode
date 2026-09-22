@@ -11,26 +11,16 @@ CloseCode is an open source AI coding agent. It’s available as a terminal-base
   id="install"
   label="Install method"
   tabs={[
-    { label: "curl", code: "curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash" },
     { label: "windows", code: ".\\script\\install-closecode.ps1" },
-    { label: "macos / linux", code: "./install" },
-    { label: "npm", code: "npm i -g closecode-ai" },
+    { label: "macos / linux", code: "bun run --cwd packages/cli build --single\n./install --binary packages/cli/dist/cli-<os>-<arch>/bin/closecode" },
   ]}
 />
 
-The Windows and macOS/Linux commands run from a clone of the [CloseCode repository](https://github.com/reubenzhuyt-cloud/CloseCode). The npm package uses a postinstall script to select the native `closecode` binary for your platform.
+The Windows and macOS/Linux commands run from a clone of the [CloseCode repository](https://github.com/reubenzhuyt-cloud/CloseCode). CloseCode is not published to npm, Homebrew, or GitHub Releases yet.
 
 Homebrew, Scoop, Chocolatey, Nix, Arch (AUR) and mise packages are not published yet.
 
 Windows package managers are not supported.
-
-
-Download a standalone CLI binary for your platform from the [releases page](https://github.com/reubenzhuyt-cloud/CloseCode/releases).
-
-- **macOS:** [Apple silicon](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [Intel](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [Intel (baseline)](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
-- **Windows:** [ARM64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64 (baseline)](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
-- **Linux (glibc):** [ARM64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64 (baseline)](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
-- **Linux (musl):** [ARM64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64 (baseline)](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
 
 ## Desktop
 

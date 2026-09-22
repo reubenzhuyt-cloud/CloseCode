@@ -34,99 +34,19 @@ For å bruke CloseCode i terminalen din trenger du:
 Den enkleste måten å installere CloseCode på er gjennom installasjonsskriptet.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+# Install from a clone (CloseCode is not published to npm, Homebrew, or GitHub Releases yet)
+
+# Windows — one-click build + install (overwrites an existing closecode install)
+.\script\install-closecode.ps1
+
+# macOS / Linux — build for this machine, then install the local binary
+bun run --cwd packages/cli build --single
+./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
 ```
-
-Du kan også installere den med følgende kommandoer:
-
-- **Bruke Node.js**
-
-        <Tabs>
-
-      <TabItem label="npm">
-      ```bash
-      npm install -g opencode-ai
-      ```
-
-          </TabItem>
-
-        <TabItem label="Bun">
-        ```bash
-        bun install -g opencode-ai
-        ```
-
-          </TabItem>
-
-        <TabItem label="pnpm">
-        ```bash
-        pnpm install -g opencode-ai
-        ```
-
-          </TabItem>
-
-        <TabItem label="Yarn">
-        ```bash
-        yarn global add opencode-ai
-        ```
-
-      </TabItem>
-
-  </Tabs>
-
-- **Bruke Homebrew på macOS og Linux**
-
-  ```bash
-  brew install anomalyco/tap/opencode
-  ```
-
-  > Vi anbefaler å bruke CloseCode-tappen for de mest oppdaterte utgivelsene. Den offisielle `brew install closecode`-formelen vedlikeholdes av Homebrew-teamet og oppdateres sjeldnere.
-
-- **Bruke Paru på Arch Linux**
-
-  ```bash
-  sudo pacman -S opencode           # Arch Linux (Stable)
-  paru -S opencode-bin              # Arch Linux (Latest from AUR)
-  ```
-
-#### Windows
 
 :::tip[Anbefalt: Bruk WSL]
 For den beste opplevelsen på Windows anbefaler vi å bruke [Windows Subsystem for Linux (WSL)](/docs/windows-wsl). Det gir bedre ytelse og full kompatibilitet med funksjonene i CloseCode.
 :::
-
-- **Bruke Chocolatey**
-
-  ```bash
-  choco install closecode
-  ```
-
-- **Bruke Scoop**
-
-  ```bash
-  scoop install closecode
-  ```
-
-- **Bruke npm**
-
-  ```bash
-  npm install -g opencode-ai
-  ```
-
-- **Bruke Mise**
-
-  ```bash
-  mise use -g github:reubenzhuyt-cloud/CloseCode
-  ```
-
-- **Bruke Docker**
-
-  ```bash
-  docker run -it --rm ghcr.io/reubenzhuyt-cloud/closecode
-  ```
-
-Støtte for installasjon av CloseCode på Windows med Bun er under arbeid.
-
-Du kan også hente binæren fra [Releases](https://github.com/reubenzhuyt-cloud/CloseCode/releases).
 
 ---
 

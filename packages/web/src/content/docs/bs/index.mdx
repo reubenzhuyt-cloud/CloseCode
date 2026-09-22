@@ -31,98 +31,19 @@ Da biste koristili CloseCode u svom terminalu, trebat će vam:
 Najlakši način za instaliranje CloseCode je putem instalacijske skripte.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+# Install from a clone (CloseCode is not published to npm, Homebrew, or GitHub Releases yet)
+
+# Windows — one-click build + install (overwrites an existing closecode install)
+.\script\install-closecode.ps1
+
+# macOS / Linux — build for this machine, then install the local binary
+bun run --cwd packages/cli build --single
+./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
 ```
-
-Također ga možete instalirati pomoću sljedećih naredbi:
-
-- **Korištenje Node.js**
-
-        <Tabs>
-
-      <TabItem label="npm">
-      ```bash
-      npm install -g opencode-ai
-      ```
-
-          </TabItem>
-
-        <TabItem label="Bun">
-        ```bash
-        bun install -g opencode-ai
-        ```
-
-          </TabItem>
-
-        <TabItem label="pnpm">
-        ```bash
-        pnpm install -g opencode-ai
-        ```
-
-          </TabItem>
-
-        <TabItem label="Yarn">
-        ```bash
-        yarn global add opencode-ai
-        ```
-
-      </TabItem>
-
-  </Tabs>
-
-- **Korištenje Homebrew-a na macOS-u i Linux-u**
-
-```bash
-  brew install anomalyco/tap/opencode
-```
-
-> Preporučujemo korištenje CloseCode tap za najnovija izdanja. Službenu formulu `brew install closecode` održava Homebrew tim i ažurira se rjeđe.
-
-- **Korištenje Parua na Arch Linuxu**
-
-  ```bash
-  sudo pacman -S opencode           # Arch Linux (Stable)
-  paru -S opencode-bin              # Arch Linux (Latest from AUR)
-  ```
-
-#### Windows
 
 :::tip[Preporučeno: Koristite WSL]
 Za najbolje iskustvo na Windows-u preporučujemo korištenje [Windows Subsystem for Linux (WSL)](/docs/windows-wsl). Pruža bolje performanse i potpunu kompatibilnost sa CloseCode funkcijama.
 :::
-
-- **Korištenje Chocolatey-a**
-
-```bash
-  choco install closecode
-```
-
-- **Korištenje Scoop-a**
-
-```bash
-  scoop install closecode
-```
-
-- **Korištenje NPM-a**
-
-```bash
-  npm install -g opencode-ai
-```
-
-- **Korištenje Mise**
-
-```bash
-  mise use -g github:reubenzhuyt-cloud/CloseCode
-```
-
-- **Korištenje Dockera**
-
-```bash
-  docker run -it --rm ghcr.io/reubenzhuyt-cloud/closecode
-```
-
-Podrška za instaliranje CloseCode na Windows koristeći Bun je trenutno u toku.
-Također možete preuzeti binarnu datoteku iz [Releases](https://github.com/reubenzhuyt-cloud/CloseCode/releases).
 
 ---
 

@@ -31,8 +31,15 @@ jobs:
 
       - uses: ./.github/actions/setup-bun
 
-      - name: Install CloseCode
-        run: curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+      - name: Build CloseCode CLI
+        run: |
+          bun run --cwd packages/cli build --single --skip-web-ui
+          case "$(uname -m)" in
+            x86_64) arch=x64 ;;
+            aarch64|arm64) arch=arm64 ;;
+            *) echo "Unsupported architecture: $(uname -m)"; exit 1 ;;
+          esac
+          echo "$PWD/packages/cli/dist/cli-linux-$arch/bin" >> $GITHUB_PATH
 
       - name: Get PR details
         id: pr-details

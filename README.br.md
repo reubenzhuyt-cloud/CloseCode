@@ -10,7 +10,6 @@
 <p align="center">O agente de programação com IA de código aberto.</p>
 <p align="center">
   <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/closecode-ai"><img alt="npm" src="https://img.shields.io/npm/v/closecode-ai?style=flat-square" /></a>
   <a href="https://github.com/reubenzhuyt-cloud/CloseCode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/reubenzhuyt-cloud/CloseCode/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
@@ -46,17 +45,14 @@
 ### Instalação
 
 ```bash
-# YOLO
-curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+# Install from a clone (CloseCode is not published to npm, Homebrew, or GitHub Releases yet)
 
-# Windows (compilação e instalação com um clique a partir de um clone)
+# Windows — one-click build + install (overwrites an existing closecode install)
 .\script\install-closecode.ps1
 
-# macOS / Linux (a partir de um clone)
-./install
-
-# npm
-npm i -g closecode-ai
+# macOS / Linux — build for this machine, then install the local binary
+bun run --cwd packages/cli build --single
+./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
 ```
 
 > Os pacotes Homebrew, Scoop, Chocolatey, Nix, Arch (AUR) e mise ainda não foram publicados.
@@ -74,21 +70,6 @@ O CloseCode também está disponível como aplicativo desktop. Baixe diretamente
 | macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
 | Windows               | `opencode-desktop-win-x64.exe`   |
 | Linux                 | `.deb`, `.rpm` ou AppImage         |
-
-#### Diretório de instalação
-
-O script de instalação respeita a seguinte ordem de prioridade para o caminho de instalação:
-
-1. `$OPENCODE_INSTALL_DIR` - Diretório de instalação personalizado
-2. `$XDG_BIN_DIR` - Caminho compatível com a especificação XDG Base Directory
-3. `$HOME/bin` - Diretório binário padrão do usuário (se existir ou puder ser criado)
-4. `$HOME/.opencode/bin` - Fallback padrão
-
-```bash
-# Exemplos
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-```
 
 ### Agents
 

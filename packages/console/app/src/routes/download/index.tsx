@@ -120,25 +120,19 @@ export default function Download() {
             <div data-component="section-content">
               <button
                 data-component="cli-row"
-                onClick={handleCopyClick(
-                  "curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash",
-                )}
+                onClick={handleCopyClick("git clone https://github.com/reubenzhuyt-cloud/CloseCode")}
               >
                 <code>
-                  curl -fsSL https://<strong>raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install</strong> |
-                  bash
+                  git clone <strong>https://github.com/reubenzhuyt-cloud/CloseCode</strong>
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("npm i -g closecode-ai")}>
+              <button
+                data-component="cli-row"
+                onClick={handleCopyClick("bun run --cwd packages/cli build --single")}
+              >
                 <code>
-                  npm i -g <strong>closecode-ai</strong>
-                </code>
-                <CopyStatus />
-              </button>
-              <button data-component="cli-row" onClick={handleCopyClick("bun add -g closecode-ai")}>
-                <code>
-                  bun add -g <strong>closecode-ai</strong>
+                  bun run <strong>--cwd packages/cli build --single</strong>
                 </code>
                 <CopyStatus />
               </button>
@@ -148,14 +142,21 @@ export default function Download() {
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("./install")}>
+              <button
+                data-component="cli-row"
+                onClick={handleCopyClick(
+                  "./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode",
+                )}
+              >
                 <code>
-                  ./<strong>install</strong>
+                  ./install --binary{" "}
+                  <strong>packages/cli/dist/cli-&lt;os&gt;-&lt;arch&gt;/bin/closecode</strong>
                 </code>
                 <CopyStatus />
               </button>
               <p data-component="cli-note">
-                Homebrew, Scoop, Chocolatey, Nix, Arch (AUR) and mise packages are not published for CloseCode yet.
+                CloseCode is not published to npm, Homebrew, Scoop, Chocolatey, Nix, Arch (AUR), mise, or GitHub Releases
+                yet; build it from a clone.
               </p>
             </div>
           </section>

@@ -4,7 +4,7 @@ A Visual Studio Code extension that integrates [opencode](https://opencode.ai) d
 
 ## Prerequisites
 
-This extension requires the [opencode CLI](https://opencode.ai) to be installed on your system. Visit [opencode.ai](https://opencode.ai) for installation instructions.
+This extension requires the [CloseCode CLI](https://github.com/reubenzhuyt-cloud/CloseCode) to be installed on your system. CloseCode is not published to npm, Homebrew, or GitHub Releases yet, so build it from a clone: run `.\script\install-closecode.ps1` on Windows, or `bun run --cwd packages/cli build --single` followed by `./install --binary packages/cli/dist/cli-<os>-<arch>/bin/closecode` on macOS and Linux.
 
 ## Features
 

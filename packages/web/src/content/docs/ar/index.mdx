@@ -34,99 +34,19 @@ export const console = config.console
 أسهل طريقة لتثبيت CloseCode هي عبر سكربت التثبيت.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+# Install from a clone (CloseCode is not published to npm, Homebrew, or GitHub Releases yet)
+
+# Windows — one-click build + install (overwrites an existing closecode install)
+.\script\install-closecode.ps1
+
+# macOS / Linux — build for this machine, then install the local binary
+bun run --cwd packages/cli build --single
+./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
 ```
-
-يمكنك أيضا تثبيته عبر الأوامر التالية:
-
-- **باستخدام Node.js**
-
-        <Tabs>
-
-      <TabItem label="npm">
-      ```bash
-      npm install -g opencode-ai
-      ```
-
-          </TabItem>
-
-        <TabItem label="Bun">
-        ```bash
-        bun install -g opencode-ai
-        ```
-
-          </TabItem>
-
-        <TabItem label="pnpm">
-        ```bash
-        pnpm install -g opencode-ai
-        ```
-
-          </TabItem>
-
-        <TabItem label="Yarn">
-        ```bash
-        yarn global add opencode-ai
-        ```
-
-      </TabItem>
-
-  </Tabs>
-
-- **باستخدام Homebrew على macOS وLinux**
-
-  ```bash
-  brew install anomalyco/tap/opencode
-  ```
-
-  > نوصي باستخدام tap الخاص بـ CloseCode للحصول على أحدث الإصدارات. صيغة `brew install closecode` الرسمية تُدار بواسطة فريق Homebrew ويتم تحديثها بوتيرة أقل.
-
-- **باستخدام Paru على Arch Linux**
-
-  ```bash
-  sudo pacman -S opencode           # Arch Linux (Stable)
-  paru -S opencode-bin              # Arch Linux (Latest from AUR)
-  ```
-
-#### Windows
 
 :::tip[موصى به: استخدم WSL]
 لأفضل تجربة على Windows، نوصي باستخدام [Windows Subsystem for Linux (WSL)](/docs/windows-wsl). يوفر أداء أفضل وتوافقا كاملا مع ميزات CloseCode.
 :::
-
-- **باستخدام Chocolatey**
-
-  ```bash
-  choco install closecode
-  ```
-
-- **باستخدام Scoop**
-
-  ```bash
-  scoop install closecode
-  ```
-
-- **باستخدام NPM**
-
-  ```bash
-  npm install -g opencode-ai
-  ```
-
-- **باستخدام Mise**
-
-  ```bash
-  mise use -g github:reubenzhuyt-cloud/CloseCode
-  ```
-
-- **باستخدام Docker**
-
-  ```bash
-  docker run -it --rm ghcr.io/reubenzhuyt-cloud/closecode
-  ```
-
-دعم تثبيت CloseCode على Windows باستخدام Bun قيد العمل حاليا.
-
-يمكنك أيضا تنزيل الملف التنفيذي من صفحة [Releases](https://github.com/reubenzhuyt-cloud/CloseCode/releases).
 
 ---
 

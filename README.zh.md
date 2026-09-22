@@ -10,7 +10,6 @@
 <p align="center">开源的 AI Coding Agent。</p>
 <p align="center">
   <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/closecode-ai"><img alt="npm" src="https://img.shields.io/npm/v/closecode-ai?style=flat-square" /></a>
   <a href="https://github.com/reubenzhuyt-cloud/CloseCode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/reubenzhuyt-cloud/CloseCode/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
@@ -46,17 +45,14 @@
 ### 安装
 
 ```bash
-# 直接安装 (YOLO)
-curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+# Install from a clone (CloseCode is not published to npm, Homebrew, or GitHub Releases yet)
 
-# Windows（从克隆一键构建并安装）
+# Windows — one-click build + install (overwrites an existing closecode install)
 .\script\install-closecode.ps1
 
-# macOS / Linux（从克隆）
-./install
-
-# npm
-npm i -g closecode-ai
+# macOS / Linux — build for this machine, then install the local binary
+bun run --cwd packages/cli build --single
+./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
 ```
 
 > Homebrew、Scoop、Chocolatey、Nix、Arch (AUR) 和 mise 软件包尚未发布。
@@ -74,21 +70,6 @@ CloseCode 也提供桌面版应用。可直接从 [发布页 (releases page)](ht
 | macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
 | Windows               | `opencode-desktop-win-x64.exe`   |
 | Linux                 | `.deb`、`.rpm` 或 AppImage         |
-
-#### 安装目录
-
-安装脚本按照以下优先级决定安装路径：
-
-1. `$OPENCODE_INSTALL_DIR` - 自定义安装目录
-2. `$XDG_BIN_DIR` - 符合 XDG 基础目录规范的路径
-3. `$HOME/bin` - 如果存在或可创建的用户二进制目录
-4. `$HOME/.opencode/bin` - 默认备用路径
-
-```bash
-# 示例
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-```
 
 ### Agents
 

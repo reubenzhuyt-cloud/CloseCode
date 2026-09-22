@@ -10,7 +10,6 @@
 <p align="center">AI-агент для програмування з відкритим кодом.</p>
 <p align="center">
   <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/closecode-ai"><img alt="npm" src="https://img.shields.io/npm/v/closecode-ai?style=flat-square" /></a>
   <a href="https://github.com/reubenzhuyt-cloud/CloseCode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/reubenzhuyt-cloud/CloseCode/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
@@ -46,17 +45,14 @@
 ### Встановлення
 
 ```bash
-# YOLO
-curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+# Install from a clone (CloseCode is not published to npm, Homebrew, or GitHub Releases yet)
 
-# Windows (збірка та встановлення одним кліком із клону)
+# Windows — one-click build + install (overwrites an existing closecode install)
 .\script\install-closecode.ps1
 
-# macOS / Linux (із клону)
-./install
-
-# npm
-npm i -g closecode-ai
+# macOS / Linux — build for this machine, then install the local binary
+bun run --cwd packages/cli build --single
+./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
 ```
 
 > Пакунки Homebrew, Scoop, Chocolatey, Nix, Arch (AUR) і mise ще не опубліковано.
@@ -74,21 +70,6 @@ CloseCode також доступний як десктопний застосу
 | macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
 | Windows               | `opencode-desktop-win-x64.exe`   |
 | Linux                 | `.deb`, `.rpm` або AppImage        |
-
-#### Каталог встановлення
-
-Скрипт встановлення дотримується такого порядку пріоритету для шляху встановлення:
-
-1. `$OPENCODE_INSTALL_DIR` - Користувацький каталог встановлення
-2. `$XDG_BIN_DIR` - Шлях, сумісний зі специфікацією XDG Base Directory
-3. `$HOME/bin` - Стандартний каталог користувацьких бінарників (якщо існує або його можна створити)
-4. `$HOME/.opencode/bin` - Резервний варіант за замовчуванням
-
-```bash
-# Приклади
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-```
 
 ### Агенти
 

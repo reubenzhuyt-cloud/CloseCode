@@ -26,7 +26,10 @@ WSL offre de meilleures performances du système de fichiers, une prise en charg
    Une fois WSL configuré, ouvrez votre terminal WSL et installez CloseCode avec l'une des [méthodes d'installation](/docs/).
 
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+   git clone https://github.com/reubenzhuyt-cloud/CloseCode
+   cd CloseCode
+   bun run --cwd packages/cli build --single
+   ./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
    ```
 
 3. **Utilisez CloseCode depuis WSL**

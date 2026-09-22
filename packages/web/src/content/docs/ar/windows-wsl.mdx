@@ -26,7 +26,10 @@ import { Steps } from "@astrojs/starlight/components"
    بعد إعداد WSL، افتح terminal داخل WSL وثبّت CloseCode باستخدام إحدى [طرق التثبيت](/docs/).
 
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+   git clone https://github.com/reubenzhuyt-cloud/CloseCode
+   cd CloseCode
+   bun run --cwd packages/cli build --single
+   ./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
    ```
 
 3. **استخدم CloseCode من WSL**

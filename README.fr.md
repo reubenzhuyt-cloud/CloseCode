@@ -10,7 +10,6 @@
 <p align="center">L'agent de codage IA open source.</p>
 <p align="center">
   <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/closecode-ai"><img alt="npm" src="https://img.shields.io/npm/v/closecode-ai?style=flat-square" /></a>
   <a href="https://github.com/reubenzhuyt-cloud/CloseCode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/reubenzhuyt-cloud/CloseCode/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
@@ -46,17 +45,14 @@
 ### Installation
 
 ```bash
-# YOLO
-curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+# Install from a clone (CloseCode is not published to npm, Homebrew, or GitHub Releases yet)
 
-# Windows (compilation et installation en un clic depuis un clone)
+# Windows — one-click build + install (overwrites an existing closecode install)
 .\script\install-closecode.ps1
 
-# macOS / Linux (depuis un clone)
-./install
-
-# npm
-npm i -g closecode-ai
+# macOS / Linux — build for this machine, then install the local binary
+bun run --cwd packages/cli build --single
+./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
 ```
 
 > Les paquets Homebrew, Scoop, Chocolatey, Nix, Arch (AUR) et mise ne sont pas encore publiés.
@@ -74,21 +70,6 @@ CloseCode est aussi disponible en application de bureau. Téléchargez-la direct
 | macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
 | Windows               | `opencode-desktop-win-x64.exe`   |
 | Linux                 | `.deb`, `.rpm`, ou AppImage        |
-
-#### Répertoire d'installation
-
-Le script d'installation respecte l'ordre de priorité suivant pour le chemin d'installation :
-
-1. `$OPENCODE_INSTALL_DIR` - Répertoire d'installation personnalisé
-2. `$XDG_BIN_DIR` - Chemin conforme à la spécification XDG Base Directory
-3. `$HOME/bin` - Répertoire binaire utilisateur standard (s'il existe ou peut être créé)
-4. `$HOME/.opencode/bin` - Repli par défaut
-
-```bash
-# Exemples
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-```
 
 ### Agents
 

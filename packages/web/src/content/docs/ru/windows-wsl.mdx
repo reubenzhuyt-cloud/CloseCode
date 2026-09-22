@@ -26,7 +26,10 @@ WSL дает более высокую производительность фа
    После настройки WSL откройте терминал WSL и установите opencode одним из [способов установки](/docs/).
 
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+   git clone https://github.com/reubenzhuyt-cloud/CloseCode
+   cd CloseCode
+   bun run --cwd packages/cli build --single
+   ./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
    ```
 
 3. **Запускайте opencode из WSL**

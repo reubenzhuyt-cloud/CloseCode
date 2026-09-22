@@ -26,7 +26,10 @@ WSL を使うと、ファイルシステム性能、ターミナルサポート�
    WSL の準備ができたら WSL のターミナルを開き、[インストール方法](/docs/) のいずれかで CloseCode をインストールします。
 
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+   git clone https://github.com/reubenzhuyt-cloud/CloseCode
+   cd CloseCode
+   bun run --cwd packages/cli build --single
+   ./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
    ```
 
 3. **WSL から CloseCode を使う**

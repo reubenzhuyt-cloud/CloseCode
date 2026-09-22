@@ -10,7 +10,6 @@
 <p align="center">Trợ lý lập trình AI mã nguồn mở.</p>
 <p align="center">
   <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/closecode-ai"><img alt="npm" src="https://img.shields.io/npm/v/closecode-ai?style=flat-square" /></a>
   <a href="https://github.com/reubenzhuyt-cloud/CloseCode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/reubenzhuyt-cloud/CloseCode/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
@@ -46,17 +45,14 @@
 ### Cài đặt
 
 ```bash
-# YOLO
-curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+# Install from a clone (CloseCode is not published to npm, Homebrew, or GitHub Releases yet)
 
-# Windows (build + cài đặt bằng một cú nhấp từ bản clone)
+# Windows — one-click build + install (overwrites an existing closecode install)
 .\script\install-closecode.ps1
 
-# macOS / Linux (từ bản clone)
-./install
-
-# npm
-npm i -g closecode-ai
+# macOS / Linux — build for this machine, then install the local binary
+bun run --cwd packages/cli build --single
+./install --binary packages/cli/dist/cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/')/bin/closecode
 ```
 
 > Các gói Homebrew, Scoop, Chocolatey, Nix, Arch (AUR) và mise chưa được phát hành.
@@ -74,21 +70,6 @@ CloseCode cũng có sẵn dưới dạng ứng dụng desktop. Tải trực ti�
 | macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
 | Windows               | `opencode-desktop-win-x64.exe`   |
 | Linux                 | `.deb`, `.rpm`, hoặc AppImage      |
-
-#### Thư mục cài đặt
-
-Tập lệnh cài đặt tuân theo thứ tự ưu tiên sau cho đường dẫn cài đặt:
-
-1. `$OPENCODE_INSTALL_DIR` - Thư mục cài đặt tùy chỉnh
-2. `$XDG_BIN_DIR` - Đường dẫn tuân thủ XDG Base Directory Specification
-3. `$HOME/bin` - Thư mục nhị phân tiêu chuẩn của người dùng (nếu tồn tại hoặc có thể tạo)
-4. `$HOME/.opencode/bin` - Mặc định dự phòng
-
-```bash
-# Ví dụ
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
-```
 
 ### Agents (Đại diện)
 

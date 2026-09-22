@@ -48,9 +48,16 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Install CloseCode
+      - name: Build CloseCode CLI
         if: steps.changes.outputs.has_changes == 'true'
-        run: curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash
+        run: |
+          bun run --cwd packages/cli build --single --skip-web-ui
+          case "$(uname -m)" in
+            x86_64) arch=x64 ;;
+            aarch64|arm64) arch=arm64 ;;
+            *) echo "Unsupported architecture: $(uname -m)"; exit 1 ;;
+          esac
+          echo "$PWD/packages/cli/dist/cli-linux-$arch/bin" >> $GITHUB_PATH
 
       - name: Sync locale docs with OpenCode
         if: steps.changes.outputs.has_changes == 'true'

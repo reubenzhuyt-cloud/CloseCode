@@ -65,10 +65,8 @@ export default function Home() {
           <div data-slot="right">
             <button data-copy data-slot="command">
               <span>
-                <span>curl -fsSL </span>
-                <span data-slot="protocol">https://</span>
-                <span data-slot="highlight">raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install</span>
-                <span> | bash</span>
+                <span>git clone </span>
+                <span data-slot="highlight">https://github.com/reubenzhuyt-cloud/CloseCode</span>
               </span>
               <CopyStatus />
             </button>
@@ -110,19 +108,19 @@ export default function Home() {
 
         <section data-component="install">
           <div data-component="method">
-            <h3 data-component="title">npm</h3>
+            <h3 data-component="title">clone</h3>
             <button data-copy data-slot="button">
               <span>
-                npm install -g <strong>closecode-ai</strong>
+                git clone <strong>https://github.com/reubenzhuyt-cloud/CloseCode</strong>
               </span>
               <CopyStatus />
             </button>
           </div>
           <div data-component="method">
-            <h3 data-component="title">bun</h3>
+            <h3 data-component="title">build</h3>
             <button data-copy data-slot="button">
               <span>
-                bun install -g <strong>closecode-ai</strong>
+                bun run --cwd packages/cli build <strong>--single</strong>
               </span>
               <CopyStatus />
             </button>
@@ -140,13 +138,14 @@ export default function Home() {
             <h3 data-component="title">unix</h3>
             <button data-copy data-slot="button">
               <span>
-                ./<strong>install</strong>
+                ./install --binary <strong>packages/cli/dist/cli-&lt;os&gt;-&lt;arch&gt;/bin/closecode</strong>
               </span>
               <CopyStatus />
             </button>
           </div>
           <p data-slot="installation-options">
-            Homebrew, Scoop, Chocolatey, Nix, Arch (AUR) and mise packages are not published for CloseCode yet.
+            CloseCode is not published to npm, Homebrew, Scoop, Chocolatey, Nix, Arch (AUR), mise, or GitHub Releases
+            yet; build it from a clone.
           </p>
         </section>
 

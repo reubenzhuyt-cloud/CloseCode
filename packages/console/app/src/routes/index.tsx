@@ -88,18 +88,15 @@ export default function Home() {
                 aria-label={i18n.t("home.install.ariaLabel")}
                 class="tabs"
                 data-component="tabs"
-                data-active="curl"
-                defaultValue="curl"
+                data-active="clone"
+                defaultValue="clone"
               >
                 <Tabs.List data-slot="tablist">
-                  <Tabs.Trigger value="curl" data-slot="tab">
-                    curl
+                  <Tabs.Trigger value="clone" data-slot="tab">
+                    clone
                   </Tabs.Trigger>
-                  <Tabs.Trigger value="npm" data-slot="tab">
-                    npm
-                  </Tabs.Trigger>
-                  <Tabs.Trigger value="bun" data-slot="tab">
-                    bun
+                  <Tabs.Trigger value="build" data-slot="tab">
+                    build
                   </Tabs.Trigger>
                   <Tabs.Trigger value="windows" data-slot="tab">
                     windows
@@ -110,31 +107,20 @@ export default function Home() {
                   <Tabs.Indicator />
                 </Tabs.List>
                 <div data-slot="panels">
-                  <Tabs.Content as="pre" data-slot="panel" value="curl">
+                  <Tabs.Content as="pre" data-slot="panel" value="clone">
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span data-slot="command-script">
-                        <span>curl -fsSL </span>
-                        <span data-slot="protocol">https://</span>
-                        <span data-slot="highlight">raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install</span>
-                        <span> | bash</span>
+                        <span>git clone </span>
+                        <span data-slot="highlight">https://github.com/reubenzhuyt-cloud/CloseCode</span>
                       </span>
                       <CopyStatus />
                     </button>
                   </Tabs.Content>
-                  <Tabs.Content as="pre" data-slot="panel" value="npm">
+                  <Tabs.Content as="pre" data-slot="panel" value="build">
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
-                        <span data-slot="protocol">npm i -g </span>
-                        <span data-slot="highlight">closecode-ai</span>
-                      </span>
-                      <CopyStatus />
-                    </button>
-                  </Tabs.Content>
-                  <Tabs.Content as="pre" data-slot="panel" value="bun">
-                    <button data-copy data-slot="command" onClick={handleCopyClick}>
-                      <span>
-                        <span data-slot="protocol">bun add -g </span>
-                        <span data-slot="highlight">closecode-ai</span>
+                        <span>bun run --cwd packages/cli build </span>
+                        <span data-slot="highlight">--single</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -151,8 +137,8 @@ export default function Home() {
                   <Tabs.Content as="pre" data-slot="panel" value="unix">
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
-                        <span data-slot="protocol">./</span>
-                        <span data-slot="highlight">install</span>
+                        <span data-slot="protocol">./install --binary </span>
+                        <span data-slot="highlight">packages/cli/dist/cli-&lt;os&gt;-&lt;arch&gt;/bin/closecode</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -160,7 +146,8 @@ export default function Home() {
                 </div>
               </Tabs>
               <p data-slot="installation-options">
-                Homebrew, Scoop, Chocolatey, Nix, Arch (AUR) and mise packages are not published for CloseCode yet.
+                CloseCode is not published to npm, Homebrew, Scoop, Chocolatey, Nix, Arch (AUR), mise, or GitHub Releases
+                yet; build it from a clone.
               </p>
             </div>
           </section>
