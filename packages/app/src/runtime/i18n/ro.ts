@@ -77,8 +77,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "Nu s-a putut instala distribuția: {{distro}}",
   "desktop.wsl.error.installOpencode": "Instalarea CloseCode a eșuat",
   "desktop.wsl.error.alreadyAdded": "{{distro}} este deja adăugată",
-  "desktop.wsl.error.opencodeMissing": "opencode nu este instalat în această distribuție",
-  "desktop.wsl.error.opencodeCannotRun": "opencode este instalat, dar nu a putut fi pornit",
+  "desktop.wsl.error.opencodeMissing": "CloseCode nu este instalat în această distribuție",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode este instalat, dar nu a putut fi pornit",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode nu este instalat în {{distro}}",
   "desktop.wsl.error.updateVersion":
     "Actualizarea CloseCode s-a terminat, dar {{distro}} raportează tot {{installed}}; era așteptat {{expected}}",

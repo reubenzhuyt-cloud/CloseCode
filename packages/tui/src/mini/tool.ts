@@ -1,4 +1,4 @@
-// Per-tool display rules shared across `opencode run` output paths.
+// Per-tool display rules shared across `closecode run` output paths.
 //
 // Each known tool (shell, edit, write, subagent, etc.) has a ToolRule that controls
 // four display hooks:

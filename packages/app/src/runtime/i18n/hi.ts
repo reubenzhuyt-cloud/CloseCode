@@ -82,8 +82,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "डिस्ट्रो इंस्टॉल नहीं हो सका: {{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCode इंस्टॉल नहीं हो सका",
   "desktop.wsl.error.alreadyAdded": "{{distro}} पहले ही जोड़ा जा चुका है",
-  "desktop.wsl.error.opencodeMissing": "इस डिस्ट्रो में opencode इंस्टॉल नहीं है",
-  "desktop.wsl.error.opencodeCannotRun": "opencode इंस्टॉल है, लेकिन चल नहीं सका",
+  "desktop.wsl.error.opencodeMissing": "इस डिस्ट्रो में CloseCode इंस्टॉल नहीं है",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode इंस्टॉल है, लेकिन चल नहीं सका",
   "desktop.wsl.error.opencodeNotInstalled": "{{distro}} में CloseCode इंस्टॉल नहीं है",
   "desktop.wsl.error.updateVersion":
     "CloseCode अपडेट पूरा हो गया, लेकिन {{distro}} अब भी {{installed}} रिपोर्ट कर रहा है; अपेक्षित संस्करण {{expected}} है",

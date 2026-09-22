@@ -77,8 +77,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "Gagal memasang distro: {{distro}}",
   "desktop.wsl.error.installOpencode": "Pemasangan CloseCode gagal",
   "desktop.wsl.error.alreadyAdded": "{{distro}} telah pun ditambah",
-  "desktop.wsl.error.opencodeMissing": "opencode tidak dipasang dalam distro ini",
-  "desktop.wsl.error.opencodeCannotRun": "opencode dipasang tetapi tidak dapat dijalankan",
+  "desktop.wsl.error.opencodeMissing": "CloseCode tidak dipasang dalam distro ini",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode dipasang tetapi tidak dapat dijalankan",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode tidak dipasang dalam {{distro}}",
   "desktop.wsl.error.updateVersion":
     "Kemas kini CloseCode selesai tetapi {{distro}} masih melaporkan {{installed}}; sepatutnya {{expected}}",

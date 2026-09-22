@@ -81,8 +81,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "ディストリビューションのインストールに失敗しました: {{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCodeのインストールに失敗しました",
   "desktop.wsl.error.alreadyAdded": "{{distro}}はすでに追加されています",
-  "desktop.wsl.error.opencodeMissing": "このディストリビューションにはopencodeがインストールされていません",
-  "desktop.wsl.error.opencodeCannotRun": "opencodeはインストールされていますが、実行できませんでした",
+  "desktop.wsl.error.opencodeMissing": "このディストリビューションにはCloseCodeがインストールされていません",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCodeはインストールされていますが、実行できませんでした",
   "desktop.wsl.error.opencodeNotInstalled": "{{distro}}にはCloseCodeがインストールされていません",
   "desktop.wsl.error.updateVersion":
     "CloseCodeのアップデートは完了しましたが、{{distro}}から報告されたバージョンはまだ{{installed}}です。想定されるバージョンは{{expected}}です",

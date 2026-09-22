@@ -77,8 +77,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "დისტროს დაყენება ვერ მოხერხდა: {{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCode ინსტალაცია ვერ მოხერხდა",
   "desktop.wsl.error.alreadyAdded": "{{distro}} უკვე დამატებულია",
-  "desktop.wsl.error.opencodeMissing": "opencode არ არის დაინსტალირებული ამ დისტროში",
-  "desktop.wsl.error.opencodeCannotRun": "opencode დაინსტალირებულია, მაგრამ ვერ გაშვება",
+  "desktop.wsl.error.opencodeMissing": "CloseCode არ არის დაინსტალირებული ამ დისტროში",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode დაინსტალირებულია, მაგრამ ვერ გაშვება",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode არ არის დაინსტალირებული {{distro}}",
   "desktop.wsl.error.updateVersion":
     "CloseCode განახლება დასრულდა, მაგრამ {{distro}} კვლავ იუწყება {{installed}}; მოსალოდნელია {{expected}}",

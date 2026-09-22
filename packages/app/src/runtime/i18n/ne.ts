@@ -78,8 +78,8 @@ export const dict: Record<string, string> = {
   "desktop.wsl.error.installDistro": "डिस्ट्रो स्थापना गर्न असफल: {{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCode स्थापना असफल भयो",
   "desktop.wsl.error.alreadyAdded": "{{distro}} पहिले नै थपिएको छ",
-  "desktop.wsl.error.opencodeMissing": "Opencode यस distro मा स्थापित छैन",
-  "desktop.wsl.error.opencodeCannotRun": "opencode स्थापित छ तर चलाउन सकिएन",
+  "desktop.wsl.error.opencodeMissing": "CloseCode यस distro मा स्थापित छैन",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode स्थापित छ तर चलाउन सकिएन",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode {{distro}} मा स्थापित छैन",
   "desktop.wsl.error.updateVersion":
     "CloseCode अद्यावधिक समाप्त भयो तर {{distro}} ले अझै पनि रिपोर्ट गर्छ {{installed}}; अपेक्षित {{expected}}",

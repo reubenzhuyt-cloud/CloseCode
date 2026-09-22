@@ -78,8 +78,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "Дистро суулгаж чадсангүй: {{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCode суулгаж чадсангүй",
   "desktop.wsl.error.alreadyAdded": "{{distro}} аль хэдийн нэмэгдсэн байна",
-  "desktop.wsl.error.opencodeMissing": "opencode энэ түгээлтэд суулгаагүй байна",
-  "desktop.wsl.error.opencodeCannotRun": "opencode суулгасан боловч ажиллуулж чадсангүй",
+  "desktop.wsl.error.opencodeMissing": "CloseCode энэ түгээлтэд суулгаагүй байна",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode суулгасан боловч ажиллуулж чадсангүй",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode-г {{distro}}-д суулгаагүй байна",
   "desktop.wsl.error.updateVersion":
     "CloseCode шинэчлэлт дууссан боловч {{distro}} мэдээлсэн хэвээр {{installed}}; хүлээгдэж буй {{expected}}",

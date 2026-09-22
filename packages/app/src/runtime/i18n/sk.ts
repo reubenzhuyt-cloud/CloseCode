@@ -77,8 +77,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "Nepodarilo sa nainštalovať distribúciu: {{distro}}",
   "desktop.wsl.error.installOpencode": "Inštalácia CloseCode zlyhala",
   "desktop.wsl.error.alreadyAdded": "{{distro}} je už pridaná",
-  "desktop.wsl.error.opencodeMissing": "opencode nie je v tejto distribúcii nainštalovaný",
-  "desktop.wsl.error.opencodeCannotRun": "opencode je nainštalovaný, ale nedá sa spustiť",
+  "desktop.wsl.error.opencodeMissing": "CloseCode nie je v tejto distribúcii nainštalovaný",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode je nainštalovaný, ale nedá sa spustiť",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode nie je nainštalovaný v {{distro}}",
   "desktop.wsl.error.updateVersion":
     "Aktualizácia CloseCode bola dokončená, ale {{distro}} stále hlási {{installed}}; očakávané {{expected}}",

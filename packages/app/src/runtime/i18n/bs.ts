@@ -82,8 +82,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "Instalacija distribucije nije uspjela: {{distro}}",
   "desktop.wsl.error.installOpencode": "Instalacija CloseCode-a nije uspjela",
   "desktop.wsl.error.alreadyAdded": "Distribucija {{distro}} je već dodana",
-  "desktop.wsl.error.opencodeMissing": "opencode nije instaliran u ovoj distribuciji",
-  "desktop.wsl.error.opencodeCannotRun": "opencode je instaliran, ali se ne može pokrenuti",
+  "desktop.wsl.error.opencodeMissing": "CloseCode nije instaliran u ovoj distribuciji",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode je instaliran, ali se ne može pokrenuti",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode nije instaliran u distribuciji {{distro}}",
   "desktop.wsl.error.updateVersion":
     "Ažuriranje CloseCode-a je završeno, ali {{distro}} i dalje prijavljuje {{installed}}; očekivano je {{expected}}",

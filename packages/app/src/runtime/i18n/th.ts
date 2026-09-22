@@ -81,8 +81,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "ไม่สามารถติดตั้งดิสโทรได้: {{distro}}",
   "desktop.wsl.error.installOpencode": "การติดตั้ง CloseCode ล้มเหลว",
   "desktop.wsl.error.alreadyAdded": "เพิ่ม {{distro}} แล้ว",
-  "desktop.wsl.error.opencodeMissing": "ไม่ได้ติดตั้ง opencode ในดิสโทรนี้",
-  "desktop.wsl.error.opencodeCannotRun": "ติดตั้ง opencode แล้ว แต่ไม่สามารถเรียกใช้ได้",
+  "desktop.wsl.error.opencodeMissing": "ไม่ได้ติดตั้ง CloseCode ในดิสโทรนี้",
+  "desktop.wsl.error.opencodeCannotRun": "ติดตั้ง CloseCode แล้ว แต่ไม่สามารถเรียกใช้ได้",
   "desktop.wsl.error.opencodeNotInstalled": "ไม่ได้ติดตั้ง CloseCode ใน {{distro}}",
   "desktop.wsl.error.updateVersion":
     "อัปเดต CloseCode เสร็จแล้ว แต่ {{distro}} ยังคงรายงานเวอร์ชัน {{installed}} ทั้งที่ควรเป็น {{expected}}",

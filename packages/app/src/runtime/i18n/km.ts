@@ -77,8 +77,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "បរាជ័យក្នុងការដំឡើង distro៖ {{distro}}",
   "desktop.wsl.error.installOpencode": "ការដំឡើង CloseCode បានបរាជ័យ",
   "desktop.wsl.error.alreadyAdded": "{{distro}} ត្រូវបានបន្ថែមរួចហើយ",
-  "desktop.wsl.error.opencodeMissing": "opencode មិនត្រូវបានដំឡើងនៅក្នុង distro នេះទេ។",
-  "desktop.wsl.error.opencodeCannotRun": "opencode ត្រូវបានដំឡើង ប៉ុន្តែមិនអាចដំណើរការបានទេ។",
+  "desktop.wsl.error.opencodeMissing": "CloseCode មិនត្រូវបានដំឡើងនៅក្នុង distro នេះទេ។",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode ត្រូវបានដំឡើង ប៉ុន្តែមិនអាចដំណើរការបានទេ។",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode មិនត្រូវបានដំឡើងនៅក្នុង {{distro}} ទេ។",
   "desktop.wsl.error.updateVersion":
     "ការធ្វើបច្ចុប្បន្នភាព CloseCode បានបញ្ចប់ ប៉ុន្តែ {{distro}} នៅតែរាយការណ៍ {{installed}}; {{expected}} រំពឹងទុក",

@@ -78,8 +78,8 @@ export const dict: Record<string, string> = {
   "desktop.wsl.error.installDistro": "ཌིསི་ཊོ་གཞི་བཙུགས་འབད་ནི་ལུ་འཐུས་ཤོར་བྱུང་ཡོདཔ།: {{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCodeགཞི་བཙུགས་འཐུས་ཤོར་འབྱུང་ཡོདཔ།",
   "desktop.wsl.error.alreadyAdded": "{{distro}} འདི་ ཧེ་མ་ལས་རང་ཁ་སྐོང་བརྐྱབ་ཟིན།",
-  "desktop.wsl.error.opencodeMissing": "ཌིསི་ཊོ་འདི་ནང་ opencode གཞི་བཙུགས་མ་འབད་བས།",
-  "desktop.wsl.error.opencodeCannotRun": "opencode འདི་གཞི་བཙུགས་འབད་ཡོད་རུང་ གཡོག་བཀོལ་མ་ཚུགས།",
+  "desktop.wsl.error.opencodeMissing": "ཌིསི་ཊོ་འདི་ནང་ CloseCode གཞི་བཙུགས་མ་འབད་བས།",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode འདི་གཞི་བཙུགས་འབད་ཡོད་རུང་ གཡོག་བཀོལ་མ་ཚུགས།",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode འདི་ {{distro}} ནང་གཞི་བཙུགས་མ་འབད་བས།",
   "desktop.wsl.error.updateVersion":
     "CloseCode དུས་མཐུན་བཟོ་ཚར་ཡི་ དེ་འབདཝ་ད་ {{distro}}གིས་ ད་ལྟོ་ཡང་ {{installed}} སྙན་ཞུ་འབདཝ་ཨིན། རེ་བ་བསྐྱེད་པའི་ {{expected}}",

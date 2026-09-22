@@ -516,7 +516,7 @@ export const dict = {
   "workspace.cost.subscriptionShort": "sub",
 
   "workspace.keys.title": "API Keys",
-  "workspace.keys.subtitle": "Manage your API keys for accessing opencode services.",
+  "workspace.keys.subtitle": "Manage your API keys for accessing CloseCode services.",
   "workspace.keys.create": "Create API Key",
   "workspace.keys.placeholder": "Enter key name",
   "workspace.keys.empty": "Create an opencode Gateway API key",

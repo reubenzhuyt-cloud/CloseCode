@@ -77,8 +77,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "Neizdevās instalēt distribūciju: {{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCode instalēšana neizdevās",
   "desktop.wsl.error.alreadyAdded": "{{distro}} jau ir pievienota",
-  "desktop.wsl.error.opencodeMissing": "opencode nav instalēts šajā distribūcijā",
-  "desktop.wsl.error.opencodeCannotRun": "opencode ir instalēts, bet to nevar palaist",
+  "desktop.wsl.error.opencodeMissing": "CloseCode nav instalēts šajā distribūcijā",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode ir instalēts, bet to nevar palaist",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode nav instalēts {{distro}}",
   "desktop.wsl.error.updateVersion":
     "CloseCode atjaunināšana pabeigta, bet {{distro}} joprojām rāda {{installed}}; gaidīts {{expected}}",

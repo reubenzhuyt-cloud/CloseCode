@@ -81,8 +81,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "فشل تثبيت التوزيعة: {{distro}}",
   "desktop.wsl.error.installOpencode": "فشل تثبيت CloseCode",
   "desktop.wsl.error.alreadyAdded": "تمت إضافة {{distro}} بالفعل",
-  "desktop.wsl.error.opencodeMissing": "opencode غير مثبت في هذه التوزيعة",
-  "desktop.wsl.error.opencodeCannotRun": "opencode مثبت، لكن تعذر تشغيله",
+  "desktop.wsl.error.opencodeMissing": "CloseCode غير مثبت في هذه التوزيعة",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode مثبت، لكن تعذر تشغيله",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode غير مثبت في {{distro}}",
   "desktop.wsl.error.updateVersion":
     "اكتمل تحديث CloseCode، لكن {{distro}} ما زالت تعرض الإصدار {{installed}}؛ الإصدار المتوقع هو {{expected}}",

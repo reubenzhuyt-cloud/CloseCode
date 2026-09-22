@@ -79,7 +79,7 @@ export const dict = {
   "desktop.wsl.error.installOpencode": "CloseCode gurmak şowsuz",
   "desktop.wsl.error.alreadyAdded": "{{distro}} eýýäm goşuldy",
   "desktop.wsl.error.opencodeMissing": "açyk kod bu distroda gurlanok",
-  "desktop.wsl.error.opencodeCannotRun": "opencode guruldy, ýöne işledip bilmedi",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode guruldy, ýöne işledip bilmedi",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode {{distro}} gurulmady",
   "desktop.wsl.error.updateVersion":
     "CloseCode täzelenmesi gutardy, ýöne {{distro}} henizem {{installed}} habar berýär; garaşylýan {{expected}}",

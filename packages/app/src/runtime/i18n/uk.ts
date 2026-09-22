@@ -82,8 +82,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "Не вдалося встановити дистрибутив: {{distro}}",
   "desktop.wsl.error.installOpencode": "Не вдалося встановити CloseCode",
   "desktop.wsl.error.alreadyAdded": "{{distro}} уже додано",
-  "desktop.wsl.error.opencodeMissing": "opencode не встановлено в цьому дистрибутиві",
-  "desktop.wsl.error.opencodeCannotRun": "opencode встановлено, але його не вдалося запустити",
+  "desktop.wsl.error.opencodeMissing": "CloseCode не встановлено в цьому дистрибутиві",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode встановлено, але його не вдалося запустити",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode не встановлено в {{distro}}",
   "desktop.wsl.error.updateVersion":
     "Оновлення CloseCode завершено, але {{distro}} усе ще повідомляє про версію {{installed}}; очікувалася {{expected}}",

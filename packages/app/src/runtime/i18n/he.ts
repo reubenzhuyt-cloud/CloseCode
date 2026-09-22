@@ -77,8 +77,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "התקנת ההפצה נכשלה: {{distro}}",
   "desktop.wsl.error.installOpencode": "התקנת CloseCode נכשלה",
   "desktop.wsl.error.alreadyAdded": "{{distro}} כבר נוסף",
-  "desktop.wsl.error.opencodeMissing": "opencode אינו מותקן בהפצה זו",
-  "desktop.wsl.error.opencodeCannotRun": "opencode מותקן אך לא הצליח לפעול",
+  "desktop.wsl.error.opencodeMissing": "CloseCode אינו מותקן בהפצה זו",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode מותקן אך לא הצליח לפעול",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode אינו מותקן ב-{{distro}}",
   "desktop.wsl.error.updateVersion":
     "עדכון CloseCode הסתיים אך {{distro}} עדיין מדווח על {{installed}}; צפוי {{expected}}",

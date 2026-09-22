@@ -1085,8 +1085,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "Jakelun asentaminen epäonnistui: {{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCoden asennus epäonnistui",
   "desktop.wsl.error.alreadyAdded": "{{distro}} on jo lisätty",
-  "desktop.wsl.error.opencodeMissing": "opencodea ei ole asennettu tähän jakeluun",
-  "desktop.wsl.error.opencodeCannotRun": "opencode on asennettu, mutta sitä ei voitu suorittaa",
+  "desktop.wsl.error.opencodeMissing": "CloseCodea ei ole asennettu tähän jakeluun",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode on asennettu, mutta sitä ei voitu suorittaa",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCodea ei ole asennettu jakeluun {{distro}}",
   "desktop.wsl.error.updateVersion":
     "CloseCoden päivitys valmistui, mutta {{distro}} ilmoittaa yhä version {{installed}}; odotettu versio on {{expected}}",

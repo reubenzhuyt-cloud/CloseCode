@@ -78,8 +78,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "Distroni oʻrnatib boʻlmadi: {{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCode oʻrnatilmadi",
   "desktop.wsl.error.alreadyAdded": "{{distro}} allaqachon qo'shilgan",
-  "desktop.wsl.error.opencodeMissing": "Opencode ushbu tarqatishda o'rnatilmagan",
-  "desktop.wsl.error.opencodeCannotRun": "opencode o'rnatilgan, lekin ishga tushirilmadi",
+  "desktop.wsl.error.opencodeMissing": "CloseCode ushbu tarqatishda o'rnatilmagan",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode o'rnatilgan, lekin ishga tushirilmadi",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode {{distro}} da o'rnatilmagan",
   "desktop.wsl.error.updateVersion":
     "CloseCode yangilanishi tugallandi, lekin {{distro}} hali ham {{installed}} haqida xabar beradi; kutilgan {{expected}}",

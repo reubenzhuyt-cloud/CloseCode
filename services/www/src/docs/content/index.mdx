@@ -12,38 +12,35 @@ CloseCode is an open source AI coding agent. It’s available as a terminal-base
   label="Install method"
   tabs={[
     { label: "curl", code: "curl -fsSL https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install | bash" },
-    { label: "homebrew", code: "brew install anomalyco/tap/opencode-v2" },
-    { label: "npm", code: "npm install -g @opencode/cli" },
-    { label: "bun", code: "bun install -g --trust @opencode/cli" },
-    { label: "pnpm", code: "pnpm add -g --allow-build=@opencode/cli @opencode/cli" },
-    { label: "yarn", code: "yarn global add @opencode/cli" },
-    { label: "vite+", code: "vp install -g @opencode/cli" },
-    { label: "aur", code: "paru -S opencode-beta" },
+    { label: "windows", code: ".\\script\\install-closecode.ps1" },
+    { label: "macos / linux", code: "./install" },
+    { label: "npm", code: "npm i -g closecode-ai" },
   ]}
 />
 
-The npm package uses a postinstall script to select the native `opencode` binary for your platform. The Bun and pnpm commands
-explicitly allow the required script; Vite+ requires no additional flag.
+The Windows and macOS/Linux commands run from a clone of the [CloseCode repository](https://github.com/reubenzhuyt-cloud/CloseCode). The npm package uses a postinstall script to select the native `closecode` binary for your platform.
+
+Homebrew, Scoop, Chocolatey, Nix, Arch (AUR) and mise packages are not published yet.
 
 Windows package managers are not supported.
 
 
-Download a standalone CLI binary for your platform.
+Download a standalone CLI binary for your platform from the [releases page](https://github.com/reubenzhuyt-cloud/CloseCode/releases).
 
-- **macOS:** [Apple silicon](https://opencode.ai/files/bin/2.0.6/opencode-darwin-arm64.zip) · [Intel](https://opencode.ai/files/bin/2.0.6/opencode-darwin-x64.zip) · [Intel (baseline)](https://opencode.ai/files/bin/2.0.6/opencode-darwin-x64-baseline.zip)
-- **Windows:** [ARM64](https://opencode.ai/files/bin/2.0.6/opencode-windows-arm64.zip) · [x64](https://opencode.ai/files/bin/2.0.6/opencode-windows-x64.zip) · [x64 (baseline)](https://opencode.ai/files/bin/2.0.6/opencode-windows-x64-baseline.zip)
-- **Linux (glibc):** [ARM64](https://opencode.ai/files/bin/2.0.6/opencode-linux-arm64.tar.gz) · [x64](https://opencode.ai/files/bin/2.0.6/opencode-linux-x64.tar.gz) · [x64 (baseline)](https://opencode.ai/files/bin/2.0.6/opencode-linux-x64-baseline.tar.gz)
-- **Linux (musl):** [ARM64](https://opencode.ai/files/bin/2.0.6/opencode-linux-arm64-musl.tar.gz) · [x64](https://opencode.ai/files/bin/2.0.6/opencode-linux-x64-musl.tar.gz) · [x64 (baseline)](https://opencode.ai/files/bin/2.0.6/opencode-linux-x64-baseline-musl.tar.gz)
+- **macOS:** [Apple silicon](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [Intel](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [Intel (baseline)](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
+- **Windows:** [ARM64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64 (baseline)](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
+- **Linux (glibc):** [ARM64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64 (baseline)](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
+- **Linux (musl):** [ARM64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [x64 (baseline)](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
 
 ## Desktop
 
 Download the latest CloseCode Desktop build for your platform.
 
-- **macOS:** [Apple silicon](https://opencode.ai/files/bin/2.0.6/opencode-desktop-mac-arm64.dmg) · [Intel](https://opencode.ai/files/bin/2.0.6/opencode-desktop-mac-x64.dmg)
-- **Windows:** [x64](https://opencode.ai/files/bin/2.0.6/opencode-desktop-win-x64.exe) · [ARM64](https://opencode.ai/files/bin/2.0.6/opencode-desktop-win-arm64.exe)
-- **Linux (.deb):** [x64](https://opencode.ai/files/bin/2.0.6/opencode-desktop-linux-amd64.deb) · [ARM64](https://opencode.ai/files/bin/2.0.6/opencode-desktop-linux-arm64.deb)
-- **Linux (.rpm):** [x64](https://opencode.ai/files/bin/2.0.6/opencode-desktop-linux-x86_64.rpm) · [ARM64](https://opencode.ai/files/bin/2.0.6/opencode-desktop-linux-aarch64.rpm)
-- **Linux (AppImage):** [x64](https://opencode.ai/files/bin/2.0.6/opencode-desktop-linux-x86_64.AppImage) · [ARM64](https://opencode.ai/files/bin/2.0.6/opencode-desktop-linux-arm64.AppImage)
+- **macOS:** [Apple silicon](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [Intel](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
+- **Windows:** [x64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [ARM64](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
+- **Linux (.deb):** [x64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [ARM64](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
+- **Linux (.rpm):** [x64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [ARM64](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
+- **Linux (AppImage):** [x64](https://github.com/reubenzhuyt-cloud/CloseCode/releases) · [ARM64](https://github.com/reubenzhuyt-cloud/CloseCode/releases)
 
 
 ## Web

@@ -4,7 +4,7 @@ import { Config } from "effect"
 // these instead of touching process.env so the full surface stays visible,
 // typed, and redacted where secret.
 
-// The opencode server password: sent by clients connecting to an explicit
+// The closecode server password: sent by clients connecting to an explicit
 // --server, and adopted by a manually run or standalone server. The legacy
 // name is still honored.
 export const password = Config.redacted("OPENCODE_PASSWORD").pipe(

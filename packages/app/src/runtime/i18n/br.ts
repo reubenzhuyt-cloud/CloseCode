@@ -81,8 +81,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "Falha ao instalar a distribuição: {{distro}}",
   "desktop.wsl.error.installOpencode": "Falha na instalação do CloseCode",
   "desktop.wsl.error.alreadyAdded": "{{distro}} já foi adicionada",
-  "desktop.wsl.error.opencodeMissing": "O opencode não está instalado nesta distribuição",
-  "desktop.wsl.error.opencodeCannotRun": "O opencode está instalado, mas não pôde ser executado",
+  "desktop.wsl.error.opencodeMissing": "O CloseCode não está instalado nesta distribuição",
+  "desktop.wsl.error.opencodeCannotRun": "O CloseCode está instalado, mas não pôde ser executado",
   "desktop.wsl.error.opencodeNotInstalled": "O CloseCode não está instalado em {{distro}}",
   "desktop.wsl.error.updateVersion":
     "A atualização do CloseCode foi concluída, mas {{distro}} ainda informa a versão {{installed}}; a versão esperada é {{expected}}",

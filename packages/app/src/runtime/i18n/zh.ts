@@ -85,8 +85,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "无法安装发行版：{{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCode 安装失败",
   "desktop.wsl.error.alreadyAdded": "已添加 {{distro}}",
-  "desktop.wsl.error.opencodeMissing": "此发行版中未安装 opencode",
-  "desktop.wsl.error.opencodeCannotRun": "已安装 opencode，但无法运行",
+  "desktop.wsl.error.opencodeMissing": "此发行版中未安装 CloseCode",
+  "desktop.wsl.error.opencodeCannotRun": "已安装 CloseCode，但无法运行",
   "desktop.wsl.error.opencodeNotInstalled": "{{distro}} 中未安装 CloseCode",
   "desktop.wsl.error.updateVersion":
     "CloseCode 更新已完成，但 {{distro}} 仍报告版本 {{installed}}；预期版本为 {{expected}}",

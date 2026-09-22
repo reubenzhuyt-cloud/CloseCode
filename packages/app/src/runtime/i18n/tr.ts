@@ -86,8 +86,8 @@ export const dict = {
   "desktop.wsl.error.installDistro": "Dağıtım kurulamadı: {{distro}}",
   "desktop.wsl.error.installOpencode": "CloseCode kurulamadı",
   "desktop.wsl.error.alreadyAdded": "{{distro}} zaten eklendi",
-  "desktop.wsl.error.opencodeMissing": "opencode bu dağıtımda kurulu değil",
-  "desktop.wsl.error.opencodeCannotRun": "opencode kurulu ancak çalıştırılamadı",
+  "desktop.wsl.error.opencodeMissing": "CloseCode bu dağıtımda kurulu değil",
+  "desktop.wsl.error.opencodeCannotRun": "CloseCode kurulu ancak çalıştırılamadı",
   "desktop.wsl.error.opencodeNotInstalled": "CloseCode, {{distro}} içinde kurulu değil",
   "desktop.wsl.error.updateVersion":
     "CloseCode güncellemesi tamamlandı ancak {{distro}} hâlâ {{installed}} sürümünü bildiriyor; beklenen sürüm: {{expected}}",
