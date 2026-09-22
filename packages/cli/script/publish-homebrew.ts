@@ -74,7 +74,6 @@ await Bun.write(
     '  license "MIT"',
     "",
     '  depends_on "ripgrep"',
-    '  conflicts_with "opencode", because: "both install an opencode binary"',
     "",
     "  on_macos do",
     "    if Hardware::CPU.arm?",
