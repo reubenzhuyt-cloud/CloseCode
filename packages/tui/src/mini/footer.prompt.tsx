@@ -51,6 +51,7 @@ import {
   pushPromptHistory,
 } from "./prompt.shared"
 import { parseFileLineRange, parseSlashHead, stripFileLineRange } from "../prompt/parse"
+import { useCommandUsage } from "../prompt/command-usage"
 import { Keymap } from "../context/keymap"
 import { realignEditorPromptParts, resolveEditorSlashValue } from "./prompt.editor"
 import { FOOTER_COMPACT_WIDTH, FOOTER_MENU_ROWS, createFooterMenuState, type RunFooterMenuItem } from "./footer.menu"
@@ -344,6 +345,7 @@ export function RunPromptBody(props: {
 export function createPromptState(input: PromptInput): PromptState {
   const renderer = useRenderer()
   const term = useTerminalDimensions()
+  const usage = useCommandUsage()
   const [lines, setLines] = createSignal(TEXTAREA_MIN_ROWS)
   const [statusRows, setStatusRows] = createSignal(1)
   const [shell, setShell] = createSignal(false)
@@ -547,7 +549,7 @@ export function createPromptState(input: PromptInput): PromptState {
             }) satisfies SlashOption,
         ),
       ...builtins,
-    ].sort((a, b) => a.display.localeCompare(b.display))
+    ].sort(usage.compare)
   })
   const options = createMemo<PromptOption[]>(() => {
     const mixed: PromptOption[] = mode() === "slash" ? slashOptions() : mentionOptions()
@@ -1040,6 +1042,7 @@ export function createPromptState(input: PromptInput): PromptState {
 
     if (next.kind === "slash") {
       if (next.action === "editor") {
+        usage.touch(next.name)
         void openEditor({
           value: resolveEditorSlashValue(area.plainText),
         })
@@ -1047,6 +1050,7 @@ export function createPromptState(input: PromptInput): PromptState {
       }
 
       if (next.action === "settings" && !shell()) {
+        usage.touch(next.name)
         cancelAutocomplete()
         input.onSettings()
         return
@@ -1386,6 +1390,9 @@ export function createPromptState(input: PromptInput): PromptState {
     }
 
     const command = next.mode === "shell" ? undefined : selectedCommand(next.text, next.command)
+    const head = next.mode === "shell" ? undefined : parseSlashHead(next.text)
+    const invoked = head && slashOptions().find((item) => item.name === head.name)?.name
+    if (invoked) usage.touch(invoked)
     if (
       delivery === "queue" &&
       (next.mode === "shell" ||
