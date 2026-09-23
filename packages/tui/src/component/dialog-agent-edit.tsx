@@ -17,6 +17,7 @@ import {
   buildAgentPatch,
   buildSessionAgentSkills,
   cycle,
+  editablePermissionOverrides,
   permissionEffect,
   setPermissionEffect,
   type AgentMode,
@@ -52,6 +53,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
 
   const sessionID = () => (route.data.type === "session" ? route.data.sessionID : undefined)
   const agent = createMemo(() => data.location.agent.list(location.ref)?.find((item) => item.id === props.name))
+  const agentName = () => agent()?.name ?? props.name
   const skills = createMemo(() => data.location.skill.list(location.ref) ?? [])
   const servers = createMemo(() => data.location.mcp.server.list(location.ref) ?? [])
   const existing = createMemo(() => (patch().skill_activation ?? agent()?.skillActivation) ?? {})
@@ -59,6 +61,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
     skills().some((skill) => skill.id === name)
       ? (existing()[name] ?? (agent()?.mode === "subagent" ? "off" : "full"))
       : "off"
+  const permissionOverrides = createMemo(() => patch().permissions ?? editablePermissionOverrides(agent()?.permissions))
 
   onMount(() => {
     if (data.location.skill.list(location.ref) !== undefined) return
@@ -75,8 +78,6 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
     dialog.clear()
   }
 
-  // Close before awaiting the write: the config patch only returns after the
-  // server disposes and reloads the instance, which visibly stalls the dialog.
   function save() {
     const id = sessionID()
     const draft = patch()
@@ -94,7 +95,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
       void client.api.session
         .update({
           sessionID: id,
-          metadata: buildSessionAgentSkills(current, props.name, draft.skill_activation),
+          metadata: buildSessionAgentSkills(current, agentName(), draft.skill_activation),
         })
         .then(() => data.session.sync(id))
         .catch((error) =>
@@ -126,7 +127,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
   const fields = createMemo<DialogSelectOption<string>[]>(() => {
     const draft = patch()
     const count = (value: Record<string, unknown> | undefined) => Object.keys(value ?? {}).length
-    const overrides = draft.permissions ?? []
+    const overrides = permissionOverrides()
     return [
       {
         value: "description",
@@ -205,7 +206,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
       </Match>
       <Match when={view() === "permissions"}>
         <DialogAgentPermissions
-          value={patch().permissions ?? agent()?.permissions ?? []}
+          value={permissionOverrides()}
           onChange={(permissions) => setPatch({ ...patch(), permissions })}
           onBack={() => setView("fields")}
         />
@@ -244,8 +245,12 @@ function DialogAgentToolset(props: {
   function toggle(key: string) {
     const next: Record<string, boolean> = {}
     for (const [existing, value] of Object.entries(props.value ?? {})) next[existing] = value
-    if (enabled(key)) delete next[key]
-    else next[key] = true
+    if (enabled(key)) {
+      delete next[key]
+      props.onChange(next)
+      return
+    }
+    next[key] = true
     props.onChange(next)
   }
 

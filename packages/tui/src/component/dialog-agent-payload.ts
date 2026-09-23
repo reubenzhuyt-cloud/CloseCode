@@ -40,17 +40,25 @@ export function isPermissionChoice(value: unknown): value is PermissionChoice {
   return PERMISSION_CHOICES.some((choice) => choice === value)
 }
 
-/** The effective override effect for an action, or "unset" when no wildcard rule applies. */
+export function isEditablePermissionAction(action: string): boolean {
+  return AGENT_PERMISSION_ACTIONS.some((editable) => editable === action)
+}
+
 export function permissionEffect(rules: readonly PermissionRule[], action: string): PermissionChoice {
   const effect = rules.find((item) => item.action === action && item.resource === "*")?.effect
   return isPermissionChoice(effect) ? effect : "unset"
 }
 
-/**
- * Replace an action's wildcard override. Unset removes it; any other effect
- * appends a single rule so the config plugin's last-match-wins ordering applies
- * only to explicitly-set overrides.
- */
+export function editablePermissionOverrides(rules: readonly PermissionRule[] | undefined): PermissionRule[] {
+  const byAction = new Map<string, PermissionRule>()
+  for (const rule of rules ?? []) {
+    if (rule.resource !== "*") continue
+    if (!isEditablePermissionAction(rule.action)) continue
+    byAction.set(rule.action, rule)
+  }
+  return [...byAction.values()]
+}
+
 export function setPermissionEffect(
   rules: readonly PermissionRule[],
   action: string,
@@ -61,12 +69,10 @@ export function setPermissionEffect(
   return [...rest, { action, resource: "*", effect }]
 }
 
-/** Emit only explicitly-set overrides. The draft already stores no "unset" rules. */
 export function buildPermissionOverrides(rules: readonly PermissionRule[] | undefined): PermissionRule[] {
   return [...(rules ?? [])]
 }
 
-/** Build the config agent patch from the draft, omitting untouched fields. */
 export function buildAgentPatch(draft: AgentPatchDraft) {
   return {
     ...(draft.description === undefined ? {} : { description: draft.description }),
@@ -77,7 +83,6 @@ export function buildAgentPatch(draft: AgentPatchDraft) {
   }
 }
 
-/** Merge the draft skill levels into the session metadata's per-agent record. */
 export function buildSessionAgentSkills(
   metadata: SessionMetadata | undefined,
   agentName: string,

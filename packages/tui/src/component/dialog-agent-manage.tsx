@@ -96,7 +96,7 @@ export function DialogAgentManage(props: { initialView?: AgentView } = {}) {
         {
           command: "dialog.agent.edit",
           title: "edit",
-          disabled: (option) => option !== undefined && option.value !== SYSTEM && option.value !== HIDDEN && option.value !== BACK,
+          disabled: (option) => !isAgentRow(option),
           onTrigger: (option) => openEdit(option.value),
         },
         {

@@ -282,6 +282,7 @@ export const Definitions = {
   "dialog.agent.edit": keybind("ctrl+e", "Edit agent from the agent dialog"),
   "dialog.agent.switch": keybind("ctrl+s", "Switch to agent from the agent dialog"),
   "dialog.agent.delete": keybind("ctrl+d", "Delete agent from the agent dialog"),
+  "dialog.agent.toolset.pattern": keybind("ctrl+a", "Add a toolset pattern from the agent dialog"),
 
   "terminal.suspend": keybind("ctrl+z", "Suspend terminal"),
   "terminal.title.toggle": keybind("none", "Toggle terminal title"),

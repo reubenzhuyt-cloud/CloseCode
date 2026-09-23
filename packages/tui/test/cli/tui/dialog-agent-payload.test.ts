@@ -4,6 +4,7 @@ import {
   buildPermissionOverrides,
   buildSessionAgentSkills,
   cycle,
+  editablePermissionOverrides,
   permissionEffect,
   setPermissionEffect,
   type AgentPatchDraft,
@@ -84,6 +85,54 @@ test("buildPermissionOverrides preserves explicitly-set rules", () => {
     { action: "edit", resource: "*", effect: "deny" },
   ])
   expect(buildPermissionOverrides(undefined)).toEqual([])
+})
+
+test("editablePermissionOverrides keeps only editable wildcard rules and drops defaults", () => {
+  const rules = [
+    { action: "*", resource: "*", effect: "allow" as const },
+    { action: "external_directory", resource: "~/private/**", effect: "deny" as const },
+    { action: "read", resource: "*.env*", effect: "deny" as const },
+    { action: "bash", resource: "*", effect: "deny" as const },
+    { action: "read", resource: "*", effect: "allow" as const },
+  ]
+  expect(editablePermissionOverrides(rules)).toEqual([
+    { action: "bash", resource: "*", effect: "deny" },
+    { action: "read", resource: "*", effect: "allow" },
+  ])
+})
+
+test("editablePermissionOverrides keeps the last duplicate for an action", () => {
+  const rules = [
+    { action: "bash", resource: "*", effect: "allow" as const },
+    { action: "bash", resource: "*", effect: "deny" as const },
+  ]
+  expect(editablePermissionOverrides(rules)).toEqual([{ action: "bash", resource: "*", effect: "deny" }])
+})
+
+test("editablePermissionOverrides ignores non-editable actions and non-wildcard resources", () => {
+  const rules = [
+    { action: "lsp", resource: "typescript", effect: "deny" as const },
+    { action: "webfetch", resource: "example.com", effect: "allow" as const },
+    { action: "glob", resource: "*", effect: "ask" as const },
+  ]
+  expect(editablePermissionOverrides(rules)).toEqual([{ action: "glob", resource: "*", effect: "ask" }])
+})
+
+test("buildAgentPatch from seeded overrides emits only explicit entries", () => {
+  const rules = [
+    { action: "*", resource: "*", effect: "allow" as const },
+    { action: "external_directory", resource: "$HOME/**", effect: "deny" as const },
+    { action: "read", resource: "*.env*", effect: "deny" as const },
+    { action: "bash", resource: "*", effect: "deny" as const },
+  ]
+  const draft: AgentPatchDraft = { permissions: editablePermissionOverrides(rules) }
+  const patch = buildAgentPatch(draft)
+  expect(patch.permissions).toEqual([{ action: "bash", resource: "*", effect: "deny" }])
+  expect(patch.permissions).not.toContainEqual({ action: "*", resource: "*", effect: "allow" })
+  expect(patch.permissions).not.toContainEqual(
+    expect.objectContaining({ action: "external_directory" }),
+  )
+  expect(patch.permissions).not.toContainEqual(expect.objectContaining({ action: "read" }))
 })
 
 test("buildSessionAgentSkills preserves existing metadata and agents", () => {
