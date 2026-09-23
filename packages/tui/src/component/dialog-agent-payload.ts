@@ -32,6 +32,10 @@ export type AgentPatchDraft = {
   skill_activation?: SkillActivation
 }
 
+export function toolsetRuleCount(value: Record<string, unknown> | undefined): number {
+  return Object.keys(value ?? {}).filter((key) => key !== "mcp:*").length
+}
+
 export function cycle<T>(values: readonly T[], current: T): T {
   return values[(values.findIndex((value) => value === current) + 1) % values.length]
 }

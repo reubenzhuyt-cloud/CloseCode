@@ -7,6 +7,7 @@ import {
   editablePermissionOverrides,
   permissionEffect,
   setPermissionEffect,
+  toolsetRuleCount,
   type AgentPatchDraft,
 } from "../../../src/component/dialog-agent-payload"
 
@@ -153,4 +154,11 @@ test("buildSessionAgentSkills starts from empty metadata", () => {
   expect(buildSessionAgentSkills(undefined, "build", { effect: "name" })).toEqual({
     agent_skills: { build: { effect: "name" } },
   })
+})
+
+test("toolsetRuleCount ignores the built-in mcp default deny", () => {
+  expect(toolsetRuleCount(undefined)).toBe(0)
+  expect(toolsetRuleCount({ "mcp:*": false })).toBe(0)
+  expect(toolsetRuleCount({ "mcp:*": false, "mcp:unityMCP": true })).toBe(1)
+  expect(toolsetRuleCount({ "*": false, "github_*": true, "mcp:linear": true })).toBe(3)
 })

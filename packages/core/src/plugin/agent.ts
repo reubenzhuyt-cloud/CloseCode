@@ -4,6 +4,7 @@ import { define } from "@opencode/plugin/effect/plugin"
 import { Effect } from "effect"
 import { Agent } from "../agent.js"
 import { Permission } from "../permission.js"
+import { AgentToolset } from "../tool/toolset.js"
 
 const PROMPT_EXPLORE = `You are a file search specialist. You excel at thoroughly navigating and exploring codebases.
 
@@ -150,6 +151,22 @@ export const Plugin = define({
         item.hidden = true
         item.system = PROMPT_SUMMARY
         item.permissions.push({ action: "*", resource: "*", effect: "deny" })
+      })
+
+      editor.update(Agent.ID.make("unitymaster"), (item) => {
+        item.name = Agent.Name.make("UnityMaster")
+        item.description =
+          "Unity Editor automation agent for scenes, GameObjects, components, assets, materials, animation, physics, and editor tooling via the unityMCP server."
+        item.mode = "subagent"
+        item.toolset = AgentToolset.mergeToolset(item.toolset, { "mcp:unity*": true, "unity*": true })
+      })
+
+      editor.update(Agent.ID.make("BlenderMaster"), (item) => {
+        item.name = Agent.Name.make("BlenderMaster")
+        item.description =
+          "Blender automation agent for mesh, modifier, material, UV, rigging, animation, and asset import/export via the blender-mcp server."
+        item.mode = "subagent"
+        item.toolset = AgentToolset.mergeToolset(item.toolset, { "mcp:blender*": true, "blender*": true })
       })
     })
   }),

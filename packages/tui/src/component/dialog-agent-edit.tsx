@@ -20,6 +20,7 @@ import {
   editablePermissionOverrides,
   permissionEffect,
   setPermissionEffect,
+  toolsetRuleCount,
   type AgentMode,
   type SkillLevel,
 } from "./dialog-agent-payload"
@@ -138,7 +139,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
       {
         value: "toolset",
         title: "Toolset",
-        description: draft.toolset ? `${count(draft.toolset)} rule(s)` : "all tools",
+        description: draft.toolset ? `${toolsetRuleCount(draft.toolset)} rule(s)` : "all tools",
       },
       {
         value: "permissions",

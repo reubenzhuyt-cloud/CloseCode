@@ -52,6 +52,7 @@ export const Info = Schema.Struct({
             { action: "read", resource: "*.env.*", effect: "ask" },
             { action: "read", resource: "*.env.example", effect: "allow" },
           ],
+          toolset: { "mcp:*": false },
         }) satisfies Info,
     })),
   )

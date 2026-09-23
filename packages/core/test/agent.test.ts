@@ -8,6 +8,7 @@ import { LayerNode } from "@opencode/util/effect/layer-node"
 import { Location } from "@opencode/core/location"
 import { Permission } from "@opencode/core/permission"
 import { AgentPlugin } from "@opencode/core/plugin/agent"
+import { mergeToolset, toolsetAllowsMcp } from "@opencode/core/tool/toolset"
 import { AbsolutePath } from "@opencode/core/schema"
 import { Global } from "@opencode/util/global"
 import { location } from "./fixture/location"
@@ -178,12 +179,14 @@ describe("Agent", () => {
 
       const agents = yield* agent.list()
       expect(agents.map((item) => String(item.id)).sort()).toEqual([
+        "BlenderMaster",
         "build",
         "compaction",
         "explore",
         "general",
         "summary",
         "title",
+        "unitymaster",
       ])
       expect((yield* agent.get(Agent.defaultID))?.system).toBeUndefined()
       const permissions = (yield* agent.get(Agent.defaultID))?.permissions ?? []
@@ -231,6 +234,75 @@ describe("Agent", () => {
           expect(Permission.evaluate("subagent", "*", info.permissions).effect).toBe("deny")
         }),
       )
+    }),
+  )
+
+  it.effect("gives the unitymaster agent only unity MCP tools", () =>
+    Effect.gen(function* () {
+      const agent = yield* Agent.Service
+      yield* AgentPlugin.Plugin.effect(host({ agent: agentHost(agent) }))
+
+      const info = yield* agent.get(Agent.ID.make("unitymaster"))
+      if (!info) throw new Error("expected built-in agent: unitymaster")
+      expect(info.mode).toBe("subagent")
+      expect(info.toolset).toEqual({ "mcp:*": false, "mcp:unity*": true, "unity*": true })
+      expect(toolsetAllowsMcp(info.toolset, ["unityMCP_manage_scene", "mcp:unityMCP"])).toBe(true)
+      expect(toolsetAllowsMcp(info.toolset, ["blender_x", "mcp:blender-mcp"])).toBe(false)
+    }),
+  )
+
+  it.effect("gives the BlenderMaster agent only blender MCP tools", () =>
+    Effect.gen(function* () {
+      const agent = yield* Agent.Service
+      yield* AgentPlugin.Plugin.effect(host({ agent: agentHost(agent) }))
+
+      const info = yield* agent.get(Agent.ID.make("BlenderMaster"))
+      if (!info) throw new Error("expected built-in agent: BlenderMaster")
+      expect(info.mode).toBe("subagent")
+      expect(info.toolset).toEqual({ "mcp:*": false, "mcp:blender*": true, "blender*": true })
+      expect(toolsetAllowsMcp(info.toolset, ["blender_x", "mcp:blender-mcp"])).toBe(true)
+      expect(toolsetAllowsMcp(info.toolset, ["unityMCP_x", "mcp:unityMCP"])).toBe(false)
+    }),
+  )
+
+  it.effect("denies MCP tools for the default agent", () =>
+    Effect.gen(function* () {
+      const agent = yield* Agent.Service
+      yield* AgentPlugin.Plugin.effect(host({ agent: agentHost(agent) }))
+
+      const info = yield* agent.get(Agent.defaultID)
+      if (!info) throw new Error("expected built-in agent: build")
+      expect(toolsetAllowsMcp(info.toolset, ["unityMCP_x", "mcp:unityMCP"])).toBe(false)
+    }),
+  )
+
+  it.effect("does not let a broader star allow leak MCP tools", () =>
+    Effect.gen(function* () {
+      const agent = yield* Agent.Service
+      yield* AgentPlugin.Plugin.effect(host({ agent: agentHost(agent) }))
+
+      const info = yield* agent.get(Agent.defaultID)
+      if (!info) throw new Error("expected built-in agent: build")
+      expect(toolsetAllowsMcp(mergeToolset(info.toolset, { "*": true }), ["unityMCP_x", "mcp:unityMCP"])).toBe(false)
+    }),
+  )
+
+  it.effect("does not let a broader star allow leak MCP tools into the built-in MCP agents", () =>
+    Effect.gen(function* () {
+      const agent = yield* Agent.Service
+      yield* AgentPlugin.Plugin.effect(host({ agent: agentHost(agent) }))
+
+      const unity = yield* agent.get(Agent.ID.make("unitymaster"))
+      if (!unity) throw new Error("expected built-in agent: unitymaster")
+      const unityToolset = mergeToolset(unity.toolset, { "*": true })
+      expect(toolsetAllowsMcp(unityToolset, ["blender_x", "mcp:blender-mcp"])).toBe(false)
+      expect(toolsetAllowsMcp(unityToolset, ["unityMCP_x", "mcp:unityMCP"])).toBe(true)
+
+      const blender = yield* agent.get(Agent.ID.make("BlenderMaster"))
+      if (!blender) throw new Error("expected built-in agent: BlenderMaster")
+      const blenderToolset = mergeToolset(blender.toolset, { "*": true })
+      expect(toolsetAllowsMcp(blenderToolset, ["unityMCP_x", "mcp:unityMCP"])).toBe(false)
+      expect(toolsetAllowsMcp(blenderToolset, ["blender_x", "mcp:blender-mcp"])).toBe(true)
     }),
   )
 })
