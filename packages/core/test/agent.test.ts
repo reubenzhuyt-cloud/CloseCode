@@ -245,7 +245,7 @@ describe("Agent", () => {
       const info = yield* agent.get(Agent.ID.make("unitymaster"))
       if (!info) throw new Error("expected built-in agent: unitymaster")
       expect(info.mode).toBe("subagent")
-      expect(info.toolset).toEqual({ "mcp:*": false, "mcp:unity*": true, "unity*": true })
+      expect(info.toolset).toEqual({ "mcp:*": false, "mcp:unityMCP": true })
       expect(toolsetAllowsMcp(info.toolset, ["unityMCP_manage_scene", "mcp:unityMCP"])).toBe(true)
       expect(toolsetAllowsMcp(info.toolset, ["blender_x", "mcp:blender-mcp"])).toBe(false)
     }),
@@ -259,7 +259,7 @@ describe("Agent", () => {
       const info = yield* agent.get(Agent.ID.make("BlenderMaster"))
       if (!info) throw new Error("expected built-in agent: BlenderMaster")
       expect(info.mode).toBe("subagent")
-      expect(info.toolset).toEqual({ "mcp:*": false, "mcp:blender*": true, "blender*": true })
+      expect(info.toolset).toEqual({ "mcp:*": false, "mcp:blender-mcp": true })
       expect(toolsetAllowsMcp(info.toolset, ["blender_x", "mcp:blender-mcp"])).toBe(true)
       expect(toolsetAllowsMcp(info.toolset, ["unityMCP_x", "mcp:unityMCP"])).toBe(false)
     }),

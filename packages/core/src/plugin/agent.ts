@@ -158,7 +158,7 @@ export const Plugin = define({
         item.description =
           "Unity Editor automation agent for scenes, GameObjects, components, assets, materials, animation, physics, and editor tooling via the unityMCP server."
         item.mode = "subagent"
-        item.toolset = AgentToolset.mergeToolset(item.toolset, { "mcp:unity*": true, "unity*": true })
+        item.toolset = AgentToolset.mergeToolset(item.toolset, { "mcp:unityMCP": true })
       })
 
       editor.update(Agent.ID.make("BlenderMaster"), (item) => {
@@ -166,7 +166,7 @@ export const Plugin = define({
         item.description =
           "Blender automation agent for mesh, modifier, material, UV, rigging, animation, and asset import/export via the blender-mcp server."
         item.mode = "subagent"
-        item.toolset = AgentToolset.mergeToolset(item.toolset, { "mcp:blender*": true, "blender*": true })
+        item.toolset = AgentToolset.mergeToolset(item.toolset, { "mcp:blender-mcp": true })
       })
     })
   }),
