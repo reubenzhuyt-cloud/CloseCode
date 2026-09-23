@@ -1,5 +1,5 @@
 import { useRenderer, useTerminalDimensions } from "@opentui/solid"
-import { batch, createContext, createEffect, onCleanup, Show, useContext, type JSX, type ParentProps } from "solid-js"
+import { batch, createContext, createEffect, createMemo, onCleanup, Show, untrack, useContext, type JSX, type ParentProps } from "solid-js"
 import { Keymap } from "../context/keymap"
 import { ThemeContextProvider, useTheme } from "../context/theme"
 import { InputRenderable, MouseButton, Renderable, RGBA } from "@opentui/core"
@@ -214,38 +214,53 @@ const ctx = createContext<DialogContext>()
 
 export function DialogProvider(props: ParentProps) {
   const value = init()
+  return (
+    <ctx.Provider value={value}>
+      {props.children}
+      <DialogOverlay />
+    </ctx.Provider>
+  )
+}
+
+function DialogOverlay() {
+  const dialog = useDialog()
   const renderer = useRenderer()
   const toast = useToast()
   const clipboard = useClipboard()
   const config = useConfig()
   const copyOnSelectEnabled = () =>
     (config.data.terminal?.copy ?? (process.platform === "win32" ? "manual" : "select")) === "select"
+  // Invoke the stored dialog component once per stack entry. Rendering the
+  // element directly lets the renderer treat the component's returned
+  // accessor as reactive, which re-invokes (and remounts) the component
+  // whenever one of its own signals changes.
+  const element = createMemo(() => {
+    const entry = dialog.stack.at(-1)
+    if (!entry) return undefined
+    if (typeof entry.element !== "function") return entry.element
+    return untrack(() => (entry.element as unknown as () => JSX.Element)())
+  })
 
   return (
-    <ctx.Provider value={value}>
-      {props.children}
-      <box
-        position="absolute"
-        zIndex={3000}
-        onMouseDown={(evt: { button: number; preventDefault(): void; stopPropagation(): void }) => {
-          if (copyOnSelectEnabled()) return
-          if (evt.button !== MouseButton.RIGHT) return
+    <box
+      position="absolute"
+      zIndex={3000}
+      onMouseDown={(evt: { button: number; preventDefault(): void; stopPropagation(): void }) => {
+        if (copyOnSelectEnabled()) return
+        if (evt.button !== MouseButton.RIGHT) return
 
-          if (!copy(renderer, toast, clipboard)) return
-          evt.preventDefault()
-          evt.stopPropagation()
-        }}
-        onMouseUp={
-          copyOnSelectEnabled() ? (event) => copyOnSelectRelease(event, renderer, toast, clipboard) : undefined
-        }
-      >
-        <Show when={value.stack.length}>
-          <Dialog onClose={() => value.clear()} size={value.size} centered={value.centered}>
-            {value.stack.at(-1)!.element}
-          </Dialog>
-        </Show>
-      </box>
-    </ctx.Provider>
+        if (!copy(renderer, toast, clipboard)) return
+        evt.preventDefault()
+        evt.stopPropagation()
+      }}
+      onMouseUp={copyOnSelectEnabled() ? (event) => copyOnSelectRelease(event, renderer, toast, clipboard) : undefined}
+    >
+      <Show when={dialog.stack.length}>
+        <Dialog onClose={() => dialog.clear()} size={dialog.size} centered={dialog.centered}>
+          {element()}
+        </Dialog>
+      </Show>
+    </box>
   )
 }
 

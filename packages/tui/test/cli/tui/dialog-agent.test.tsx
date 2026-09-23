@@ -25,6 +25,7 @@ import { createTuiResolvedConfig } from "../../fixture/tui-runtime"
 
 const AGENTS = [
   { id: "build", name: "build", mode: "primary", hidden: false, permissions: [] },
+  { id: "unitymaster", name: "unitymaster", mode: "subagent", hidden: false, permissions: [] },
   { id: "triage", name: "triage", mode: "primary", hidden: true, permissions: [] },
   { id: "opencode:compaction", name: "compaction", mode: "primary", hidden: true, permissions: [] },
 ]
@@ -48,8 +49,10 @@ async function render(dialog: () => unknown) {
   }
   const calls = createFetch(handler, events)
   let dialogRef!: ReturnType<typeof useDialog>
+  let keymapRef!: ReturnType<typeof Keymap.use>
   function Probe() {
     dialogRef = useDialog()
+    keymapRef = Keymap.use()
     const data = useData()
     onMount(async () => {
       await data.location.sync()
@@ -92,6 +95,9 @@ async function render(dialog: () => unknown) {
   app.renderer.start()
   return {
     app,
+    get keymap() {
+      return keymapRef
+    },
     async cleanup() {
       app.renderer.destroy()
       await temporary[Symbol.asyncDispose]()
@@ -147,6 +153,65 @@ test("edit dialog toolset view lists MCP server toggles", async () => {
   try {
     const frame = await fixture.app.waitForFrame((value) => value.includes("Toolset"))
     expect(frame).toContain("mcp:linear")
+  } finally {
+    await fixture.cleanup()
+  }
+})
+
+test("T1 manage dialog opens the edit panel for a subagent via keyboard", async () => {
+  const fixture = await render(() => <DialogAgentManage />)
+  try {
+    await fixture.app.waitForFrame((value) => value.includes("Agents"))
+    fixture.keymap.dispatch("dialog.select.home")
+    fixture.keymap.dispatch("dialog.select.next")
+    fixture.keymap.dispatch("dialog.select.next")
+    fixture.keymap.dispatch("dialog.select.submit")
+    await fixture.app.waitForVisualIdle()
+    expect(fixture.app.captureCharFrame()).toContain("Edit agent: unitymaster")
+  } finally {
+    await fixture.cleanup()
+  }
+})
+
+test("T2 edit dialog opens the toolset view via keyboard", async () => {
+  const fixture = await render(() => <DialogAgentEdit name="build" />)
+  try {
+    await fixture.app.waitForFrame((value) => value.includes("Edit agent: build"))
+    fixture.keymap.dispatch("dialog.select.next")
+    fixture.keymap.dispatch("dialog.select.next")
+    fixture.keymap.dispatch("dialog.select.submit")
+    await fixture.app.waitForVisualIdle()
+    expect(fixture.app.captureCharFrame()).toContain("Toolset (space toggles")
+  } finally {
+    await fixture.cleanup()
+  }
+})
+
+test("T3 edit dialog opens the permissions view via keyboard", async () => {
+  const fixture = await render(() => <DialogAgentEdit name="build" />)
+  try {
+    await fixture.app.waitForFrame((value) => value.includes("Edit agent: build"))
+    fixture.keymap.dispatch("dialog.select.next")
+    fixture.keymap.dispatch("dialog.select.next")
+    fixture.keymap.dispatch("dialog.select.next")
+    fixture.keymap.dispatch("dialog.select.submit")
+    await fixture.app.waitForVisualIdle()
+    expect(fixture.app.captureCharFrame()).toContain("Permissions override")
+  } finally {
+    await fixture.cleanup()
+  }
+})
+
+test("T4 edit dialog opens the toolset view by clicking the row", async () => {
+  const fixture = await render(() => <DialogAgentEdit name="build" />)
+  try {
+    const frame = await fixture.app.waitForFrame((value) => value.includes("Edit agent: build"))
+    const lines = frame.split("\n")
+    const row = lines.findIndex((line) => line.includes("Toolset"))
+    const column = lines[row]!.indexOf("Toolset") + 1
+    await fixture.app.mockMouse.click(column, row)
+    await fixture.app.waitForVisualIdle()
+    expect(fixture.app.captureCharFrame()).toContain("Toolset (space toggles")
   } finally {
     await fixture.cleanup()
   }
