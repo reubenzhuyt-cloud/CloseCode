@@ -18,7 +18,7 @@
 .PARAMETER Version
     Version string encoded into the build and patched into the installed npm
     package.json files. When omitted, the version is read from the repository
-    root package.json. Pass this switch to override that derived version.
+    root package.json. Pass -Version to override that derived version.
 
 .PARAMETER Channel
     Release channel passed to the build as OPENCODE_CHANNEL. Default: latest.
@@ -126,10 +126,6 @@ function Get-TargetArch {
 }
 
 function Get-NpmRootGlobal {
-    if ($env:APPDATA) {
-        $conventional = Join-Path $env:APPDATA "npm\node_modules"
-        if (Test-Path -LiteralPath $conventional) { return $conventional }
-    }
     foreach ($name in @("npm.cmd", "npm")) {
         $npm = Get-Command $name -ErrorAction SilentlyContinue
         if (-not $npm) { continue }
@@ -217,16 +213,18 @@ function Stop-CloseCodeProcesses {
     }
 }
 
-function Copy-Binary([string] $Source, [string] $Target, [bool] $SkipBackup) {
+function Copy-Binary([string] $Source, [string] $Target, [bool] $SkipBackup, $Rollback) {
     $parent = Split-Path -Parent $Target
     if (-not (Test-Path -LiteralPath $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+    $existed = Test-Path -LiteralPath $Target
     $backup = $null
-    if ((Test-Path -LiteralPath $Target) -and -not $SkipBackup) {
+    if ($existed -and -not $SkipBackup) {
         $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
         $backup = "$Target.bak-$stamp"
         Copy-Item -LiteralPath $Target -Destination $backup -Force
         Write-Info "Backed up $Target -> $backup"
     }
+    [void] $Rollback.Add([pscustomobject]@{ Target = $Target; Backup = $backup; Created = (-not $existed) })
     try {
         Copy-Item -LiteralPath $Source -Destination $Target -Force
     } catch {
@@ -238,7 +236,26 @@ function Copy-Binary([string] $Source, [string] $Target, [bool] $SkipBackup) {
         if ($holders) { Write-Note "  Running closecode PID(s): $(($holders | Select-Object -ExpandProperty Id) -join ', ')" }
         throw
     }
-    return $backup
+}
+
+function Invoke-InstallRollback($Rollback) {
+    if ($Rollback.Count -eq 0) { return }
+    Write-Note "Install failed; rolling back $($Rollback.Count) change(s)..."
+    for ($i = $Rollback.Count - 1; $i -ge 0; $i--) {
+        $entry = $Rollback[$i]
+        try {
+            if ($entry.Backup -and (Test-Path -LiteralPath $entry.Backup)) {
+                Copy-Item -LiteralPath $entry.Backup -Destination $entry.Target -Force
+                Remove-Item -LiteralPath $entry.Backup -Force -ErrorAction SilentlyContinue
+                Write-Info "Restored $($entry.Target)"
+            } elseif ($entry.Created) {
+                Remove-Item -LiteralPath $entry.Target -Force -ErrorAction SilentlyContinue
+                Write-Info "Removed new $($entry.Target)"
+            }
+        } catch {
+            Write-Fail "Rollback failed for $($entry.Target): $($_.Exception.Message)"
+        }
+    }
 }
 
 function Update-PackageVersion([string] $PackageDir, [string] $NewVersion) {
@@ -262,11 +279,14 @@ function Test-InstalledBinary([string] $Path, [string] $ExpectedVersion) {
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($output)) {
         throw "Installed binary failed to start: $Path`n$output"
     }
-    $reported = ($output.Trim() -split "`r?`n" | Where-Object { $_ } | Select-Object -First 1)
-    if ($ExpectedVersion -and $reported -notlike "*$ExpectedVersion*") {
-        throw "Version mismatch at ${Path}: expected $ExpectedVersion but binary reported '$reported'."
+    $lines = @($output.Trim() -split "`r?`n" | Where-Object { $_ })
+    if ($ExpectedVersion) {
+        $pattern = "(?<!\d)$([regex]::Escape($ExpectedVersion))(?!\d)"
+        if (-not ($lines | Where-Object { $_ -match $pattern })) {
+            throw "Version mismatch at ${Path}: expected $ExpectedVersion but binary reported:`n$($output.Trim())"
+        }
     }
-    return $reported
+    return $lines | Select-Object -First 1
 }
 
 function Add-UserPathEntry([string] $Entry) {
@@ -354,6 +374,10 @@ try {
             } elseif ($PSCmdlet.ShouldProcess($cliDir, "Build closecode v$Version ($targetName)")) {
                 $bun = Get-Command bun -ErrorAction SilentlyContinue
                 if (-not $bun) { throw "bun is not available on PATH; install Bun or pass -NoBuild -Binary <path>." }
+                $running = @(Get-Process -Name closecode -ErrorAction SilentlyContinue)
+                if ($running -and $PSCmdlet.ShouldProcess("closecode", "Stop running processes before build")) {
+                    Stop-CloseCodeProcesses
+                }
                 $previousVersion = $env:OPENCODE_VERSION
                 $previousChannel = $env:OPENCODE_CHANNEL
                 $env:OPENCODE_VERSION = $Version
@@ -441,9 +465,7 @@ try {
     try {
         foreach ($target in $targets) {
             if ($PSCmdlet.ShouldProcess($target.Path, "Install closecode.exe")) {
-                $existed = Test-Path -LiteralPath $target.Path
-                $backup = Copy-Binary $sourceExe $target.Path $NoBackup
-                [void] $rollback.Add([pscustomobject]@{ Target = $target.Path; Backup = $backup; Created = (-not $existed) })
+                Copy-Binary $sourceExe $target.Path $NoBackup $rollback
                 Write-Ok "Installed $($target.Path)"
             } else {
                 Write-Info "Would install -> $($target.Path)"
@@ -451,82 +473,65 @@ try {
             $installed.Add($target.Path)
             if ($target.PackageDir) { $updatedPackages.Add($target.PackageDir) }
         }
-    } catch {
-        if ($rollback.Count -gt 0) {
-            Write-Note "Install failed; rolling back $($rollback.Count) change(s)..."
-            for ($i = $rollback.Count - 1; $i -ge 0; $i--) {
-                $entry = $rollback[$i]
-                try {
-                    if ($entry.Backup -and (Test-Path -LiteralPath $entry.Backup)) {
-                        Copy-Item -LiteralPath $entry.Backup -Destination $entry.Target -Force
-                        Remove-Item -LiteralPath $entry.Backup -Force -ErrorAction SilentlyContinue
-                        Write-Info "Restored $($entry.Target)"
-                    } elseif ($entry.Created) {
-                        Remove-Item -LiteralPath $entry.Target -Force -ErrorAction SilentlyContinue
-                        Write-Info "Removed new $($entry.Target)"
-                    }
-                } catch {
-                    Write-Fail "Rollback failed for $($entry.Target): $($_.Exception.Message)"
-                }
-            }
-        }
-        throw
-    }
 
-    # --- Patch npm package versions -----------------------------------------
-    if ($updatedPackages.Count -gt 0) {
-        Write-Head "Updating package.json versions"
-        foreach ($packageDir in @($updatedPackages | Select-Object -Unique)) {
-            if ($PSCmdlet.ShouldProcess((Join-Path $packageDir "package.json"), "Set version $Version")) {
-                if (Update-PackageVersion $packageDir $Version) {
-                    Write-Ok "Updated $(Split-Path -Leaf $packageDir) -> $Version"
-                } else {
-                    Write-Info "$(Split-Path -Leaf $packageDir) already at $Version"
-                }
-            } else {
-                Write-Info "Would set $(Split-Path -Leaf $packageDir) -> $Version"
-            }
-        }
-    }
-
-    # --- PATH handling for the standalone dir -------------------------------
-    if (-not $SkipStandalone) {
-        $pathEntries = @($env:PATH -split ';' | Where-Object { $_ })
-        if ($pathEntries -notcontains $standaloneDir) {
-            Write-Head "Standalone directory is not on PATH"
-            if ($AddToPath) {
-                if ($PSCmdlet.ShouldProcess($standaloneDir, "Add to USER PATH")) {
-                    if (Add-UserPathEntry $standaloneDir) {
-                        Write-Ok "Added $standaloneDir to the USER PATH (restart your shell to pick it up)."
+        # --- Patch npm package versions -----------------------------------------
+        if ($updatedPackages.Count -gt 0) {
+            Write-Head "Updating package.json versions"
+            foreach ($packageDir in @($updatedPackages | Select-Object -Unique)) {
+                if ($PSCmdlet.ShouldProcess((Join-Path $packageDir "package.json"), "Set version $Version")) {
+                    if (Update-PackageVersion $packageDir $Version) {
+                        Write-Ok "Updated $(Split-Path -Leaf $packageDir) -> $Version"
                     } else {
-                        Write-Info "$standaloneDir is already in the USER PATH."
+                        Write-Info "$(Split-Path -Leaf $packageDir) already at $Version"
                     }
                 } else {
-                    Write-Info "Would add $standaloneDir to the USER PATH."
+                    Write-Info "Would set $(Split-Path -Leaf $packageDir) -> $Version"
                 }
-            } else {
-                Write-Note "To add it, run (or pass -AddToPath):"
-                Write-Note "  setx PATH `"$env:PATH;$standaloneDir`""
             }
         }
-    }
 
-    # --- Verify --------------------------------------------------------------
-    if ($script:dryRun) {
-        Write-Head "Verification skipped (dry run)"
-        Write-Ok "Dry run complete; no changes were made."
-        exit 0
-    }
-
-    Write-Head "Verifying"
-    $versions = New-Object System.Collections.Generic.List[string]
-    foreach ($path in @($installed | Select-Object -Unique)) {
-        if (-not (Test-Path -LiteralPath $path)) {
-            throw "Expected installed binary not found: $path"
+        # --- PATH handling for the standalone dir -------------------------------
+        if (-not $SkipStandalone) {
+            $pathEntries = @($env:PATH -split ';' | Where-Object { $_ })
+            if ($pathEntries -notcontains $standaloneDir) {
+                Write-Head "Standalone directory is not on PATH"
+                if ($AddToPath) {
+                    if ($PSCmdlet.ShouldProcess($standaloneDir, "Add to USER PATH")) {
+                        if (Add-UserPathEntry $standaloneDir) {
+                            Write-Ok "Added $standaloneDir to the USER PATH (restart your shell to pick it up)."
+                        } else {
+                            Write-Info "$standaloneDir is already in the USER PATH."
+                        }
+                    } else {
+                        Write-Info "Would add $standaloneDir to the USER PATH."
+                    }
+                } else {
+                    Write-Note "To add it, run (or pass -AddToPath):"
+                    Write-Note "  setx PATH `"$env:PATH;$standaloneDir`""
+                }
+            }
         }
-        $version = Test-InstalledBinary $path $Version
-        Write-Ok "$path -> $version"
-        $versions.Add($version)
+
+        # --- Verify --------------------------------------------------------------
+        if ($script:dryRun) {
+            Write-Head "Verification skipped (dry run)"
+            Write-Ok "Dry run complete; no changes were made."
+            exit 0
+        }
+
+        Write-Head "Verifying"
+        $versions = New-Object System.Collections.Generic.List[string]
+        foreach ($path in @($installed | Select-Object -Unique)) {
+            if (-not (Test-Path -LiteralPath $path)) {
+                throw "Expected installed binary not found: $path"
+            }
+            $version = Test-InstalledBinary $path $Version
+            Write-Ok "$path -> $version"
+            $versions.Add($version)
+        }
+    } catch {
+        Invoke-InstallRollback $rollback
+        throw
     }
 
     Write-Head "Done"
