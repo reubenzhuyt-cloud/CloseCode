@@ -5,8 +5,15 @@ export type CommandUsage = { count: number; usedAt: number }
 
 export type CommandUsageOption = { name: string; display: string }
 
+export const MAX_COMMAND_USAGE_BOOST = 10
+export const COMMAND_USAGE_BOOST_STEP = 0.1
+
+export function commandUsageBoost(count: number) {
+  return 1 + Math.min(Math.max(count, 0), MAX_COMMAND_USAGE_BOOST) * COMMAND_USAGE_BOOST_STEP
+}
+
 type PersistedState = {
-  commands: Record<string, CommandUsage>
+  commands?: Record<string, CommandUsage>
 }
 
 export function compareCommandUsage(a: CommandUsageOption, b: CommandUsageOption, usage: Record<string, CommandUsage>) {
@@ -29,12 +36,19 @@ export function useCommandUsage() {
   }
 
   return {
-    compare: (a: CommandUsageOption, b: CommandUsageOption) =>
-      compareCommandUsage(a, b, persisted ? persisted[0].commands : memory.commands),
+    compare: (a: CommandUsageOption, b: CommandUsageOption) => {
+      const commands = persisted ? persisted[0].commands ?? {} : memory.commands ?? {}
+      return compareCommandUsage(a, b, commands)
+    },
+    count(name: string) {
+      const commands = persisted ? persisted[0].commands ?? {} : memory.commands ?? {}
+      return commands[name]?.count ?? 0
+    },
     touch(name: string) {
       void apply((draft) => {
-        const previous = draft.commands[name]
-        draft.commands[name] = { count: (previous?.count ?? 0) + 1, usedAt: Date.now() }
+        const commands = (draft.commands ??= {})
+        const previous = commands[name]
+        commands[name] = { count: (previous?.count ?? 0) + 1, usedAt: Date.now() }
       }).catch((error) => console.error("Failed to persist command usage", error))
     },
   }

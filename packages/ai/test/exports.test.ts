@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { AIError, ImageInput, LanguageModel, LLM, LLMClient, Provider } from "@opencode/ai"
+import { AIError, LanguageModel, LLM, LLMClient, Media, Provider } from "@opencode/ai"
 import { Route, Protocol, WebSocketTransport } from "@opencode/ai/route"
 import { Provider as ProviderSubpath } from "@opencode/ai/provider"
 import {
@@ -8,9 +8,12 @@ import {
   CloudflareWorkersAI,
   DeepSeek,
   Fireworks,
+  OpenCodeZen,
   OpenAI,
   OpenAICompatible,
   OpenRouter,
+  TypeSafeAI,
+  VercelAIGateway,
   XAI,
 } from "@opencode/ai/providers"
 import {
@@ -23,6 +26,7 @@ import {
 } from "@opencode/ai/protocols"
 import * as AnthropicMessages from "@opencode/ai/protocols/anthropic-messages"
 import { TestLLM } from "@opencode/ai/testing"
+import { Evaluation, EvaluationClient } from "@opencode/ai/experimental"
 
 describe("public exports", () => {
   test("root exposes app-facing runtime APIs", () => {
@@ -31,12 +35,15 @@ describe("public exports", () => {
     expect(LLMClient.layer).toBeDefined()
     expect(AIError).toBeFunction()
     expect(LanguageModel.make).toBeFunction()
-    expect(ImageInput.bytes).toBeFunction()
+    expect(Media.bytes).toBeFunction()
     expect(Provider.make).toBeFunction()
     expect(ProviderSubpath.make).toBe(Provider.make)
     expect(TestLLM.layer).toBeFunction()
     expect(TestLLM.testLayer).toBeFunction()
     expect(TestLLM.Test.of).toBeFunction()
+    expect(Evaluation.run).toBeFunction()
+    expect(EvaluationClient.layer).toBeDefined()
+    expect(EvaluationClient.fetchLayer).toBeDefined()
   })
 
   test("route barrel exposes route-authoring APIs", () => {
@@ -66,6 +73,10 @@ describe("public exports", () => {
     expect(CloudflareWorkersAI.configure).toBeFunction()
     expect(CloudflareWorkersAI.configure({ accountId: "fixture", apiKey: "fixture" }).model).toBeFunction()
     expect(OpenRouter.model).toBeFunction()
+    expect(OpenRouter.experimental.evaluation).toBeFunction()
+    expect(TypeSafeAI.experimental.evaluation).toBeFunction()
+    expect(OpenCodeZen.experimental.evaluation).toBeFunction()
+    expect(VercelAIGateway.experimental.evaluation).toBeFunction()
     expect(XAI.model).toBeFunction()
     expect(XAI.provider.responses).toBe(XAI.responses)
     expect(XAI.provider.chat).toBe(XAI.chat)

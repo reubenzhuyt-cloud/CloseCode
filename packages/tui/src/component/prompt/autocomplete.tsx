@@ -18,6 +18,7 @@ import { useTerminalDimensions } from "@opentui/solid"
 import { Locale } from "../../util/locale"
 import type { PromptInfo, PromptPartRef } from "../../prompt/history"
 import { useFrecency } from "../../prompt/frecency"
+import { commandUsageBoost, useCommandUsage } from "../../prompt/command-usage"
 import { Keymap, type KeymapCommand } from "../../context/keymap"
 import { displayCharAt, mentionTriggerIndex, slashTriggerIndex } from "../../prompt/display"
 import type { FileSystemEntry } from "@opencode/client"
@@ -35,6 +36,8 @@ export type AutocompleteRef = {
 
 export type AutocompleteOption = {
   display: string
+  name?: string
+  immediate?: boolean
   value?: string
   aliases?: string[]
   disabled?: boolean
@@ -80,6 +83,7 @@ export function Autocomplete(props: {
   const theme = useTheme()
   const dimensions = useTerminalDimensions()
   const frecency = useFrecency()
+  const usage = useCommandUsage()
   const config = useConfig().data
   const paths = useTuiPaths()
   const location = useLocation()
@@ -477,6 +481,8 @@ export function Autocomplete(props: {
       if (!slash) return []
       return [slash.name, ...(slash.aliases ?? [])].map((name) => ({
         display: `/${name}`,
+        name,
+        immediate: !slash.arguments,
         description: command.description ?? command.title,
         onSelect: slash.arguments ? () => insertSlash(name) : command.run,
       }))
@@ -487,13 +493,19 @@ export function Autocomplete(props: {
       commandNames.add(serverCommand.name)
       results.push({
         display: "/" + serverCommand.name,
+        name: serverCommand.name,
         description: serverCommand.description,
         queueable: true,
         onSelect: () => insertSlash(serverCommand.name),
       })
     }
 
-    results.sort((a, b) => a.display.localeCompare(b.display))
+    results.sort((a, b) =>
+      usage.compare(
+        { name: a.name ?? a.display, display: a.display },
+        { name: b.name ?? b.display, display: b.display },
+      ),
+    )
 
     const max = firstBy(results, [(x) => x.display.length, "desc"])?.display.length
     if (!max) return results
@@ -567,7 +579,8 @@ export function Autocomplete(props: {
             score *= 2
           }
           const frecencyScore = objResults.obj.path ? frecency.getFrecency(objResults.obj.path) : 0
-          return score * (1 + frecencyScore)
+          const usageScore = store.visible === "command" ? usage.count(objResults.obj.name ?? "") : 0
+          return score * (1 + frecencyScore) * commandUsageBoost(usageScore)
         },
       })
       .map((arr) => arr.obj)
@@ -615,6 +628,7 @@ export function Autocomplete(props: {
   function select() {
     const selected = options()[store.selected]
     if (!selected) return
+    if (store.visible === "command" && selected.immediate && selected.name) usage.touch(selected.name)
     if (store.visible !== "directory") {
       hide(true)
       selected.onSelect?.()

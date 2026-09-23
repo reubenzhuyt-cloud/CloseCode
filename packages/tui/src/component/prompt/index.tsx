@@ -28,6 +28,7 @@ import { useExit } from "../../context/exit"
 import { promptOffsetWidth } from "../../prompt/display"
 import { expandPromptInputPastedText, realignPromptInputMentions } from "../../prompt/mention"
 import { parseSlashHead } from "../../prompt/parse"
+import { useCommandUsage } from "../../prompt/command-usage"
 import { stringWidth } from "../../util/string-width"
 import { createStore, produce, unwrap } from "solid-js/store"
 import { emptyPrompt, usePromptHistory, type PromptInfo, type PromptPartRef } from "../../prompt/history"
@@ -210,6 +211,7 @@ export function Prompt(props: PromptProps) {
   const status = createMemo(() => data.session.status(props.sessionID ?? ""))
   const history = usePromptHistory()
   const stash = usePromptStash()
+  const usage = useCommandUsage()
   const keymap = Keymap.use()
   const renderer = useRenderer()
   const exit = useExit()
@@ -1134,6 +1136,8 @@ export function Prompt(props: PromptProps) {
       return true
     }
     if (slash) {
+      const slashName = parseSlashHead(inputText, /\s/)?.name
+      if (slashName) usage.touch(slashName)
       clearPrompt()
       await slash.command.run(slash.input)
       return true
@@ -1303,6 +1307,7 @@ export function Prompt(props: PromptProps) {
         // Commands inherit the composer selection; command-specific overrides
         // remain server-owned and run after this preparation.
         await commitSelection()
+        void usage.touch(slashHead.name)
         return client.api.session.command({
           sessionID: target,
           name: slashHead.name,
