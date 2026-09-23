@@ -17,7 +17,7 @@
 
 .PARAMETER Version
     Version string encoded into the build and patched into the installed npm
-    package.json files. Default: 0.2.0.
+    package.json files. Default: 0.2.1.
 
 .PARAMETER Channel
     Release channel passed to the build as OPENCODE_CHANNEL. Default: latest.
@@ -73,7 +73,7 @@
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
 param(
-    [string] $Version = "0.2.0",
+    [string] $Version = "0.2.1",
     [string] $Channel = "latest",
     [string] $Binary,
     [switch] $NoBuild,
@@ -160,12 +160,10 @@ function Find-BuiltArtifact([string] $DistDir, [string] $Arch, [bool] $UseBaseli
 }
 
 function Get-NpmTargetPaths([string] $Root) {
-    $paths = @(Join-Path $Root "closecode-ai\bin\closecode.exe")
-    foreach ($dir in Get-ChildItem -LiteralPath $Root -Directory -Filter "closecode-windows-*" -ErrorAction SilentlyContinue) {
-        $paths += Join-Path $dir.FullName "bin\closecode.exe"
-    }
-    $scoped = Join-Path $Root "@opencode"
-    if (Test-Path -LiteralPath $scoped) {
+    $paths = @()
+    foreach ($scope in @("@opencode", "@opencode-ai")) {
+        $scoped = Join-Path $Root $scope
+        if (-not (Test-Path -LiteralPath $scoped)) { continue }
         foreach ($dir in Get-ChildItem -LiteralPath $scoped -Directory -Filter "cli-windows-*" -ErrorAction SilentlyContinue) {
             $paths += Join-Path $dir.FullName "bin\closecode.exe"
         }
@@ -244,7 +242,7 @@ function Update-PackageVersion([string] $PackageDir, [string] $NewVersion) {
     $json.version = $NewVersion
     if ($json.optionalDependencies) {
         foreach ($name in @($json.optionalDependencies.PSObject.Properties.Name)) {
-            if ($name -like "closecode-*") { $json.optionalDependencies.$name = $NewVersion }
+            if ($name -like "@opencode/cli-*" -or $name -like "@opencode-ai/cli-*") { $json.optionalDependencies.$name = $NewVersion }
         }
     }
     $json | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $packageJson -Encoding UTF8
@@ -396,7 +394,7 @@ try {
     }
 
     if ($targets.Count -eq 0) {
-        Write-Note "No install targets found. Install closecode-ai globally or check -SkipNpm/-SkipStandalone."
+        Write-Note "No install targets found. Install @opencode/cli globally or check -SkipNpm/-SkipStandalone."
         exit 1
     }
     foreach ($target in $targets) {
