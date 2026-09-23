@@ -12546,6 +12546,51 @@
           "required": true
         }
       }
+    },
+    "/api/experimental/config/agent": {
+      "patch": {
+        "tags": ["config"],
+        "operationId": "experimental.config.updateAgent",
+        "parameters": [],
+        "security": [],
+        "responses": {
+          "204": {
+            "description": "<No Content>"
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "Patch named agent definitions in the workspace project configuration or the global configuration document.",
+        "summary": "Update agent configuration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Config.AgentUpdate"
+              }
+            }
+          },
+          "required": true
+        }
+      }
     }
   },
   "components": {
@@ -12590,6 +12635,19 @@
           },
           "permissions": {
             "$ref": "#/components/schemas/Permission.Ruleset"
+          },
+          "toolset": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          },
+          "skillActivation": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": ["off", "name", "full"]
+            }
           }
         },
         "required": ["id", "name", "request", "mode", "hidden", "permissions"],
@@ -12730,8 +12788,105 @@
           },
           "permissions": {
             "$ref": "#/components/schemas/Permission.Ruleset"
+          },
+          "toolset": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "description": "Visibility allowlist for MCP tools. Keys are glob patterns matched against MCP tool ids or `mcp:<server>`; MCP tools are hidden unless a pattern allows them. Built-in tools are always visible."
+          },
+          "skill_activation": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": ["off", "name", "full"]
+            },
+            "description": "Per-skill activation level keyed by skill name. `off` hides the skill, `name` lists it without its description, and `full` lists it with its description."
           }
         },
+        "additionalProperties": false
+      },
+      "Config.AgentPatch": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[^/#]+\\/[^#]+(?:#[^#]+)?$"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "providerID": {
+                    "type": "string",
+                    "pattern": "^[^/#]+$"
+                  },
+                  "model": {
+                    "type": "string",
+                    "pattern": "^[^#]+$"
+                  },
+                  "variant": {
+                    "type": "string",
+                    "pattern": "^[^#]+$"
+                  }
+                },
+                "required": ["providerID", "model"],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["subagent", "primary", "all"]
+          },
+          "disabled": {
+            "type": "boolean"
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/Permission.Ruleset"
+          },
+          "toolset": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "description": "Visibility allowlist for MCP tools. Keys are glob patterns matched against MCP tool ids or `mcp:<server>`; MCP tools are hidden unless a pattern allows them. Built-in tools are always visible."
+          },
+          "skill_activation": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": ["off", "name", "full"]
+            },
+            "description": "Per-skill activation level keyed by skill name. `off` hides the skill, `name` lists it without its description, and `full` lists it with its description."
+          }
+        },
+        "additionalProperties": false
+      },
+      "Config.AgentScope": {
+        "type": "string",
+        "enum": ["project", "global"],
+        "description": "Whether to write the workspace project configuration or the global configuration"
+      },
+      "Config.AgentUpdate": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "$ref": "#/components/schemas/Config.AgentScope"
+          },
+          "agent": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Config.AgentPatch"
+            }
+          }
+        },
+        "required": ["scope", "agent"],
         "additionalProperties": false
       },
       "Config.CommandEncoded": {

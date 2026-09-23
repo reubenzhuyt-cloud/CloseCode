@@ -114,6 +114,32 @@ export const Patch = Schema.Struct({
 }).annotate({ identifier: "Config.Patch" })
 export interface Patch extends Schema.Schema.Type<typeof Patch> {}
 
+/** Editable subset of an agent definition that configuration write-back supports. */
+export const AgentPatch = Schema.Struct({
+  model: ConfigAgent.Info.fields.model,
+  description: ConfigAgent.Info.fields.description,
+  mode: ConfigAgent.Info.fields.mode,
+  disabled: ConfigAgent.Info.fields.disabled,
+  permissions: ConfigAgent.Info.fields.permissions,
+  toolset: ConfigAgent.Info.fields.toolset,
+  skill_activation: ConfigAgent.Info.fields.skill_activation,
+})
+  .annotate({ identifier: "Config.AgentPatch", parseOptions: { onExcessProperty: "error" } })
+export interface AgentPatch extends Schema.Schema.Type<typeof AgentPatch> {}
+
+export const AgentScope = Schema.Literals(["project", "global"]).annotate({
+  identifier: "Config.AgentScope",
+  description: "Whether to write the workspace project configuration or the global configuration",
+})
+export type AgentScope = typeof AgentScope.Type
+
+export const AgentUpdate = Schema.Struct({
+  scope: AgentScope,
+  agent: Schema.Record(Schema.String, AgentPatch),
+})
+  .annotate({ identifier: "Config.AgentUpdate", parseOptions: { onExcessProperty: "error" } })
+export interface AgentUpdate extends Schema.Schema.Type<typeof AgentUpdate> {}
+
 export class Document extends Schema.Class<Document>("Config.Document")({
   type: Schema.Literal("document"),
   path: AbsolutePath.pipe(optional),

@@ -120,6 +120,7 @@ export const Plugin = define({
             if (item.color !== undefined) agent.color = item.color
             if (item.steps !== undefined) agent.steps = item.steps
             if (item.toolset !== undefined) agent.toolset = AgentToolset.mergeToolset(agent.toolset, item.toolset)
+            if (item.skill_activation !== undefined) agent.skillActivation = item.skill_activation
             if (item.permissions !== undefined) {
               agent.permissions.push(...expandPermissions(item.permissions, global.home))
             }

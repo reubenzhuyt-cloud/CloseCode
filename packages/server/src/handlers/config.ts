@@ -16,6 +16,14 @@ export const ConfigHandler = HttpApiBuilder.group(Api, "server.config", (handler
       }),
     )
     .handle(
+      "config.updateAgent",
+      Effect.fn(function* (ctx) {
+        const config = yield* Config.Service
+        if (!config.updateAgent) return yield* Effect.die(new Error("Config updates are unavailable"))
+        return yield* config.updateAgent(ctx.payload).pipe(Effect.orDie)
+      }),
+    )
+    .handle(
       "config.shells",
       Effect.fn(function* () {
         const shell = yield* ShellSelect.Service

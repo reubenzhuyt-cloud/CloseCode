@@ -80,6 +80,21 @@ describe("SkillInstructions", () => {
     }).pipe(Effect.provide(layer(() => skills)))
   })
 
+  it.effect("applies agent skill activation levels from the load input", () => {
+    const agent = Agent.Info.make({
+      ...Agent.Info.default(build),
+      skillActivation: { Effect: "name", hidden: "off" },
+    })
+    return Effect.gen(function* () {
+      const instructions = yield* SkillInstructions.Service
+      const initialized = yield* instructions.load(agent.permissions, { agent }).pipe(Effect.flatMap(readInitial))
+
+      expect(initialized.text).toContain("<name>Effect</name>")
+      expect(initialized.text).not.toContain("<description>Build applications with Effect</description>")
+      expect(initialized.text).not.toContain("<id>hidden</id>")
+    }).pipe(Effect.provide(layer(() => [effect, hidden])))
+  })
+
   it.effect("announces added and removed skills as deltas without restating the list", () => {
     const agent = Agent.Info.make(Agent.Info.default(build))
     const debugging = Skill.Info.make({

@@ -33,6 +33,7 @@ export const Info = Schema.Struct({
   steps: PositiveInt.pipe(optional),
   permissions: Permission.Ruleset,
   toolset: Schema.Record(Schema.String, Schema.Boolean).pipe(optional),
+  skillActivation: Schema.Record(Schema.String, Schema.Literals(["off", "name", "full"])).pipe(optional),
 })
   .annotate({ identifier: "Agent.Info" })
   .pipe(

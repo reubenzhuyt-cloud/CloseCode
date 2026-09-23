@@ -1936,6 +1936,8 @@ export type AgentInfo = {
   color?: AgentColor
   steps?: number
   permissions: PermissionRuleset
+  toolset?: { [x: string]: boolean }
+  skillActivation?: { [x: string]: "off" | "name" | "full" }
 }
 
 export type SessionPermissions = {
@@ -2016,6 +2018,8 @@ export type ConfigEntry =
             steps?: number
             disabled?: boolean
             permissions?: PermissionRuleset
+            toolset?: { [x: string]: boolean }
+            skill_activation?: { [x: string]: "off" | "name" | "full" }
           }
         }
         snapshots?: boolean
@@ -6345,3 +6349,44 @@ export type ConfigShellsOutput = Array<ConfigShellOption>
 export type ConfigUpdateInput = { readonly shell: { readonly shell: string | null }["shell"] }
 
 export type ConfigUpdateOutput = void
+
+export type ConfigUpdateAgentInput = {
+  readonly scope: {
+    readonly scope: "project" | "global"
+    readonly agent: {
+      readonly [x: string]: {
+        readonly model?: string | { readonly providerID: string; readonly model: string; readonly variant?: string }
+        readonly description?: string
+        readonly mode?: "subagent" | "primary" | "all"
+        readonly disabled?: boolean
+        readonly permissions?: ReadonlyArray<{
+          readonly action: string
+          readonly resource: string
+          readonly effect: "allow" | "deny" | "ask"
+        }>
+        readonly toolset?: { readonly [x: string]: boolean }
+        readonly skill_activation?: { readonly [x: string]: "off" | "name" | "full" }
+      }
+    }
+  }["scope"]
+  readonly agent: {
+    readonly scope: "project" | "global"
+    readonly agent: {
+      readonly [x: string]: {
+        readonly model?: string | { readonly providerID: string; readonly model: string; readonly variant?: string }
+        readonly description?: string
+        readonly mode?: "subagent" | "primary" | "all"
+        readonly disabled?: boolean
+        readonly permissions?: ReadonlyArray<{
+          readonly action: string
+          readonly resource: string
+          readonly effect: "allow" | "deny" | "ask"
+        }>
+        readonly toolset?: { readonly [x: string]: boolean }
+        readonly skill_activation?: { readonly [x: string]: "off" | "name" | "full" }
+      }
+    }
+  }["agent"]
+}
+
+export type ConfigUpdateAgentOutput = void

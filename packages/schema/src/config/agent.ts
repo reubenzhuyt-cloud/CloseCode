@@ -25,4 +25,10 @@ export class Info extends Schema.Class<Info>("Config.Agent")({
         "Visibility allowlist for MCP tools. Keys are glob patterns matched against MCP tool ids or `mcp:<server>`; MCP tools are hidden unless a pattern allows them. Built-in tools are always visible.",
     })
     .pipe(optional),
+  skill_activation: Schema.Record(Schema.String, Schema.Literals(["off", "name", "full"]))
+    .annotate({
+      description:
+        "Per-skill activation level keyed by skill name. `off` hides the skill, `name` lists it without its description, and `full` lists it with its description.",
+    })
+    .pipe(optional),
 }) {}

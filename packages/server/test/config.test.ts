@@ -99,6 +99,78 @@ it.live("updates the global shell without replacing unrelated JSONC", () =>
   }),
 )
 
+it.live("updates an agent in the project config without replacing unrelated JSONC", () =>
+  Effect.gen(function* () {
+    const tmp = yield* Effect.acquireDisposable(Effect.promise(() => tmpdir("opencode-config-agent-")))
+    const global = path.join(tmp.path, "global")
+    const project = path.join(tmp.path, "project")
+    const config = path.join(project, "opencode.jsonc")
+    yield* Effect.promise(() =>
+      Promise.all([fs.mkdir(global, { recursive: true }), fs.mkdir(project, { recursive: true })]),
+    )
+    yield* Effect.promise(() =>
+      fs.writeFile(
+        config,
+        `{
+  // keep this comment
+  "shell": "/bin/zsh",
+  "agents": {
+    "reviewer": {
+      "description": "old description",
+      "mode": "subagent"
+    }
+  }
+}
+`,
+      ),
+    )
+    const server = yield* startServer(global)
+    const url = new URL("/api/experimental/config/agent", server.base)
+    url.searchParams.set("location[directory]", project)
+    const response = yield* Effect.promise(() =>
+      fetch(url, {
+        method: "PATCH",
+        headers: { ...server.headers, "content-type": "application/json" },
+        body: JSON.stringify({
+          scope: "project",
+          agent: { reviewer: { description: "new description", disabled: true } },
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(204)
+    const text = yield* Effect.promise(() => fs.readFile(config, "utf8"))
+    expect(text).toContain("// keep this comment")
+    expect(text).toContain('"shell": "/bin/zsh"')
+    expect(text).toContain('"description": "new description"')
+    expect(text).toContain('"disabled": true')
+    expect(text).toContain('"mode": "subagent"')
+  }),
+)
+
+it.live("rejects unknown agent patch fields", () =>
+  Effect.gen(function* () {
+    const tmp = yield* Effect.acquireDisposable(Effect.promise(() => tmpdir("opencode-config-agent-invalid-")))
+    const global = path.join(tmp.path, "global")
+    const project = path.join(tmp.path, "project")
+    yield* Effect.promise(() =>
+      Promise.all([fs.mkdir(global, { recursive: true }), fs.mkdir(project, { recursive: true })]),
+    )
+    const server = yield* startServer(global)
+    const url = new URL("/api/experimental/config/agent", server.base)
+    url.searchParams.set("location[directory]", project)
+    const response = yield* Effect.promise(() =>
+      fetch(url, {
+        method: "PATCH",
+        headers: { ...server.headers, "content-type": "application/json" },
+        body: JSON.stringify({ scope: "project", agent: { reviewer: { bogus: true } } }),
+      }),
+    )
+
+    expect(response.status).toBe(400)
+  }),
+)
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
 }

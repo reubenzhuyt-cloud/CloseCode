@@ -2,14 +2,19 @@ export * as SkillInstructions from "./instructions.js"
 
 import { makeLocationNode } from "@opencode/util/effect/app-node"
 import { Context, Effect, Layer, Schema } from "effect"
+import type { Agent } from "@opencode/schema/agent"
+import type { Session } from "@opencode/schema/session"
+import { optional } from "@opencode/schema/schema"
 import { Permission } from "../permission.js"
 import { Skill } from "../skill.js"
 import { Instructions } from "../instructions/index.js"
 
+export type Level = "off" | "name" | "full"
+
 const Summary = Schema.Struct({
   id: Skill.ID,
   name: Skill.Name,
-  description: Schema.String,
+  description: Schema.String.pipe(optional),
 })
 type Summary = typeof Summary.Type
 
@@ -18,7 +23,7 @@ const entries = (skills: ReadonlyArray<Summary>) =>
     "  <skill>",
     `    <id>${skill.id}</id>`,
     `    <name>${skill.name}</name>`,
-    `    <description>${skill.description}</description>`,
+    ...(skill.description === undefined ? [] : [`    <description>${skill.description}</description>`]),
     "  </skill>",
   ])
 
@@ -59,7 +64,10 @@ const update = (previous: ReadonlyArray<Summary>, current: ReadonlyArray<Summary
 
 export interface Interface {
   /** Lists skills the given ruleset does not deny; callers pass the merged agent and Session permissions. */
-  readonly load: (permissions: Permission.Ruleset) => Effect.Effect<Instructions.List>
+  readonly load: (
+    permissions: Permission.Ruleset,
+    input?: { readonly agent?: Agent.Info; readonly metadata?: Session.Metadata },
+  ) => Effect.Effect<Instructions.List>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/SkillInstructions") {}
@@ -70,13 +78,16 @@ const layer = Layer.effect(
     const skills = yield* Skill.Service
 
     return Service.of({
-      load: Effect.fn("SkillInstructions.load")(function* (permissions) {
-        const available = Skill.available(yield* skills.list(), permissions)
-          .flatMap((skill) =>
-            skill.description === undefined || skill.autoinvoke === false
-              ? []
-              : [{ id: skill.id, name: skill.name, description: skill.description }],
-          )
+      load: Effect.fn("SkillInstructions.load")(function* (permissions, input) {
+        const all = yield* skills.list()
+        const levels = resolveSkillLevels(input?.agent, input?.metadata, all)
+        const available = Skill.available(all, permissions)
+          .flatMap((skill) => {
+            const level = levels[skill.name] ?? levels[skill.id] ?? "full"
+            if (level === "off") return []
+            if (skill.description === undefined || skill.autoinvoke === false) return []
+            return [{ id: skill.id, name: skill.name, ...(level === "name" ? {} : { description: skill.description }) }]
+          })
           .toSorted((a, b) => a.id.localeCompare(b.id))
         return Instructions.make<ReadonlyArray<Summary>>({
           key: Instructions.Key.make("core/skill-guidance"),
@@ -92,5 +103,52 @@ const layer = Layer.effect(
     })
   }),
 )
+
+/**
+ * Resolves one activation level per skill name. Keys may be a skill's name or
+ * id: Session overrides win over agent configuration, `*` entries cover
+ * unlisted skills, and the agent mode picks the fallback (`off` for subagents,
+ * `full` otherwise).
+ */
+export const resolveSkillLevels = (
+  agent: Agent.Info | undefined,
+  metadata: Session.Metadata | undefined,
+  skills: ReadonlyArray<Pick<Skill.Info, "name" | "id">>,
+): Record<string, Level> => {
+  const config = agent?.skillActivation ?? {}
+  const override = sessionSkillLevels(metadata, agent?.name)
+  const fallback: Level = agent?.mode === "subagent" ? "off" : "full"
+  return Object.fromEntries(
+    skills.map((skill) => [
+      skill.name,
+      override[skill.name] ??
+        override[skill.id] ??
+        override["*"] ??
+        config[skill.name] ??
+        config[skill.id] ??
+        config["*"] ??
+        fallback,
+    ]),
+  )
+}
+
+const sessionSkillLevels = (
+  metadata: Session.Metadata | undefined,
+  agentName: Agent.Name | undefined,
+): Record<string, Level> => {
+  if (agentName === undefined) return {}
+  const configured = metadata?.["agent_skills"]
+  if (!isRecord(configured)) return {}
+  const entry = configured[agentName]
+  if (!isRecord(entry)) return {}
+  return Object.fromEntries(
+    Object.entries(entry).flatMap(([name, value]) => (isLevel(value) ? [[name, value] as const] : [])),
+  )
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+
+const isLevel = (value: unknown): value is Level => value === "off" || value === "name" || value === "full"
 
 export const node = makeLocationNode({ service: Service, layer, deps: [Skill.node] })

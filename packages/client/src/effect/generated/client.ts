@@ -259,6 +259,8 @@ import type {
   ConfigShellsOutput,
   ConfigUpdateInput,
   ConfigUpdateOutput,
+  ConfigUpdateAgentInput,
+  ConfigUpdateAgentOutput,
 } from "../api/api.js"
 import { ClientError } from "./client-error.js"
 
@@ -1520,10 +1522,18 @@ const EndpointConfigUpdate = (raw: RawClient["server.config"]) => (input: Config
     raw["config.update"]({ payload: { shell: input["shell"] } }).pipe(Effect.mapError(mapClientError)),
   )
 
+const EndpointConfigUpdateAgent = (raw: RawClient["server.config"]) => (input: ConfigUpdateAgentInput) =>
+  preserveEffect<ConfigUpdateAgentOutput>()(
+    raw["config.updateAgent"]({ payload: { scope: input["scope"], agent: input["agent"] } }).pipe(
+      Effect.mapError(mapClientError),
+    ),
+  )
+
 const adaptGroupConfig = (raw: RawClient["server.config"]) => ({
   get: EndpointConfigGet(raw),
   shells: EndpointConfigShells(raw),
   update: EndpointConfigUpdate(raw),
+  updateAgent: EndpointConfigUpdateAgent(raw),
 })
 
 const adaptClient = (raw: RawClient) => ({

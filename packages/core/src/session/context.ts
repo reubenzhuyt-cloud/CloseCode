@@ -134,7 +134,7 @@ const layer = Layer.effect(
           tools: registry.snapshot(permissions, agent.info.toolset),
           builtins: builtins.load(sessionID),
           discovery: discovery.load(),
-          skills: skillInstructions.load(permissions),
+          skills: skillInstructions.load(permissions, { agent: agent.info, metadata: session.metadata }),
           references: referenceInstructions.load(),
           mcp: mcpInstructions.load(permissions, agent.info.toolset),
           entries: entries.load(sessionID),

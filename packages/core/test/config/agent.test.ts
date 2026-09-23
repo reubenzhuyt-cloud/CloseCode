@@ -404,6 +404,37 @@ permissions:
     }),
   )
 
+  it.effect("maps per-skill activation levels from agent configuration", () =>
+    Effect.gen(function* () {
+      const agents = yield* Agent.Service
+      const entries = [
+        new Document({
+          type: "document",
+          info: decode({
+            agents: {
+              reviewer: { skill_activation: { effect: "off", "*": "name" } },
+            },
+          }),
+        }),
+      ]
+
+      yield* ConfigAgentPlugin.Plugin.effect(host({ agent: agentHost(agents) })).pipe(
+        Effect.provide(Config.testLayer(entries)),
+      )
+
+      const reviewer = yield* agents.get(Agent.ID.make("reviewer"))
+      if (!reviewer) throw new Error("expected configured reviewer agent")
+      expect(reviewer.skillActivation).toEqual({ effect: "off", "*": "name" })
+    }),
+  )
+
+  it.live("loads per-skill activation levels from Markdown frontmatter", () =>
+    Effect.gen(function* () {
+      const agent = yield* loadMarkdownAgent('skill_activation:\n  effect: full\n  "*": off')
+      expect(agent.skillActivation).toEqual({ effect: "full", "*": "off" })
+    }),
+  )
+
   it.effect("removes a built-in agent disabled by configuration", () =>
     Effect.gen(function* () {
       const agents = yield* Agent.Service

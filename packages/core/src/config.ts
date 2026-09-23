@@ -5,7 +5,16 @@ import path from "path"
 import { isDeepStrictEqual } from "node:util"
 import { applyEdits, modify, type ParseError, parse } from "jsonc-parser"
 import { Context, Effect, FiberMap, Layer, Option, PubSub, Ref, Schema, Semaphore, Stream } from "effect"
-import { Directory, Document, Info, type Patch, type Entry, Event } from "@opencode/schema/config"
+import {
+  AgentPatch,
+  Directory,
+  Document,
+  Info,
+  type AgentUpdate,
+  type Patch,
+  type Entry,
+  Event,
+} from "@opencode/schema/config"
 import { Credential } from "./credential.js"
 import { Bus } from "./bus.js"
 import { Watcher } from "./filesystem/watcher.js"
@@ -40,6 +49,8 @@ export interface Interface {
   readonly changes: () => Stream.Stream<Watcher.Update>
   /** Updates supported global config fields while preserving unrelated JSONC content. */
   readonly update?: (patch: Patch) => Effect.Effect<void, FSUtil.Error>
+  /** Patches named agent definitions in the project or global config document while preserving unrelated JSONC content. */
+  readonly updateAgent?: (update: AgentUpdate) => Effect.Effect<void, FSUtil.Error>
 }
 
 export const Options = Schema.Struct({
@@ -101,6 +112,7 @@ export const layer = (options?: Options) =>
       const updateLock = Semaphore.makeUnsafe(1)
       const decodeOptions = { errors: "all", onExcessProperty: "ignore", propertyOrder: "original" } as const
       const decodeInfo = Schema.decodeUnknownOption(Info, decodeOptions)
+      const encodeAgentPatch = Schema.encodeUnknownSync(AgentPatch)
       const parseInfo = Effect.fn("Config.parseInfo")(function* (text: string, source: string) {
         const errors: ParseError[] = []
         const input: unknown = parse(text, errors, { allowTrailingComma: true })
@@ -348,6 +360,44 @@ export const layer = (options?: Options) =>
         (effect) => updateLock.withPermit(effect),
       )
 
+      const updateAgent = Effect.fn("Config.updateAgent")(
+        function* (update: AgentUpdate) {
+          const directory =
+            update.scope === "global"
+              ? initial.global ?? AbsolutePath.make(globalService.config)
+              : location.directory
+          const candidates = ConfigDiscovery.names.map((name) => path.join(directory, name))
+          const filepath =
+            (yield* Effect.filter(candidates, fs.isFile)).at(-1) ?? path.join(directory, "opencode.jsonc")
+          const text = (yield* fs.readFileStringSafe(filepath)) ?? "{}\n"
+          const updated = yield* Effect.try({
+            try: () =>
+              Object.entries(update.agent).reduce(
+                (text, [name, patch]) =>
+                  Object.entries(encodeAgentPatch(patch)).reduce(
+                    (text, [field, value]) =>
+                      applyEdits(
+                        text,
+                        modify(text, ["agents", name, field], value, {
+                          formattingOptions: { tabSize: 2, insertSpaces: true },
+                        }),
+                      ),
+                    text,
+                  ),
+                text,
+              ),
+            catch: (cause) => new FSUtil.FileSystemError({ method: "config.updateAgent", cause }),
+          })
+          const content = updated.endsWith("\n") ? updated : `${updated}\n`
+          const temp = `${filepath}.tmp`
+          yield* fs.ensureDir(path.dirname(filepath))
+          yield* fs.writeFileString(temp, content, { mode: 0o600 })
+          yield* fs.rename(temp, filepath)
+          yield* requestReload
+        },
+        (effect) => updateLock.withPermit(effect),
+      )
+
       return Service.of({
         entries: Effect.fnUntraced(function* () {
           return configs
@@ -359,6 +409,7 @@ export const layer = (options?: Options) =>
           }),
         changes: () => Stream.fromPubSub(updates),
         update,
+        updateAgent,
       })
     }),
   )
