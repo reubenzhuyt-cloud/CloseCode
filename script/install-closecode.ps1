@@ -17,7 +17,8 @@
 
 .PARAMETER Version
     Version string encoded into the build and patched into the installed npm
-    package.json files. Default: 0.2.1.
+    package.json files. When omitted, the version is read from the repository
+    root package.json. Pass this switch to override that derived version.
 
 .PARAMETER Channel
     Release channel passed to the build as OPENCODE_CHANNEL. Default: latest.
@@ -73,7 +74,7 @@
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
 param(
-    [string] $Version = "0.2.1",
+    [string] $Version,
     [string] $Channel = "latest",
     [string] $Binary,
     [switch] $NoBuild,
@@ -125,6 +126,10 @@ function Get-TargetArch {
 }
 
 function Get-NpmRootGlobal {
+    if ($env:APPDATA) {
+        $conventional = Join-Path $env:APPDATA "npm\node_modules"
+        if (Test-Path -LiteralPath $conventional) { return $conventional }
+    }
     foreach ($name in @("npm.cmd", "npm")) {
         $npm = Get-Command $name -ErrorAction SilentlyContinue
         if (-not $npm) { continue }
@@ -215,6 +220,7 @@ function Stop-CloseCodeProcesses {
 function Copy-Binary([string] $Source, [string] $Target, [bool] $SkipBackup) {
     $parent = Split-Path -Parent $Target
     if (-not (Test-Path -LiteralPath $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+    $backup = $null
     if ((Test-Path -LiteralPath $Target) -and -not $SkipBackup) {
         $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
         $backup = "$Target.bak-$stamp"
@@ -232,6 +238,7 @@ function Copy-Binary([string] $Source, [string] $Target, [bool] $SkipBackup) {
         if ($holders) { Write-Note "  Running closecode PID(s): $(($holders | Select-Object -ExpandProperty Id) -join ', ')" }
         throw
     }
+    return $backup
 }
 
 function Update-PackageVersion([string] $PackageDir, [string] $NewVersion) {
@@ -245,16 +252,21 @@ function Update-PackageVersion([string] $PackageDir, [string] $NewVersion) {
             if ($name -like "@opencode/cli-*" -or $name -like "@opencode-ai/cli-*") { $json.optionalDependencies.$name = $NewVersion }
         }
     }
-    $json | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $packageJson -Encoding UTF8
+    $jsonText = $json | ConvertTo-Json -Depth 10
+    [System.IO.File]::WriteAllText($packageJson, $jsonText, [System.Text.UTF8Encoding]::new($false))
     return $true
 }
 
-function Test-InstalledBinary([string] $Path) {
+function Test-InstalledBinary([string] $Path, [string] $ExpectedVersion) {
     $output = & $Path --version 2>&1 | Out-String
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($output)) {
         throw "Installed binary failed to start: $Path`n$output"
     }
-    return ($output.Trim() -split "`r?`n" | Where-Object { $_ } | Select-Object -First 1)
+    $reported = ($output.Trim() -split "`r?`n" | Where-Object { $_ } | Select-Object -First 1)
+    if ($ExpectedVersion -and $reported -notlike "*$ExpectedVersion*") {
+        throw "Version mismatch at ${Path}: expected $ExpectedVersion but binary reported '$reported'."
+    }
+    return $reported
 }
 
 function Add-UserPathEntry([string] $Entry) {
@@ -285,6 +297,17 @@ try {
     if (-not (Test-Path -LiteralPath $buildScript)) {
         throw "Build script not found: $buildScript (run this script from <repo>\script)."
     }
+
+    if (-not $Version) {
+        $rootPackageJson = Join-Path $repoRoot "package.json"
+        if (Test-Path -LiteralPath $rootPackageJson) {
+            $Version = (Get-Content -LiteralPath $rootPackageJson -Raw | ConvertFrom-Json).version
+        }
+        if (-not $Version) {
+            throw "Could not read a version from $rootPackageJson. Pass -Version explicitly."
+        }
+    }
+
     Write-Head "CloseCode installer"
     Write-Info "Repo root: $repoRoot"
     Write-Info "Version:   $Version"
@@ -308,52 +331,54 @@ try {
         if (-not (Test-Path -LiteralPath $Binary)) { throw "Binary not found: $Binary" }
         $sourceExe = (Get-Item -LiteralPath $Binary).FullName
         Write-Ok "Source: $sourceExe"
-    } elseif ($NoBuild) {
-        Write-Head "Skipping build (-NoBuild)"
-        $sourceExe = Find-BuiltArtifact $distDir $arch $useBaseline
-        if (-not $sourceExe) {
-            if ($script:dryRun) {
-                $sourceExe = $expectedArtifact
-                Write-Note "No built artifact found; a build would produce $expectedArtifact."
-            } else {
-                throw "No built closecode.exe found under $distDir. Run without -NoBuild, or pass -Binary."
-            }
-        } else {
-            Write-Ok "Source: $sourceExe"
-        }
     } else {
-        Write-Head "Building $targetName"
-        if ($script:dryRun) {
-            Write-Note "Would run: bun run script/build.ts --single --skip-install$(if ($useBaseline) { ' --baseline' } else { '' })"
-            $existing = Find-BuiltArtifact $distDir $arch $useBaseline
-            $sourceExe = if ($existing) { $existing } else { $expectedArtifact }
-        } elseif ($PSCmdlet.ShouldProcess($cliDir, "Build closecode v$Version ($targetName)")) {
-            $bun = Get-Command bun -ErrorAction SilentlyContinue
-            if (-not $bun) { throw "bun is not available on PATH; install Bun or pass -NoBuild -Binary <path>." }
-            Stop-CloseCodeProcesses
-            $previousVersion = $env:OPENCODE_VERSION
-            $previousChannel = $env:OPENCODE_CHANNEL
-            $env:OPENCODE_VERSION = $Version
-            $env:OPENCODE_CHANNEL = $Channel
-            $buildArgs = @("run", "script/build.ts", "--single", "--skip-install")
-            if ($useBaseline) { $buildArgs += "--baseline" }
-            Push-Location $cliDir
-            try {
-                & bun @buildArgs
-                $exit = $LASTEXITCODE
-            } finally {
-                Pop-Location
-                $env:OPENCODE_VERSION = $previousVersion
-                $env:OPENCODE_CHANNEL = $previousChannel
+        $existingArtifact = Find-BuiltArtifact $distDir $arch $useBaseline
+        if ($NoBuild) {
+            Write-Head "Skipping build (-NoBuild)"
+            $sourceExe = $existingArtifact
+            if (-not $sourceExe) {
+                if ($script:dryRun) {
+                    $sourceExe = $expectedArtifact
+                    Write-Note "No built artifact found; a build would produce $expectedArtifact."
+                } else {
+                    throw "No built closecode.exe found under $distDir. Run without -NoBuild, or pass -Binary."
+                }
+            } else {
+                Write-Ok "Source: $sourceExe"
             }
-            if ($exit -ne 0) { throw "Build failed with exit code $exit." }
-            if (-not (Test-Path -LiteralPath $expectedArtifact)) {
-                throw "Build finished but artifact is missing: $expectedArtifact"
-            }
-            $sourceExe = (Get-Item -LiteralPath $expectedArtifact).FullName
-            Write-Ok "Built: $sourceExe"
         } else {
-            $sourceExe = $expectedArtifact
+            Write-Head "Building $targetName"
+            if ($script:dryRun) {
+                Write-Note "Would run: bun run script/build.ts --single --skip-install$(if ($useBaseline) { ' --baseline' } else { '' })"
+                $sourceExe = if ($existingArtifact) { $existingArtifact } else { $expectedArtifact }
+            } elseif ($PSCmdlet.ShouldProcess($cliDir, "Build closecode v$Version ($targetName)")) {
+                $bun = Get-Command bun -ErrorAction SilentlyContinue
+                if (-not $bun) { throw "bun is not available on PATH; install Bun or pass -NoBuild -Binary <path>." }
+                $previousVersion = $env:OPENCODE_VERSION
+                $previousChannel = $env:OPENCODE_CHANNEL
+                $env:OPENCODE_VERSION = $Version
+                $env:OPENCODE_CHANNEL = $Channel
+                $buildArgs = @("run", "script/build.ts", "--single", "--skip-install")
+                if ($useBaseline) { $buildArgs += "--baseline" }
+                Push-Location $cliDir
+                try {
+                    & bun @buildArgs
+                    $exit = $LASTEXITCODE
+                } finally {
+                    Pop-Location
+                    $env:OPENCODE_VERSION = $previousVersion
+                    $env:OPENCODE_CHANNEL = $previousChannel
+                }
+                if ($exit -ne 0) { throw "Build failed with exit code $exit." }
+                if (-not (Test-Path -LiteralPath $expectedArtifact)) {
+                    throw "Build finished but artifact is missing: $expectedArtifact"
+                }
+                $sourceExe = (Get-Item -LiteralPath $expectedArtifact).FullName
+                Write-Ok "Built: $sourceExe"
+            } else {
+                $sourceExe = if ($existingArtifact) { $existingArtifact } else { $expectedArtifact }
+                Write-Note "Build skipped; using $sourceExe."
+            }
         }
     }
 
@@ -412,15 +437,40 @@ try {
     Write-Head "Installing"
     $updatedPackages = New-Object System.Collections.Generic.List[string]
     $installed = New-Object System.Collections.Generic.List[string]
-    foreach ($target in $targets) {
-        if ($PSCmdlet.ShouldProcess($target.Path, "Install closecode.exe")) {
-            Copy-Binary $sourceExe $target.Path $NoBackup
-            Write-Ok "Installed $($target.Path)"
-        } else {
-            Write-Info "Would install -> $($target.Path)"
+    $rollback = New-Object System.Collections.Generic.List[object]
+    try {
+        foreach ($target in $targets) {
+            if ($PSCmdlet.ShouldProcess($target.Path, "Install closecode.exe")) {
+                $existed = Test-Path -LiteralPath $target.Path
+                $backup = Copy-Binary $sourceExe $target.Path $NoBackup
+                [void] $rollback.Add([pscustomobject]@{ Target = $target.Path; Backup = $backup; Created = (-not $existed) })
+                Write-Ok "Installed $($target.Path)"
+            } else {
+                Write-Info "Would install -> $($target.Path)"
+            }
+            $installed.Add($target.Path)
+            if ($target.PackageDir) { $updatedPackages.Add($target.PackageDir) }
         }
-        $installed.Add($target.Path)
-        if ($target.PackageDir) { $updatedPackages.Add($target.PackageDir) }
+    } catch {
+        if ($rollback.Count -gt 0) {
+            Write-Note "Install failed; rolling back $($rollback.Count) change(s)..."
+            for ($i = $rollback.Count - 1; $i -ge 0; $i--) {
+                $entry = $rollback[$i]
+                try {
+                    if ($entry.Backup -and (Test-Path -LiteralPath $entry.Backup)) {
+                        Copy-Item -LiteralPath $entry.Backup -Destination $entry.Target -Force
+                        Remove-Item -LiteralPath $entry.Backup -Force -ErrorAction SilentlyContinue
+                        Write-Info "Restored $($entry.Target)"
+                    } elseif ($entry.Created) {
+                        Remove-Item -LiteralPath $entry.Target -Force -ErrorAction SilentlyContinue
+                        Write-Info "Removed new $($entry.Target)"
+                    }
+                } catch {
+                    Write-Fail "Rollback failed for $($entry.Target): $($_.Exception.Message)"
+                }
+            }
+        }
+        throw
     }
 
     # --- Patch npm package versions -----------------------------------------
@@ -474,7 +524,7 @@ try {
         if (-not (Test-Path -LiteralPath $path)) {
             throw "Expected installed binary not found: $path"
         }
-        $version = Test-InstalledBinary $path
+        $version = Test-InstalledBinary $path $Version
         Write-Ok "$path -> $version"
         $versions.Add($version)
     }
