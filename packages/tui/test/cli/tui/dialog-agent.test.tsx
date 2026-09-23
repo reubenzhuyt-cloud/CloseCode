@@ -25,7 +25,14 @@ import { createTuiResolvedConfig } from "../../fixture/tui-runtime"
 
 const AGENTS = [
   { id: "build", name: "build", mode: "primary", hidden: false, permissions: [] },
-  { id: "unitymaster", name: "unitymaster", mode: "subagent", hidden: false, permissions: [] },
+  {
+    id: "unitymaster",
+    name: "unitymaster",
+    mode: "subagent",
+    hidden: false,
+    permissions: [],
+    toolset: { "mcp:*": false, "mcp:unityMCP": true, "unityMCP*": true },
+  },
   { id: "triage", name: "triage", mode: "primary", hidden: true, permissions: [] },
   { id: "opencode:compaction", name: "compaction", mode: "primary", hidden: true, permissions: [] },
 ]
@@ -44,7 +51,14 @@ async function render(dialog: () => unknown) {
     if (url.pathname === "/api/agent") return json({ location, data: AGENTS })
     if (url.pathname === "/api/skill")
       return json({ location, data: [{ id: "effect", name: "effect", path: "/skills/effect", content: "" }] })
-    if (url.pathname === "/api/mcp") return json({ location, data: [{ name: "linear", status: { status: "connected" } }] })
+    if (url.pathname === "/api/mcp")
+      return json({
+        location,
+        data: [
+          { name: "unityMCP", status: { status: "connected" } },
+          { name: "blender-mcp", status: { status: "connected" } },
+        ],
+      })
     return undefined
   }
   const calls = createFetch(handler, events)
@@ -152,7 +166,7 @@ test("edit dialog toolset view lists MCP server toggles", async () => {
   const fixture = await render(() => <DialogAgentEdit name="build" initialView="toolset" />)
   try {
     const frame = await fixture.app.waitForFrame((value) => value.includes("Toolset"))
-    expect(frame).toContain("mcp:linear")
+    expect(frame).toContain("mcp:unityMCP")
   } finally {
     await fixture.cleanup()
   }
@@ -181,7 +195,7 @@ test("T2 edit dialog opens the toolset view via keyboard", async () => {
     fixture.keymap.dispatch("dialog.select.next")
     fixture.keymap.dispatch("dialog.select.submit")
     await fixture.app.waitForVisualIdle()
-    expect(fixture.app.captureCharFrame()).toContain("Toolset (space toggles")
+    expect(fixture.app.captureCharFrame()).toContain("Toolset (enter cycles")
   } finally {
     await fixture.cleanup()
   }
@@ -202,6 +216,41 @@ test("T3 edit dialog opens the permissions view via keyboard", async () => {
   }
 })
 
+test("edit dialog fields row reports the effective toolset", async () => {
+  const fixture = await render(() => <DialogAgentEdit name="unitymaster" />)
+  try {
+    const frame = await fixture.app.waitForFrame((value) => value.includes("Edit agent: unitymaster"))
+    const row = frame.split("\n").find((line) => line.includes("Toolset")) ?? ""
+    expect(row).toContain("2 rule(s)")
+  } finally {
+    await fixture.cleanup()
+  }
+})
+
+test("edit dialog fields row shows all tools for a plain agent", async () => {
+  const fixture = await render(() => <DialogAgentEdit name="build" />)
+  try {
+    const frame = await fixture.app.waitForFrame((value) => value.includes("Edit agent: build"))
+    const row = frame.split("\n").find((line) => line.includes("Toolset")) ?? ""
+    expect(row).toContain("all tools")
+  } finally {
+    await fixture.cleanup()
+  }
+})
+
+test("edit dialog toolset view shows exact state and keeps wildcard patterns", async () => {
+  const fixture = await render(() => <DialogAgentEdit name="unitymaster" initialView="toolset" />)
+  try {
+    const frame = await fixture.app.waitForFrame((value) => value.includes("Toolset (enter cycles"))
+    const row = (label: string) => frame.split("\n").find((line) => line.includes(label)) ?? ""
+    expect(row("mcp:unityMCP")).toContain("allow")
+    expect(row("mcp:blender-mcp")).not.toContain("allow")
+    expect(row("unityMCP*")).toContain("allow")
+  } finally {
+    await fixture.cleanup()
+  }
+})
+
 test("T4 edit dialog opens the toolset view by clicking the row", async () => {
   const fixture = await render(() => <DialogAgentEdit name="build" />)
   try {
@@ -211,7 +260,7 @@ test("T4 edit dialog opens the toolset view by clicking the row", async () => {
     const column = lines[row]!.indexOf("Toolset") + 1
     await fixture.app.mockMouse.click(column, row)
     await fixture.app.waitForVisualIdle()
-    expect(fixture.app.captureCharFrame()).toContain("Toolset (space toggles")
+    expect(fixture.app.captureCharFrame()).toContain("Toolset (enter cycles")
   } finally {
     await fixture.cleanup()
   }

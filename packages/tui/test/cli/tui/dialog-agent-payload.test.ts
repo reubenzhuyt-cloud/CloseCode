@@ -4,6 +4,7 @@ import {
   buildPermissionOverrides,
   buildSessionAgentSkills,
   cycle,
+  cycleToolsetEffect,
   editablePermissionOverrides,
   permissionEffect,
   setPermissionEffect,
@@ -161,4 +162,16 @@ test("toolsetRuleCount ignores the built-in mcp default deny", () => {
   expect(toolsetRuleCount({ "mcp:*": false })).toBe(0)
   expect(toolsetRuleCount({ "mcp:*": false, "mcp:unityMCP": true })).toBe(1)
   expect(toolsetRuleCount({ "*": false, "github_*": true, "mcp:linear": true })).toBe(3)
+})
+
+test("cycleToolsetEffect cycles absent -> allow -> deny -> absent", () => {
+  expect(cycleToolsetEffect(undefined, "mcp:linear")).toEqual({ "mcp:linear": true })
+  expect(cycleToolsetEffect({ "mcp:linear": true }, "mcp:linear")).toEqual({ "mcp:linear": false })
+  expect(cycleToolsetEffect({ "mcp:linear": false }, "mcp:linear")).toEqual({})
+})
+
+test("cycleToolsetEffect preserves unrelated keys and does not mutate the input", () => {
+  const value = { "mcp:*": false, "mcp:linear": true }
+  expect(cycleToolsetEffect(value, "unityMCP*")).toEqual({ "mcp:*": false, "mcp:linear": true, "unityMCP*": true })
+  expect(value).toEqual({ "mcp:*": false, "mcp:linear": true })
 })

@@ -36,6 +36,15 @@ export function toolsetRuleCount(value: Record<string, unknown> | undefined): nu
   return Object.keys(value ?? {}).filter((key) => key !== "mcp:*").length
 }
 
+export function cycleToolsetEffect(value: Record<string, boolean> | undefined, key: string): Record<string, boolean> {
+  const next = { ...(value ?? {}) }
+  const current = next[key]
+  if (current === undefined) next[key] = true
+  else if (current === true) next[key] = false
+  else delete next[key]
+  return next
+}
+
 export function cycle<T>(values: readonly T[], current: T): T {
   return values[(values.findIndex((value) => value === current) + 1) % values.length]
 }

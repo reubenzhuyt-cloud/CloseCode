@@ -17,6 +17,7 @@ import {
   buildAgentPatch,
   buildSessionAgentSkills,
   cycle,
+  cycleToolsetEffect,
   editablePermissionOverrides,
   permissionEffect,
   setPermissionEffect,
@@ -129,6 +130,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
     const draft = patch()
     const count = (value: Record<string, unknown> | undefined) => Object.keys(value ?? {}).length
     const overrides = permissionOverrides()
+    const effectiveToolset = () => draft.toolset ?? agent()?.toolset
     return [
       {
         value: "description",
@@ -139,7 +141,7 @@ export function DialogAgentEdit(props: { name: string; create?: boolean; initial
       {
         value: "toolset",
         title: "Toolset",
-        description: draft.toolset ? `${toolsetRuleCount(draft.toolset)} rule(s)` : "all tools",
+        description: toolsetRuleCount(effectiveToolset()) ? `${toolsetRuleCount(effectiveToolset())} rule(s)` : "all tools",
       },
       {
         value: "permissions",
@@ -232,34 +234,25 @@ function DialogAgentToolset(props: {
   onBack: () => void
 }) {
   const dialog = useDialog()
-  const pattern = () => Object.keys(props.value ?? {}).filter((key) => key !== "*" && !key.startsWith("mcp:"))
-  const enabled = (key: string) => props.value?.[key] === true
+  const pattern = () => {
+    const servers = new Set(props.servers.map((server) => `mcp:${server}`))
+    return Object.keys(props.value ?? {}).filter((key) => key !== "mcp:*" && !servers.has(key))
+  }
+  const effect = (key: string) => (props.value?.[key] === undefined ? "" : props.value[key] ? "allow" : "deny")
   const options = createMemo<DialogSelectOption<string>[]>(() => [
     ...props.servers.map((server) => ({
       value: `mcp:${server}`,
       title: `mcp:${server}`,
-      footer: enabled(`mcp:${server}`) ? "✓" : "",
+      footer: effect(`mcp:${server}`),
     })),
-    ...pattern().map((value) => ({ value, title: value, footer: enabled(value) ? "✓" : "" })),
+    ...pattern().map((value) => ({ value, title: value, footer: effect(value) })),
   ])
-
-  function toggle(key: string) {
-    const next: Record<string, boolean> = {}
-    for (const [existing, value] of Object.entries(props.value ?? {})) next[existing] = value
-    if (enabled(key)) {
-      delete next[key]
-      props.onChange(next)
-      return
-    }
-    next[key] = true
-    props.onChange(next)
-  }
 
   return (
     <DialogSelect
-      title="Toolset (space toggles; add a pattern to allow matching MCP tools)"
+      title="Toolset (enter cycles unset → allow → deny; add a pattern for wildcards)"
       options={options()}
-      onSelect={(option) => toggle(option.value)}
+      onSelect={(option) => props.onChange(cycleToolsetEffect(props.value, option.value))}
       onCancel={props.onBack}
       actions={[
         {
