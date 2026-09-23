@@ -135,7 +135,7 @@ export type AgentScope = typeof AgentScope.Type
 
 export const AgentUpdate = Schema.Struct({
   scope: AgentScope,
-  agent: Schema.Record(Schema.String, AgentPatch),
+  agents: Schema.Record(Schema.String, AgentPatch),
 })
   .annotate({ identifier: "Config.AgentUpdate", parseOptions: { onExcessProperty: "error" } })
 export interface AgentUpdate extends Schema.Schema.Type<typeof AgentUpdate> {}

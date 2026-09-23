@@ -2,6 +2,7 @@ import fs from "node:fs/promises"
 import path from "node:path"
 import { expect } from "bun:test"
 import { Config } from "@opencode/schema/config"
+import { OpenCode } from "@opencode/client"
 import { Effect, Schema } from "effect"
 import { tmpdir } from "../../core/test/fixture/tmpdir"
 import { it } from "../../core/test/lib/effect"
@@ -99,7 +100,7 @@ it.live("updates the global shell without replacing unrelated JSONC", () =>
   }),
 )
 
-it.live("updates an agent in the project config without replacing unrelated JSONC", () =>
+it.live("updates an agent in the requested project config without replacing unrelated JSONC", () =>
   Effect.gen(function* () {
     const tmp = yield* Effect.acquireDisposable(Effect.promise(() => tmpdir("opencode-config-agent-")))
     const global = path.join(tmp.path, "global")
@@ -125,20 +126,15 @@ it.live("updates an agent in the project config without replacing unrelated JSON
       ),
     )
     const server = yield* startServer(global)
-    const url = new URL("/api/experimental/config/agent", server.base)
-    url.searchParams.set("location[directory]", project)
-    const response = yield* Effect.promise(() =>
-      fetch(url, {
-        method: "PATCH",
-        headers: { ...server.headers, "content-type": "application/json" },
-        body: JSON.stringify({
-          scope: "project",
-          agent: { reviewer: { description: "new description", disabled: true } },
-        }),
+    const api = OpenCode.make({ baseUrl: server.base, headers: server.headers })
+    yield* Effect.promise(() =>
+      api.config.updateAgent({
+        scope: "project",
+        agents: { reviewer: { description: "new description", disabled: true } },
+        location: { directory: project },
       }),
     )
 
-    expect(response.status).toBe(204)
     const text = yield* Effect.promise(() => fs.readFile(config, "utf8"))
     expect(text).toContain("// keep this comment")
     expect(text).toContain('"shell": "/bin/zsh"')
@@ -157,17 +153,16 @@ it.live("rejects unknown agent patch fields", () =>
       Promise.all([fs.mkdir(global, { recursive: true }), fs.mkdir(project, { recursive: true })]),
     )
     const server = yield* startServer(global)
-    const url = new URL("/api/experimental/config/agent", server.base)
-    url.searchParams.set("location[directory]", project)
-    const response = yield* Effect.promise(() =>
-      fetch(url, {
-        method: "PATCH",
-        headers: { ...server.headers, "content-type": "application/json" },
-        body: JSON.stringify({ scope: "project", agent: { reviewer: { bogus: true } } }),
-      }),
-    )
-
-    expect(response.status).toBe(400)
+    const api = OpenCode.make({ baseUrl: server.base, headers: server.headers })
+    yield* Effect.promise(async () => {
+      await expect(
+        api.config.updateAgent({
+          scope: "project",
+          agents: { reviewer: { bogus: true } as unknown as Config.AgentPatch },
+          location: { directory: project },
+        }),
+      ).rejects.toMatchObject({ name: "InvalidRequestError" })
+    })
   }),
 )
 

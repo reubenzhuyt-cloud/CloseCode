@@ -372,20 +372,26 @@ export const layer = (options?: Options) =>
           const text = (yield* fs.readFileStringSafe(filepath)) ?? "{}\n"
           const updated = yield* Effect.try({
             try: () =>
-              Object.entries(update.agent).reduce(
-                (text, [name, patch]) =>
-                  Object.entries(encodeAgentPatch(patch)).reduce(
-                    (text, [field, value]) =>
-                      applyEdits(
-                        text,
-                        modify(text, ["agents", name, field], value, {
-                          formattingOptions: { tabSize: 2, insertSpaces: true },
-                        }),
-                      ),
+              Object.entries(update.agents).reduce((text, [name, patch]) => {
+                const fields = Object.entries(encodeAgentPatch(patch))
+                if (fields.length === 0)
+                  return applyEdits(
                     text,
-                  ),
-                text,
-              ),
+                    modify(text, ["agents", name], {}, {
+                      formattingOptions: { tabSize: 2, insertSpaces: true },
+                    }),
+                  )
+                return fields.reduce(
+                  (text, [field, value]) =>
+                    applyEdits(
+                      text,
+                      modify(text, ["agents", name, field], value, {
+                        formattingOptions: { tabSize: 2, insertSpaces: true },
+                      }),
+                    ),
+                  text,
+                )
+              }, text),
             catch: (cause) => new FSUtil.FileSystemError({ method: "config.updateAgent", cause }),
           })
           const content = updated.endsWith("\n") ? updated : `${updated}\n`

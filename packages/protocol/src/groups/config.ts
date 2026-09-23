@@ -45,15 +45,18 @@ export const ConfigGroup = HttpApiGroup.make("server.config")
   )
   .add(
     HttpApiEndpoint.patch("config.updateAgent", "/api/experimental/config/agent", {
+      query: LocationQuery,
       payload: Config.AgentUpdate,
       success: HttpApiSchema.NoContent,
-    }).annotateMerge(
-      OpenApi.annotations({
-        identifier: "experimental.config.updateAgent",
-        summary: "Update agent configuration",
-        description:
-          "Patch named agent definitions in the workspace project configuration or the global configuration document.",
-      }),
-    ),
+    })
+      .annotateMerge(locationQueryOpenApi)
+      .annotateMerge(
+        OpenApi.annotations({
+          identifier: "experimental.config.updateAgent",
+          summary: "Update agent configuration",
+          description:
+            "Patch named agent definitions in the workspace project configuration or the global configuration document.",
+        }),
+      ),
   )
   .annotateMerge(OpenApi.annotations({ title: "config", description: "Location-scoped configuration routes." }))

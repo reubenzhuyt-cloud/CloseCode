@@ -6351,9 +6351,10 @@ export type ConfigUpdateInput = { readonly shell: { readonly shell: string | nul
 export type ConfigUpdateOutput = void
 
 export type ConfigUpdateAgentInput = {
+  readonly location?: { readonly location?: { readonly directory?: string | undefined } | undefined }["location"]
   readonly scope: {
     readonly scope: "project" | "global"
-    readonly agent: {
+    readonly agents: {
       readonly [x: string]: {
         readonly model?: string | { readonly providerID: string; readonly model: string; readonly variant?: string }
         readonly description?: string
@@ -6369,9 +6370,9 @@ export type ConfigUpdateAgentInput = {
       }
     }
   }["scope"]
-  readonly agent: {
+  readonly agents: {
     readonly scope: "project" | "global"
-    readonly agent: {
+    readonly agents: {
       readonly [x: string]: {
         readonly model?: string | { readonly providerID: string; readonly model: string; readonly variant?: string }
         readonly description?: string
@@ -6386,7 +6387,7 @@ export type ConfigUpdateAgentInput = {
         readonly skill_activation?: { readonly [x: string]: "off" | "name" | "full" }
       }
     }
-  }["agent"]
+  }["agents"]
 }
 
 export type ConfigUpdateAgentOutput = void

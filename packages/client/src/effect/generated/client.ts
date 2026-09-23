@@ -1524,9 +1524,10 @@ const EndpointConfigUpdate = (raw: RawClient["server.config"]) => (input: Config
 
 const EndpointConfigUpdateAgent = (raw: RawClient["server.config"]) => (input: ConfigUpdateAgentInput) =>
   preserveEffect<ConfigUpdateAgentOutput>()(
-    raw["config.updateAgent"]({ payload: { scope: input["scope"], agent: input["agent"] } }).pipe(
-      Effect.mapError(mapClientError),
-    ),
+    raw["config.updateAgent"]({
+      query: { location: input["location"] },
+      payload: { scope: input["scope"], agents: input["agents"] },
+    }).pipe(Effect.mapError(mapClientError)),
   )
 
 const adaptGroupConfig = (raw: RawClient["server.config"]) => ({

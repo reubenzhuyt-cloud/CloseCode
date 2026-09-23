@@ -2319,8 +2319,9 @@ export type ConfigUpdateOutput = void
 export type ConfigUpdateOperation<E = never> = (input: ConfigUpdateInput) => Effect.Effect<ConfigUpdateOutput, E>
 
 export type ConfigUpdateAgentInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
   readonly scope: Config.AgentScope
-  readonly agent: { readonly [x: string]: Config.AgentPatch }
+  readonly agents: { readonly [x: string]: Config.AgentPatch }
 }
 export type ConfigUpdateAgentOutput = void
 export type ConfigUpdateAgentOperation<E = never> = (

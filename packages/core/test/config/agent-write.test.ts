@@ -87,7 +87,7 @@ describe("Config.updateAgent", () => {
           return yield* Effect.gen(function* () {
             const entries = yield* writeAndReload({
               scope: "project",
-              agent: {
+              agents: {
                 reviewer: { description: "new description", disabled: true },
                 reviewer2: { mode: "primary" },
               },
@@ -137,7 +137,7 @@ describe("Config.updateAgent", () => {
           return yield* Effect.gen(function* () {
             const entries = yield* writeAndReload({
               scope: "project",
-              agent: { reviewer: { description: "Reviews changes" } },
+              agents: { reviewer: { description: "Reviews changes" } },
             })
 
             const agents = Object.fromEntries(agentFile(entries))
@@ -168,7 +168,7 @@ describe("Config.updateAgent", () => {
           return yield* Effect.gen(function* () {
             const entries = yield* writeAndReload({
               scope: "project",
-              agent: { reviewer: { disabled: true, toolset: { mcp: true } } },
+              agents: { reviewer: { disabled: true, toolset: { mcp: true } } },
             })
 
             const text = yield* Effect.promise(() => fs.readFile(file, "utf8"))
@@ -200,7 +200,7 @@ describe("Config.updateAgent", () => {
           })
 
           return yield* Effect.gen(function* () {
-            yield* writeAndReload({ scope: "global", agent: { reviewer: { mode: "primary" } } })
+            yield* writeAndReload({ scope: "global", agents: { reviewer: { mode: "primary" } } })
 
             const globalText = yield* Effect.promise(() => fs.readFile(path.join(global, "opencode.jsonc"), "utf8"))
             expect(globalText).toContain('"reviewer"')
@@ -214,7 +214,32 @@ describe("Config.updateAgent", () => {
     ),
   )
 
+  it.live("creates an agent entry for an empty patch", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
+      Effect.flatMap((tmp) =>
+        Effect.gen(function* () {
+          const global = path.join(tmp.path, "global")
+          const project = path.join(tmp.path, "project")
+          const file = path.join(project, "opencode.jsonc")
+          yield* Effect.promise(async () => {
+            await fs.mkdir(global, { recursive: true })
+            await fs.mkdir(project, { recursive: true })
+          })
+
+          return yield* Effect.gen(function* () {
+            const entries = yield* writeAndReload({ scope: "project", agents: { reviewer: {} } })
+
+            const text = yield* Effect.promise(() => fs.readFile(file, "utf8"))
+            expect(text).toContain('"reviewer"')
+            expect(decodeInfo(JSON.parse(text)).agents?.reviewer).toBeDefined()
+            expect(Object.fromEntries(agentFile(entries))).toHaveProperty("reviewer")
+          }).pipe(Effect.provide(testLayer(project, global)))
+        }),
+      ),
+    ),
+  )
+
   test("rejects unknown agent patch fields", () => {
-    expect(() => decodeUpdate({ scope: "project", agent: { reviewer: { bogus: true } } })).toThrow()
+    expect(() => decodeUpdate({ scope: "project", agents: { reviewer: { bogus: true } } })).toThrow()
   })
 })

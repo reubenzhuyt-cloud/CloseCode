@@ -2162,7 +2162,8 @@ export function make(options: ClientOptions) {
           {
             method: "PATCH",
             path: `/api/experimental/config/agent`,
-            body: { scope: input["scope"], agent: input["agent"] },
+            query: { location: input["location"] },
+            body: { scope: input["scope"], agents: input["agents"] },
             successStatus: 204,
             declaredStatuses: [400, 401],
             empty: true,
