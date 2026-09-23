@@ -66,7 +66,8 @@ import { DialogDebug } from "./component/dialog-debug"
 import { DialogPair, type DialogPairCredentials } from "./component/dialog-pair"
 import { DialogThemeList } from "./component/dialog-theme-list"
 import { DialogHelp } from "./ui/dialog-help"
-import { DialogAgent } from "./component/dialog-agent"
+import { DialogAgentManage } from "./component/dialog-agent-manage"
+import { DialogAgentEdit } from "./component/dialog-agent-edit"
 import { DialogSessionList } from "./component/dialog-session-list"
 import { DialogOpen, DialogOpenKey, moveOpenSession } from "./component/dialog-open"
 import { SessionTabs } from "./component/session-tabs"
@@ -899,11 +900,28 @@ function App(props: { pair?: DialogPairCredentials }) {
       },
       {
         name: "agent.list",
-        title: "Switch agent",
+        title: "Manage agents",
         category: "Agent",
         slash: { name: "agents" },
         run: () => {
-          dialog.replace(() => <DialogAgent />)
+          dialog.replace(() => <DialogAgentManage />)
+        },
+      },
+      {
+        name: "agent.skillsetting",
+        title: "Agent skill settings",
+        category: "Agent",
+        slash: { name: "skillsetting" },
+        run: () => {
+          const current = local.agent.current()
+          if (!current) {
+            return toast.show({
+              title: "No agent selected",
+              message: "Select an agent before editing its skill settings.",
+              variant: "info",
+            })
+          }
+          dialog.replace(() => <DialogAgentEdit name={current.id} initialView="skills" />)
         },
       },
       {

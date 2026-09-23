@@ -279,6 +279,9 @@ export const Definitions = {
   "dialog.plugins.install": keybind("shift+i", "Install plugin from plugin dialog"),
   "dialog.plugins.update": keybind("ctrl+u", "Update plugin from plugin dialog"),
   "dialog.plugins.check": keybind("ctrl+r", "Check for plugin updates from plugin dialog"),
+  "dialog.agent.edit": keybind("ctrl+e", "Edit agent from the agent dialog"),
+  "dialog.agent.switch": keybind("ctrl+s", "Switch to agent from the agent dialog"),
+  "dialog.agent.delete": keybind("ctrl+d", "Delete agent from the agent dialog"),
 
   "terminal.suspend": keybind("ctrl+z", "Suspend terminal"),
   "terminal.title.toggle": keybind("none", "Toggle terminal title"),
