@@ -48,15 +48,18 @@ export const { use: useGlobal, provider: GlobalProvider } = createSimpleContext(
       return serverCtx
     }
 
+    // A server that rejects our credentials would retry its event stream every second with the same
+    // credentials, so its controller waits until health recovers and then starts with the current ones.
     createMemo(() => {
       for (const conn of server.list) {
+        if (serverHealth[ServerConnection.key(conn)]?.unauthorized) continue
         ensureServerCtx(conn)
       }
     })
 
     createEffect(() => {
       for (const [key] of serverCtxs) {
-        if (!server.list.find((conn) => ServerConnection.key(conn) === key)) {
+        if (serverHealth[key]?.unauthorized || !server.list.find((conn) => ServerConnection.key(conn) === key)) {
           serverCtxDisposers.get(key)?.()
           serverCtxDisposers.delete(key)
           serverCtxs.delete(key)
@@ -83,21 +86,21 @@ function createGlobalModels() {
     recent: [],
     variant: {},
   })
-  const [recent] = createResource(
-    async () => {
-      const value = store.recent
-      await ready.promise
-      return value
-    },
-    (value) => value,
-    { initialValue: [] },
-  )
+  // Suspend readers only until persisted state loads. Refetching on every change would put the
+  // session route into its Suspense fallback, detaching the screen and resetting the timeline scroll.
+  const [loaded] = createResource(async () => {
+    await ready.promise
+    return true
+  })
 
   return {
     store,
     set: setStore,
     ready,
-    recent: () => recent()!,
+    recent: () => {
+      loaded()
+      return store.recent
+    },
     // Marks models visible in the picker regardless of the "latest per family" default.
     show(models: ReadonlyArray<{ providerID: string; modelID: string }>) {
       const seen = new Map(store.user.map((item, index) => [`${item.providerID}:${item.modelID}`, index]))
