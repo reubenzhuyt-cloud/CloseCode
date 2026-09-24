@@ -38,7 +38,7 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![CloseCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
+[![CloseCode Terminal UI](.github/assets/screenshot.png)](https://opencode.ai)
 
 ---
 
