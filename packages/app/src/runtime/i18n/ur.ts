@@ -1192,7 +1192,7 @@ export const dict = {
   "desktop.menu.installCli": "CLI انسٹال کریں...",
   "desktop.cli.installed.title": "CLI انسٹال ہو گیا",
   "desktop.cli.installed.message":
-    "CLI کو \u2068{{path}}\u2069 پر انسٹال کر دیا گیا\n\n'opencode2' کمانڈ استعمال کرنے کے لیے اپنا ٹرمینل دوبارہ شروع کریں۔",
+    "CLI کو \u2068{{path}}\u2069 پر انسٹال کر دیا گیا\n\n'closecode' کمانڈ استعمال کرنے کے لیے اپنا ٹرمینل دوبارہ شروع کریں۔",
   "desktop.cli.failed.title": "تنصیب ناکام ہو گئی",
   "desktop.cli.failed.message": "CLI انسٹال نہیں ہو سکا: \u2068{{error}}\u2069",
   "command.project.copyID": "پروجیکٹ ID کاپی کریں",

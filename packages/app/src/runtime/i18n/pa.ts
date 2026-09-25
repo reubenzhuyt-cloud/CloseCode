@@ -1188,7 +1188,7 @@ export const dict = {
   "desktop.menu.installCli": "CLI انسٹال کرو...",
   "desktop.cli.installed.title": "CLI انسٹال ہو گئی",
   "desktop.cli.installed.message":
-    "CLI \u2068{{path}}\u2069 تے انسٹال ہو گئی\n\n'opencode2' کمانڈ ورتن لئی اپنا ٹرمینل دوبارہ شروع کرو۔",
+    "CLI \u2068{{path}}\u2069 تے انسٹال ہو گئی\n\n'closecode' کمانڈ ورتن لئی اپنا ٹرمینل دوبارہ شروع کرو۔",
   "desktop.cli.failed.title": "انسٹالیشن ناکام ہو گئی",
   "desktop.cli.failed.message": "CLI انسٹال نئیں ہو سکی: \u2068{{error}}\u2069",
   "command.project.copyID": "پروجیکٹ ID کاپی کرو",

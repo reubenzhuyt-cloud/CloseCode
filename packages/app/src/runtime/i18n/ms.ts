@@ -1193,7 +1193,7 @@ export const dict = {
   "desktop.menu.installCli": "Pasang CLI...",
   "desktop.cli.installed.title": "CLI Dipasang",
   "desktop.cli.installed.message":
-    "CLI dipasang ke {{path}}\n\nMulakan semula terminal anda untuk menggunakan perintah 'opencode2'.",
+    "CLI dipasang ke {{path}}\n\nMulakan semula terminal anda untuk menggunakan perintah 'closecode'.",
   "desktop.cli.failed.title": "Pemasangan Gagal",
   "desktop.cli.failed.message": "Gagal memasang CLI: {{error}}",
   "command.project.copyID": "Salin ID Projek",

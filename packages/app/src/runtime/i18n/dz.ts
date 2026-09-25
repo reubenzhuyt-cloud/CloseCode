@@ -55,7 +55,7 @@ export const dict: Record<string, string> = {
   "desktop.updater.dialog.later": "ཤུལ་ལས",
   "desktop.cli.installed.title": "CLI གཞི་བཙུགས་འབད་ཡོདཔ།",
   "desktop.cli.installed.message":
-    "CLI འདི་ {{path}} ལུ་གཞི་བཙུགས་འབད་ཡི།\n\n'opencode2' བརྡ་བཀོད་ལག་ལེན་འཐབ་ནིའི་དོན་ལུ་ ཊར་མི་ནཱལ་ལོག་འགོ་བཙུགས།",
+    "CLI འདི་ {{path}} ལུ་གཞི་བཙུགས་འབད་ཡི།\n\n'closecode' བརྡ་བཀོད་ལག་ལེན་འཐབ་ནིའི་དོན་ལུ་ ཊར་མི་ནཱལ་ལོག་འགོ་བཙུགས།",
   "desktop.cli.failed.title": "གཞི་བཙུགས་འཐུས་ཤོར་བྱུང་ཡོདཔ།",
   "desktop.cli.failed.message": "CLI གཞི་བཙུགས་འབད་མ་ཚུགས།: {{error}}",
   "desktop.recovery.action.relaunch": "བསྐྱར་འགོ་བཙུགས།",

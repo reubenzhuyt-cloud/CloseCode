@@ -61,7 +61,7 @@ export const dict = {
 
   "desktop.cli.installed.title": "CLI yüklendi",
   "desktop.cli.installed.message":
-    "CLI, {{path}} konumuna yüklendi.\n\n'opencode2' komutunu kullanmak için terminalinizi yeniden başlatın.",
+    "CLI, {{path}} konumuna yüklendi.\n\n'closecode' komutunu kullanmak için terminalinizi yeniden başlatın.",
   "desktop.cli.failed.title": "Yükleme başarısız oldu",
   "desktop.cli.failed.message": "CLI yüklenemedi: {{error}}",
 

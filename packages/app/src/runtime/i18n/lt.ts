@@ -56,7 +56,7 @@ const desktop = [
   "Paleisti iš naujo",
   "Vėliau",
   "CLI įdiegtas",
-  "CLI įdiegtas į {{path}}\n\nPaleiskite terminalą iš naujo, kad galėtumėte naudoti komandą 'opencode2'.",
+  "CLI įdiegtas į {{path}}\n\nPaleiskite terminalą iš naujo, kad galėtumėte naudoti komandą 'closecode'.",
   "Įdiegti nepavyko",
   "Nepavyko įdiegti CLI: {{error}}",
   "Paleisti iš naujo",

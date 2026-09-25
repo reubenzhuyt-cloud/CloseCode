@@ -1179,7 +1179,7 @@ export const dict = {
   "desktop.menu.installCli": "Տեղադրել CLI-ն...",
   "desktop.cli.installed.title": "CLI-ն տեղադրված է",
   "desktop.cli.installed.message":
-    "CLI-ն տեղադրվել է {{path}} ուղում\n\nՎերագործարկեք տերմինալը՝ 'opencode2' հրամանն օգտագործելու համար։",
+    "CLI-ն տեղադրվել է {{path}} ուղում\n\nՎերագործարկեք տերմինալը՝ 'closecode' հրամանն օգտագործելու համար։",
   "desktop.cli.failed.title": "Տեղադրումը ձախողվեց",
   "desktop.cli.failed.message": "Չհաջողվեց տեղադրել CLI-ն՝ {{error}}",
   "command.project.copyID": "Պատճենել նախագծի ID-ն",

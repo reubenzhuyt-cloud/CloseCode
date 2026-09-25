@@ -1177,7 +1177,7 @@ export const dict = {
   "desktop.menu.installCli": "CLI इंस्टॉल करें...",
   "desktop.cli.installed.title": "CLI इंस्टॉल हो गया",
   "desktop.cli.installed.message":
-    "CLI को {{path}} पर इंस्टॉल किया गया\n\n'opencode2' कमांड का उपयोग करने के लिए अपना टर्मिनल पुनः आरंभ करें।",
+    "CLI को {{path}} पर इंस्टॉल किया गया\n\n'closecode' कमांड का उपयोग करने के लिए अपना टर्मिनल पुनः आरंभ करें।",
   "desktop.cli.failed.title": "इंस्टॉलेशन विफल",
   "desktop.cli.failed.message": "CLI इंस्टॉल नहीं हो सका: {{error}}",
   "command.project.copyID": "प्रोजेक्ट ID कॉपी करें",

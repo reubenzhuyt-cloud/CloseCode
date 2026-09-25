@@ -1191,7 +1191,7 @@ export const dict = {
   "desktop.menu.installCli": "Инсталирај CLI...",
   "desktop.cli.installed.title": "CLI је инсталиран",
   "desktop.cli.installed.message":
-    "CLI је инсталиран у {{path}}\n\nПоново покрените терминал да бисте користили наредбу 'opencode2'.",
+    "CLI је инсталиран у {{path}}\n\nПоново покрените терминал да бисте користили наредбу 'closecode'.",
   "desktop.cli.failed.title": "Инсталација није успела",
   "desktop.cli.failed.message": "Инсталација CLI-ја није успела: {{error}}",
   "command.project.copyID": "Копирај ID пројекта",

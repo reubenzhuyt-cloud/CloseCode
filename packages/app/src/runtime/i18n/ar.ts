@@ -1223,7 +1223,7 @@ export const dict = {
   "desktop.menu.installCli": "تثبيت CLI...",
   "desktop.cli.installed.title": "تم تثبيت CLI",
   "desktop.cli.installed.message":
-    "تم تثبيت CLI في \u2068{{path}}\u2069\n\nأعد تشغيل المحطة الطرفية لاستخدام الأمر 'opencode2'.",
+    "تم تثبيت CLI في \u2068{{path}}\u2069\n\nأعد تشغيل المحطة الطرفية لاستخدام الأمر 'closecode'.",
   "desktop.cli.failed.title": "فشل التثبيت",
   "desktop.cli.failed.message": "فشل تثبيت CLI: \u2068{{error}}\u2069",
   "session.location.unavailable": "موقع الجلسة غير متاح",

@@ -1543,7 +1543,7 @@ export const dict = {
   "desktop.menu.installCli": "CLI installieren...",
   "desktop.cli.installed.title": "CLI installiert",
   "desktop.cli.installed.message":
-    "CLI wurde unter {{path}} installiert.\n\nStarten Sie Ihr Terminal neu, um den Befehl 'opencode2' zu verwenden.",
+    "CLI wurde unter {{path}} installiert.\n\nStarten Sie Ihr Terminal neu, um den Befehl 'closecode' zu verwenden.",
   "desktop.cli.failed.title": "Installation fehlgeschlagen",
   "desktop.cli.failed.message": "CLI konnte nicht installiert werden: {{error}}",
   "command.project.copyID": "Projekt-ID kopieren",

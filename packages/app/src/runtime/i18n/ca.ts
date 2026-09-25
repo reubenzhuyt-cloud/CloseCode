@@ -1187,7 +1187,7 @@ export const dict = {
   "desktop.menu.installCli": "Instal·la la CLI...",
   "desktop.cli.installed.title": "CLI instal·lada",
   "desktop.cli.installed.message":
-    "La CLI s'ha instal·lat a {{path}}\n\nReinicieu el terminal per utilitzar l'ordre 'opencode2'.",
+    "La CLI s'ha instal·lat a {{path}}\n\nReinicieu el terminal per utilitzar l'ordre 'closecode'.",
   "desktop.cli.failed.title": "La instal·lació ha fallat",
   "desktop.cli.failed.message": "No s'ha pogut instal·lar la CLI: {{error}}",
   "command.project.copyID": "Copia l'ID del projecte",

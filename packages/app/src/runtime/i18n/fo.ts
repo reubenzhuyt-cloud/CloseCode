@@ -1170,7 +1170,7 @@ export const dict = {
   "desktop.menu.installCli": "Set CLI upp...",
   "desktop.cli.installed.title": "CLI er sett upp",
   "desktop.cli.installed.message":
-    "CLI varð sett upp í {{path}}\n\nEndurbyrja terminalin fyri at brúka 'opencode2'-stýriboðið.",
+    "CLI varð sett upp í {{path}}\n\nEndurbyrja terminalin fyri at brúka 'closecode'-stýriboðið.",
   "desktop.cli.failed.title": "Uppsetingin miseydnaðist",
   "desktop.cli.failed.message": "Tað eydnaðist ikki at seta CLI upp: {{error}}",
   "command.project.copyID": "Avrita verkætlanar-ID",

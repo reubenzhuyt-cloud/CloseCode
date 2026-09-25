@@ -1172,7 +1172,7 @@ export const dict = {
   "desktop.menu.installCli": "CLI gurmak...",
   "desktop.cli.installed.title": "CLI guruldy",
   "desktop.cli.installed.message":
-    "CLI {{path}} ýoluna guruldy\n\n'opencode2' buýrugyny ulanmak üçin terminaly täzeden açyň.",
+    "CLI {{path}} ýoluna guruldy\n\n'closecode' buýrugyny ulanmak üçin terminaly täzeden açyň.",
   "desktop.cli.failed.title": "Gurmak başa barmady",
   "desktop.cli.failed.message": "CLI gurup bolmady: {{error}}",
   "command.project.copyID": "Taslama ID-sini nusgala",

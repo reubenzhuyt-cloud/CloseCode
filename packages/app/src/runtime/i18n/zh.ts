@@ -1260,7 +1260,7 @@ export const dict = {
   "session.summary.basedOn": "基于 {{branch}}",
   "desktop.menu.installCli": "安装 CLI...",
   "desktop.cli.installed.title": "CLI 已安装",
-  "desktop.cli.installed.message": "CLI 已安装到 {{path}}\n\n请重启终端以使用“opencode2”命令。",
+  "desktop.cli.installed.message": "CLI 已安装到 {{path}}\n\n请重启终端以使用“closecode”命令。",
   "desktop.cli.failed.title": "安装失败",
   "desktop.cli.failed.message": "安装 CLI 失败：{{error}}",
   "command.project.copyID": "复制项目 ID",

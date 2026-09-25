@@ -1504,7 +1504,7 @@ export const dict = {
   "desktop.menu.installCli": "Asenna CLI...",
   "desktop.cli.installed.title": "CLI asennettu",
   "desktop.cli.installed.message":
-    "CLI asennettiin kohteeseen {{path}}.\n\nKäynnistä terminaali uudelleen, jotta voit käyttää 'opencode2'-komentoa.",
+    "CLI asennettiin kohteeseen {{path}}.\n\nKäynnistä terminaali uudelleen, jotta voit käyttää 'closecode'-komentoa.",
   "desktop.cli.failed.title": "Asennus epäonnistui",
   "desktop.cli.failed.message": "CLI:n asennus epäonnistui: {{error}}",
   "command.project.copyID": "Kopioi projektin tunnus",

@@ -1166,7 +1166,7 @@ export const dict: Record<string, string> = {
   "desktop.menu.installCli": "CLI ස්ථාපනය කරන්න...",
   "desktop.cli.installed.title": "CLI ස්ථාපනය කරන ලදී",
   "desktop.cli.installed.message":
-    "CLI {{path}} වෙත ස්ථාපනය කරන ලදී\n\n'opencode2' විධානය භාවිත කිරීමට ටර්මිනලය නැවත අරඹන්න.",
+    "CLI {{path}} වෙත ස්ථාපනය කරන ලදී\n\n'closecode' විධානය භාවිත කිරීමට ටර්මිනලය නැවත අරඹන්න.",
   "desktop.cli.failed.title": "ස්ථාපනය අසාර්ථක විය",
   "desktop.cli.failed.message": "CLI ස්ථාපනය කිරීමට අසමත් විය: {{error}}",
   "command.project.copyID": "ව්‍යාපෘති ID පිටපත් කරන්න",

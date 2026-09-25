@@ -1187,7 +1187,7 @@ export const dict = {
   "desktop.menu.installCli": "CLI o‘rnatish...",
   "desktop.cli.installed.title": "CLI o‘rnatildi",
   "desktop.cli.installed.message":
-    "CLI {{path}} manziliga o‘rnatildi\n\n'opencode2' buyrug‘idan foydalanish uchun terminalni qayta ishga tushiring.",
+    "CLI {{path}} manziliga o‘rnatildi\n\n'closecode' buyrug‘idan foydalanish uchun terminalni qayta ishga tushiring.",
   "desktop.cli.failed.title": "O‘rnatish amalga oshmadi",
   "desktop.cli.failed.message": "CLI o‘rnatib bo‘lmadi: {{error}}",
   "command.project.copyID": "Loyiha ID-sini nusxalash",

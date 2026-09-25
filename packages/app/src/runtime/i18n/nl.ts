@@ -1521,7 +1521,7 @@ export const dict = {
   "desktop.menu.installCli": "CLI installeren...",
   "desktop.cli.installed.title": "CLI geïnstalleerd",
   "desktop.cli.installed.message":
-    "CLI is geïnstalleerd in {{path}}.\n\nStart de terminal opnieuw om de opdracht 'opencode2' te gebruiken.",
+    "CLI is geïnstalleerd in {{path}}.\n\nStart de terminal opnieuw om de opdracht 'closecode' te gebruiken.",
   "desktop.cli.failed.title": "Installatie mislukt",
   "desktop.cli.failed.message": "Kan CLI niet installeren: {{error}}",
   "command.project.copyID": "Project-ID kopiëren",

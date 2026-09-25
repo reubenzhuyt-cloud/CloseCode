@@ -1172,7 +1172,7 @@ export const dict = {
   "desktop.menu.installCli": "CLI-ის დაყენება...",
   "desktop.cli.installed.title": "CLI დაყენებულია",
   "desktop.cli.installed.message":
-    "CLI დაყენდა მისამართზე {{path}}\n\n'opencode2' ბრძანების გამოსაყენებლად გადატვირთეთ ტერმინალი.",
+    "CLI დაყენდა მისამართზე {{path}}\n\n'closecode' ბრძანების გამოსაყენებლად გადატვირთეთ ტერმინალი.",
   "desktop.cli.failed.title": "დაყენება ვერ მოხერხდა",
   "desktop.cli.failed.message": "CLI-ის დაყენება ვერ მოხერხდა: {{error}}",
   "command.project.copyID": "პროექტის ID-ის კოპირება",

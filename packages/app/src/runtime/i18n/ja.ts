@@ -1204,7 +1204,7 @@ export const dict = {
   "desktop.menu.installCli": "CLI をインストール...",
   "desktop.cli.installed.title": "CLI をインストールしました",
   "desktop.cli.installed.message":
-    "CLI を {{path}} にインストールしました\n\n「opencode2」コマンドを使用するには、ターミナルを再起動してください。",
+    "CLI を {{path}} にインストールしました\n\n「closecode」コマンドを使用するには、ターミナルを再起動してください。",
   "desktop.cli.failed.title": "インストールに失敗しました",
   "desktop.cli.failed.message": "CLI をインストールできませんでした: {{error}}",
   "command.project.copyID": "プロジェクト ID をコピー",

@@ -1191,7 +1191,7 @@ export const dict = {
   "desktop.menu.installCli": "התקנת CLI...",
   "desktop.cli.installed.title": "CLI הותקן",
   "desktop.cli.installed.message":
-    "CLI הותקן ב-\u2068{{path}}\u2069\n\nיש להפעיל מחדש את המסוף כדי להשתמש בפקודה 'opencode2'.",
+    "CLI הותקן ב-\u2068{{path}}\u2069\n\nיש להפעיל מחדש את המסוף כדי להשתמש בפקודה 'closecode'.",
   "desktop.cli.failed.title": "ההתקנה נכשלה",
   "desktop.cli.failed.message": "התקנת CLI נכשלה: \u2068{{error}}\u2069",
   "session.location.unavailable": "מיקום ההפעלה אינו זמין",

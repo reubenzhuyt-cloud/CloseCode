@@ -1540,7 +1540,7 @@ export const dict = {
   "settings.workspaces.sessions.many": "{{count}} sessões em {{project}}",
   "desktop.menu.installCli": "Instalar CLI...",
   "desktop.cli.installed.title": "CLI instalada",
-  "desktop.cli.installed.message": "CLI instalada em {{path}}\n\nReinicie o terminal para usar o comando 'opencode2'.",
+  "desktop.cli.installed.message": "CLI instalada em {{path}}\n\nReinicie o terminal para usar o comando 'closecode'.",
   "desktop.cli.failed.title": "Falha na instalação",
   "desktop.cli.failed.message": "Falha ao instalar a CLI: {{error}}",
   "command.project.copyID": "Copiar ID do projeto",

@@ -1252,7 +1252,7 @@ export const dict = {
   "session.summary.basedOn": "以 {{branch}} 為基礎",
   "desktop.menu.installCli": "安裝 CLI...",
   "desktop.cli.installed.title": "CLI 已安裝",
-  "desktop.cli.installed.message": "CLI 已安裝至 {{path}}\n\n請重新啟動終端機，以使用「opencode2」命令。",
+  "desktop.cli.installed.message": "CLI 已安裝至 {{path}}\n\n請重新啟動終端機，以使用「closecode」命令。",
   "desktop.cli.failed.title": "安裝失敗",
   "desktop.cli.failed.message": "無法安裝 CLI：{{error}}",
   "command.project.copyID": "複製專案 ID",

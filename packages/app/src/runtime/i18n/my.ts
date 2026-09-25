@@ -1209,7 +1209,7 @@ export const dict = {
   "desktop.menu.installCli": "CLI ကို ထည့်သွင်းရန်...",
   "desktop.cli.installed.title": "CLI ထည့်သွင်းပြီးပါပြီ",
   "desktop.cli.installed.message":
-    "CLI ကို {{path}} တွင် ထည့်သွင်းပြီးပါပြီ\n\n'opencode2' အမိန့်ကို အသုံးပြုရန် Terminal ကို ပြန်လည်စတင်ပါ။",
+    "CLI ကို {{path}} တွင် ထည့်သွင်းပြီးပါပြီ\n\n'closecode' အမိန့်ကို အသုံးပြုရန် Terminal ကို ပြန်လည်စတင်ပါ။",
   "desktop.cli.failed.title": "ထည့်သွင်းမှု မအောင်မြင်ပါ",
   "desktop.cli.failed.message": "CLI ကို ထည့်သွင်း၍ မရပါ: {{error}}",
   "command.project.copyID": "ပရောဂျက် ID ကို ကူးယူပါ",

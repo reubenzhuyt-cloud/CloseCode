@@ -1186,7 +1186,7 @@ export const dict = {
   "desktop.menu.installCli": "ຕິດຕັ້ງ CLI...",
   "desktop.cli.installed.title": "ຕິດຕັ້ງ CLI ແລ້ວ",
   "desktop.cli.installed.message":
-    "ຕິດຕັ້ງ CLI ໄປທີ່ {{path}} ແລ້ວ\n\nເລີ່ມສະຖານີຂອງທ່ານໃໝ່ເພື່ອໃຊ້ຄຳສັ່ງ 'opencode2'.",
+    "ຕິດຕັ້ງ CLI ໄປທີ່ {{path}} ແລ້ວ\n\nເລີ່ມສະຖານີຂອງທ່ານໃໝ່ເພື່ອໃຊ້ຄຳສັ່ງ 'closecode'.",
   "desktop.cli.failed.title": "ການຕິດຕັ້ງລົ້ມເຫລວ",
   "desktop.cli.failed.message": "ຕິດຕັ້ງ CLI ບໍ່ສຳເລັດ: {{error}}",
   "command.project.copyID": "ສຳເນົາ ID ໂຄງການ",

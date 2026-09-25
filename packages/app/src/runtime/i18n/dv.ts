@@ -1202,7 +1202,7 @@ export const dict = {
   "desktop.menu.installCli": "CLI އިންސްޓޯލް ކުރާށެވެ...",
   "desktop.cli.installed.title": "CLI އިންސްޓޯލް ކުރެވިއްޖެ",
   "desktop.cli.installed.message":
-    "CLI އިންސްޓޯލް ކުރެވިފައިވަނީ \u2068{{path}}\u2069 އަށެވެ\n\n'opencode2' ކޮމާންޑް ބޭނުންކުރުމަށް ޓާމިނަލް އަލުން ފަށާށެވެ.",
+    "CLI އިންސްޓޯލް ކުރެވިފައިވަނީ \u2068{{path}}\u2069 އަށެވެ\n\n'closecode' ކޮމާންޑް ބޭނުންކުރުމަށް ޓާމިނަލް އަލުން ފަށާށެވެ.",
   "desktop.cli.failed.title": "އިންސްޓޯލް ކުރުން ނާކާމިޔާބުވެއްޖެ",
   "desktop.cli.failed.message": "CLI އިންސްޓޯލް ނުކުރެވުނެވެ: \u2068{{error}}\u2069",
   "command.project.copyID": "ޕްރޮޖެކްޓް ID ކޮޕީކުރުން",

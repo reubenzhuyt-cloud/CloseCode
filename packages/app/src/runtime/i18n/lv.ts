@@ -1179,7 +1179,7 @@ export const dict = {
   "desktop.menu.installCli": "Instalēt CLI...",
   "desktop.cli.installed.title": "CLI ir instalēta",
   "desktop.cli.installed.message":
-    "CLI ir instalēta vietā {{path}}\n\nRestartējiet termināli, lai izmantotu komandu 'opencode2'.",
+    "CLI ir instalēta vietā {{path}}\n\nRestartējiet termināli, lai izmantotu komandu 'closecode'.",
   "desktop.cli.failed.title": "Instalēšana neizdevās",
   "desktop.cli.failed.message": "Neizdevās instalēt CLI: {{error}}",
   "command.project.copyID": "Kopēt projekta ID",

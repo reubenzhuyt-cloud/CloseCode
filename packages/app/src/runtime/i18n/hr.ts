@@ -56,7 +56,7 @@ const desktop = [
   "Ponovno pokreni",
   "Kasnije",
   "CLI je instaliran",
-  "CLI je instaliran u {{path}}\n\nPonovno pokrenite terminal kako biste mogli koristiti naredbu 'opencode2'.",
+  "CLI je instaliran u {{path}}\n\nPonovno pokrenite terminal kako biste mogli koristiti naredbu 'closecode'.",
   "Instalacija nije uspjela",
   "Instalacija CLI-ja nije uspjela: {{error}}",
   "Ponovno pokreni aplikaciju",

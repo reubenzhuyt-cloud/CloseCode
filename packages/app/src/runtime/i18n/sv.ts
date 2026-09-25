@@ -1503,7 +1503,7 @@ export const dict = {
   "desktop.menu.installCli": "Installera CLI...",
   "desktop.cli.installed.title": "CLI installerat",
   "desktop.cli.installed.message":
-    "CLI har installerats i {{path}}.\n\nStarta om terminalen för att använda kommandot 'opencode2'.",
+    "CLI har installerats i {{path}}.\n\nStarta om terminalen för att använda kommandot 'closecode'.",
   "desktop.cli.failed.title": "Installationen misslyckades",
   "desktop.cli.failed.message": "Det gick inte att installera CLI: {{error}}",
   "command.project.copyID": "Kopiera projekt-ID",

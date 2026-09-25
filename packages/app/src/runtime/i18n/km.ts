@@ -1187,7 +1187,7 @@ export const dict = {
   "desktop.menu.installCli": "ដំឡើង CLI...",
   "desktop.cli.installed.title": "បានដំឡើង CLI",
   "desktop.cli.installed.message":
-    "បានដំឡើង CLI ទៅ {{path}}\n\nចាប់ផ្ដើមស្ថានីយរបស់អ្នកឡើងវិញ ដើម្បីប្រើពាក្យបញ្ជា 'opencode2'។",
+    "បានដំឡើង CLI ទៅ {{path}}\n\nចាប់ផ្ដើមស្ថានីយរបស់អ្នកឡើងវិញ ដើម្បីប្រើពាក្យបញ្ជា 'closecode'។",
   "desktop.cli.failed.title": "ការដំឡើងបានបរាជ័យ",
   "desktop.cli.failed.message": "មិនអាចដំឡើង CLI បានទេ៖ {{error}}",
   "command.project.copyID": "ចម្លង ID គម្រោង",

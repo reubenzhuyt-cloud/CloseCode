@@ -1167,7 +1167,7 @@ export const dict = {
   "desktop.menu.installCli": "Paigalda CLI...",
   "desktop.cli.installed.title": "CLI on paigaldatud",
   "desktop.cli.installed.message":
-    "CLI paigaldati asukohta {{path}}\n\nKäsu 'opencode2' kasutamiseks taaskäivita terminal.",
+    "CLI paigaldati asukohta {{path}}\n\nKäsu 'closecode' kasutamiseks taaskäivita terminal.",
   "desktop.cli.failed.title": "Paigaldamine ebaõnnestus",
   "desktop.cli.failed.message": "CLI paigaldamine ebaõnnestus: {{error}}",
   "command.project.copyID": "Kopeeri projekti ID",

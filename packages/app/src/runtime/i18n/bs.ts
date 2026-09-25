@@ -1272,7 +1272,7 @@ export const dict = {
   "desktop.menu.installCli": "Instaliraj CLI...",
   "desktop.cli.installed.title": "CLI je instaliran",
   "desktop.cli.installed.message":
-    "CLI je instaliran u {{path}}\n\nPonovo pokrenite terminal da biste koristili naredbu 'opencode2'.",
+    "CLI je instaliran u {{path}}\n\nPonovo pokrenite terminal da biste koristili naredbu 'closecode'.",
   "desktop.cli.failed.title": "Instalacija nije uspjela",
   "desktop.cli.failed.message": "Instalacija CLI-ja nije uspjela: {{error}}",
   "command.project.copyID": "Kopiraj ID projekta",

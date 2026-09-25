@@ -56,7 +56,7 @@ const desktop = [
   "Endurræsa",
   "Seinna",
   "CLI uppsett",
-  "CLI var sett upp í {{path}}\n\nEndurræstu skjáherminn til að nota 'opencode2' skipunina.",
+  "CLI var sett upp í {{path}}\n\nEndurræstu skjáherminn til að nota 'closecode' skipunina.",
   "Uppsetning mistókst",
   "Ekki tókst að setja upp CLI: {{error}}",
   "Endurræsa forrit",

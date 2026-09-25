@@ -1201,7 +1201,7 @@ export const dict = {
   "desktop.menu.installCli": "نصب CLI...",
   "desktop.cli.installed.title": "CLI نصب شد",
   "desktop.cli.installed.message":
-    "CLI در \u2068{{path}}\u2069 نصب شد\n\nبرای استفاده از دستور 'opencode2'، ترمینال را دوباره راه‌اندازی کنید.",
+    "CLI در \u2068{{path}}\u2069 نصب شد\n\nبرای استفاده از دستور 'closecode'، ترمینال را دوباره راه‌اندازی کنید.",
   "desktop.cli.failed.title": "نصب ناموفق بود",
   "desktop.cli.failed.message": "نصب CLI ناموفق بود: \u2068{{error}}\u2069",
   "session.location.unavailable": "محل جلسه در دسترس نیست",

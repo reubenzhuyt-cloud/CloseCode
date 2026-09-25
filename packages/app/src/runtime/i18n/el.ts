@@ -1189,7 +1189,7 @@ export const dict = {
   "desktop.menu.installCli": "Εγκατάσταση CLI...",
   "desktop.cli.installed.title": "Το CLI εγκαταστάθηκε",
   "desktop.cli.installed.message":
-    "Το CLI εγκαταστάθηκε στη διαδρομή {{path}}\n\nΕπανεκκινήστε το τερματικό για να χρησιμοποιήσετε την εντολή 'opencode2'.",
+    "Το CLI εγκαταστάθηκε στη διαδρομή {{path}}\n\nΕπανεκκινήστε το τερματικό για να χρησιμοποιήσετε την εντολή 'closecode'.",
   "desktop.cli.failed.title": "Η εγκατάσταση απέτυχε",
   "desktop.cli.failed.message": "Αποτυχία εγκατάστασης του CLI: {{error}}",
   "command.project.copyID": "Αντιγραφή ID έργου",

@@ -1180,7 +1180,7 @@ export const dict = {
   "desktop.menu.installCli": "Насб кардани CLI...",
   "desktop.cli.installed.title": "CLI насб шуд",
   "desktop.cli.installed.message":
-    "CLI дар {{path}} насб шуд\n\nБарои истифодаи фармони 'opencode2' терминалро аз нав оғоз кунед.",
+    "CLI дар {{path}} насб шуд\n\nБарои истифодаи фармони 'closecode' терминалро аз нав оғоз кунед.",
   "desktop.cli.failed.title": "Насбкунӣ ноком шуд",
   "desktop.cli.failed.message": "Насб кардани CLI муяссар нашуд: {{error}}",
   "command.project.copyID": "Нусхабардории ID-и лоиҳа",
