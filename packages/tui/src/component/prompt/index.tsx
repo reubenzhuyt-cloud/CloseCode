@@ -39,7 +39,7 @@ import { expandPastedTextPlaceholders, expandTrackedPastedText } from "../../pro
 import { usePromptStash } from "../../prompt/stash"
 import { DialogStash } from "../dialog-stash"
 import { type AutocompleteOption, type AutocompleteRef, Autocomplete } from "./autocomplete"
-import { useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
+import { useRenderer, useTerminalDimensions } from "@opentui/solid"
 import { Locale } from "../../util/locale"
 import { errorMessage } from "../../util/error"
 import { createColors, createFrames } from "../../ui/spinner"
@@ -54,6 +54,7 @@ import { usePromptMove } from "./move"
 import { resolvePastedAttachments } from "./local-attachment"
 import { locationKey, useData } from "../../context/data"
 import { useLocation } from "../../context/location"
+import { useArgs } from "../../context/args"
 import { Keymap, type KeymapCommand } from "../../context/keymap"
 import { useInteractivity } from "../../context/interactivity"
 import { abbreviateHome } from "../../runtime"
@@ -79,9 +80,6 @@ export type PromptProps = {
   onSubmit?: () => void
   onEmptySubmit?: () => boolean | Promise<boolean>
   ref?: (ref: PromptRef | undefined) => void
-  hint?: JSX.Element
-  right?: JSX.Element
-  showPlaceholder?: boolean
   placeholders?: {
     normal?: string[]
     shell?: string[]
@@ -91,6 +89,8 @@ export type PromptProps = {
 export type PromptRef = {
   focused: boolean
   current: PromptInfo
+  mode: "normal" | "shell"
+  setMode(mode: "normal" | "shell"): void
   set(prompt: PromptInfo): void
   reset(): void
   blur(): void
@@ -205,6 +205,7 @@ export function Prompt(props: PromptProps) {
   const directoryRecents = useDirectoryRecents()
   const keymapCommands = Keymap.useCommands()
   const currentLocation = useLocation()
+  const args = useArgs()
   const config = useConfig().data
   const dialog = useDialog()
   const toast = useToast()
@@ -313,7 +314,6 @@ export function Prompt(props: PromptProps) {
   }))
   const [cursorVersion, setCursorVersion] = createSignal(0)
   const connected = useConnected()
-  const hasRightContent = createMemo(() => Boolean(props.right))
 
   function promptModelWarning() {
     toast.show({
@@ -674,12 +674,18 @@ export function Prompt(props: PromptProps) {
     get current() {
       return store.prompt
     },
+    get mode() {
+      return store.mode
+    },
     focus() {
       if (disabled()) return
       input.focus()
     },
     blur() {
       input.blur()
+    },
+    setMode(mode) {
+      setStore("mode", mode)
     },
     set(prompt) {
       input.setText(prompt.text)
@@ -1225,7 +1231,9 @@ export function Prompt(props: PromptProps) {
       // a local session record synchronously, so the navigation below happens
       // immediately — enter feels sent even while the create round-trip is in
       // flight. Sends against the new session gate on the request.
+      const newSessionID = args.takeNewSessionID()
       const created = data.session.create({
+        id: newSessionID,
         location: directory ? { directory } : location,
         agent: agent.id,
         model: {
@@ -1234,6 +1242,7 @@ export function Prompt(props: PromptProps) {
           variant,
         },
       })
+      if (newSessionID !== undefined) created.request.catch(() => args.restoreNewSessionID(newSessionID))
       sessionID = created.id
       session = data.session.get(created.id)
       newSession = {
@@ -1586,7 +1595,6 @@ export function Prompt(props: PromptProps) {
   })
 
   const placeholderText = createMemo(() => {
-    if (props.showPlaceholder === false) return undefined
     const value = (() => {
       if (store.mode === "shell") {
         if (!shell().length) return undefined
@@ -1840,11 +1848,6 @@ export function Prompt(props: PromptProps) {
                 modelAlpha={modelMetaAlpha()}
                 variantAlpha={variantMetaAlpha()}
               />
-              <Show when={hasRightContent()}>
-                <box flexDirection="row" gap={1} alignItems="center">
-                  {props.right}
-                </box>
-              </Show>
             </box>
           </box>
         </box>
@@ -1922,7 +1925,7 @@ export function Prompt(props: PromptProps) {
                     </box>
                   </Match>
                   <Match when={true}>
-                    <Show when={!props.hint && locationLabelDisplay()} fallback={props.hint ?? <text />}>
+                    <Show when={locationLabelDisplay()} fallback={<text />}>
                       {(location) => (
                         <text
                           id="prompt.footer.location"

@@ -1,24 +1,17 @@
-import { Effect, Encoding, Schema } from "effect"
-import { Headers } from "effect/unstable/http"
+import { Effect, Schema } from "effect"
+import { Base64 } from "effect/encoding"
+import { Headers } from "effect/http"
 import { Route } from "../route/client.js"
 import { Auth } from "../route/auth.js"
 import { Endpoint } from "../route/endpoint.js"
 import { Protocol } from "../route/protocol.js"
 import { HttpTransport } from "../route/transport/index.js"
-import {
-  LLMRequest,
-  mergeJsonRecords,
-  type JsonSchema,
-  type LanguageModel,
-  type ToolDefinition,
-  type ToolEntry,
-} from "../schema/index.js"
+import { LLMRequest, type ToolDefinition, type ToolEntry } from "../schema/index.js"
 import { resolveEffortUpdates } from "../effort-updates.js"
 import { OpenResponses } from "./open-responses.js"
 import { OpenResponsesOptions } from "./utils/open-responses-options.js"
 import { JsonObject, optionalArray, optionalNull, ProviderShared } from "./shared.js"
 import { ResponsesHostedTools } from "./utils/responses-hosted-tools.js"
-import { ToolSchemaProjection } from "./utils/tool-schema.js"
 import { OpenResponsesChannel } from "./open-responses-channel.js"
 import { ResponsesCompaction } from "./utils/responses-compaction.js"
 import { ResponsesCheckpoint } from "./utils/responses-checkpoint.js"
@@ -111,15 +104,8 @@ const OpenAIResponsesToolChoice = Schema.Union([
   Schema.Struct({ type: Schema.tag("image_generation") }),
 ])
 
-const OpenAIResponsesInputItem = Schema.Union([
-  OpenResponses.InputItem,
-  OpenAIResponsesHostedToolItem,
-  OpenResponses.ConfigurationUpdate,
-])
-
 const OpenAIResponsesCoreFields = {
   ...OpenResponses.coreFields,
-  input: Schema.Array(OpenAIResponsesInputItem),
   tools: optionalArray(OpenAIResponsesTools),
   tool_choice: Schema.optional(OpenAIResponsesToolChoice),
   context_management: Schema.optional(
@@ -142,12 +128,7 @@ export type OpenAIResponsesBody = Schema.Schema.Type<typeof OpenAIResponsesBody>
 export const CompactionTrigger = Schema.Struct({ type: Schema.Literal("compaction_trigger") })
 const CheckpointBody = Schema.Struct({
   ...OpenAIResponsesBody.fields,
-  input: Schema.Array(Schema.Union([OpenAIResponsesInputItem, CompactionTrigger])),
-  store: Schema.Literal(false),
-  prompt_cache_retention: optionalNull(Schema.String),
-  prompt_cache_options: optionalNull(
-    Schema.Struct({ mode: Schema.optional(Schema.String), ttl: Schema.optional(Schema.String) }),
-  ),
+  input: Schema.Array(Schema.Union([OpenResponses.InputItem, CompactionTrigger])),
 })
 
 const adapter = {
@@ -156,12 +137,15 @@ const adapter = {
   restoreHostedToolItem: (item: unknown) => (Schema.is(OpenAIResponsesHostedToolItem)(item) ? item : undefined),
 } satisfies OpenResponses.ProviderAdapter
 
-// Only GPT-6 Astra accepts `configuration_update`, and never alongside automatic `context_management` compaction.
+// GPT-6 and later default to `configuration_update` support, except in `reasoning.mode: "pro"`
+// or alongside automatic `context_management` compaction.
 const supportsEffortUpdates = (request: LLMRequest) => {
   if (request.providerOptions?.contextManagement !== undefined) return false
+  if (Schema.is(Schema.Struct({ mode: Schema.Literal("pro") }))(request.http?.body?.reasoning)) return false
   const override = request.model.compatibility?.supportsEffortUpdates
   if (override !== undefined) return override
-  return /(?:^|\/)gpt-6-astra$/i.test(request.model.id)
+  const match = /(?:^|\/)gpt-(\d+)(?:\.\d+)?(?:-|$)/i.exec(request.model.id)
+  return match !== null && Number(match[1]) >= 6
 }
 
 const nativeImageToolInput = (tool: ToolDefinition) => {
@@ -174,20 +158,19 @@ const nativeImageTool = (tool: ToolDefinition) => {
   return Schema.is(OpenAIResponsesImageGenerationTool)(native) ? native : undefined
 }
 
-const lowerTool = Effect.fn("OpenAIResponses.lowerTool")(function* (tool: ToolDefinition, inputSchema: JsonSchema) {
+const lowerTool = Effect.fnUntraced(function* (tool: ToolDefinition) {
   const native = nativeImageToolInput(tool)
   if (native !== undefined) {
     if (Schema.is(OpenAIResponsesImageGenerationTool)(native)) return native
     return yield* ProviderShared.invalidRequest("OpenAI Responses image generation tool options are invalid")
   }
-  return yield* OpenResponses.lowerTool(NAME, tool, inputSchema)
+  return yield* OpenResponses.lowerTool(NAME, tool)
 })
 
 // Native namespaces hold only function tools, so deeper levels flatten into
 // the leaf names the same way non-native protocols flatten the whole tree.
-const lowerToolEntry = Effect.fn("OpenAIResponses.lowerToolEntry")(function* (tool: ToolEntry, model: LanguageModel) {
-  if (tool.type === "tool")
-    return yield* lowerTool(tool, ToolSchemaProjection.modelCompatibility(tool.inputSchema, model))
+const lowerToolEntry = Effect.fnUntraced(function* (tool: ToolEntry) {
+  if (tool.type === "tool") return yield* lowerTool(tool)
   // OpenAI requires a namespace description; fall back to a generic one so a
   // missing description never blocks the request.
   return {
@@ -195,10 +178,12 @@ const lowerToolEntry = Effect.fn("OpenAIResponses.lowerToolEntry")(function* (to
     name: tool.name,
     description: tool.description ?? `Tools in the ${tool.name} namespace.`,
     tools: yield* Effect.forEach(ProviderShared.flattenTools(tool.tools), (leaf) =>
-      OpenResponses.lowerTool(NAME, leaf, ToolSchemaProjection.modelCompatibility(leaf.inputSchema, model)),
+      OpenResponses.lowerTool(NAME, leaf),
     ),
   }
 })
+
+const lowerTools = (request: LLMRequest) => Effect.forEach(request.tools, lowerToolEntry)
 
 const lowerToolChoice = (toolChoice: NonNullable<LLMRequest["toolChoice"]>, tools: ReadonlyArray<ToolEntry>) =>
   ProviderShared.matchToolChoice(NAME, toolChoice, {
@@ -211,34 +196,28 @@ const lowerToolChoice = (toolChoice: NonNullable<LLMRequest["toolChoice"]>, tool
         : { type: "function" as const, name },
   })
 
-const decodeBody = ProviderShared.validateWith(Schema.decodeUnknownEffect(OpenAIResponsesBody))
-
 const fromRequest = Effect.fn("OpenAIResponses.fromRequest")(function* (request: LLMRequest) {
   const management = yield* ProviderShared.validateWith(
     Schema.decodeUnknownEffect(Schema.UndefinedOr(ContextManagement)),
   )(request.providerOptions?.contextManagement)
   const options = OpenResponsesOptions.resolve(request)
   const updates = resolveEffortUpdates(request, options.reasoningEffort)
-  return yield* decodeBody({
+  return {
     ...(yield* OpenResponses.lowerConversation(updates.request, adapter)),
     ...OpenResponses.lowerGeneration(request, { ...options, reasoningEffort: updates.effort }),
     context_management: management?.map((edit) => ({ type: edit.type, compact_threshold: edit.compactThreshold })),
-    tools:
-      request.tools.length === 0
-        ? undefined
-        : yield* Effect.forEach(request.tools, (tool) => lowerToolEntry(tool, request.model)),
+    tools: request.tools.length === 0 ? undefined : yield* lowerTools(request),
     tool_choice:
       request.tools.length === 0
         ? undefined
         : (OpenResponses.allowedToolChoice(request) ??
           (request.toolChoice ? yield* lowerToolChoice(request.toolChoice, request.tools) : undefined)),
-  })
+  }
 })
 
 const checkpointBody = {
   schema: CheckpointBody,
   from: Effect.fn("OpenAIResponses.checkpointBody")(function* (request: LLMRequest) {
-    const native = yield* fromRequest(LLMRequest.update(request, { toolChoice: undefined }))
     const overlay = request.http?.body
     // Complete history is required for stateless replay and SSE recovery. Raw input overrides bypass that contract.
     if (
@@ -249,25 +228,20 @@ const checkpointBody = {
       return yield* ProviderShared.invalidRequest(
         "Trigger compaction requires complete canonical history, not an input or continuation override",
       )
-    return yield* ProviderShared.validateWith(Schema.decodeUnknownEffect(CheckpointBody))({
-      ...mergeJsonRecords(native, overlay),
-      input: [...native.input, { type: "compaction_trigger" }],
-      stream: true,
-      store: false,
-      parallel_tool_calls: true,
-      tool_choice: undefined,
-      context_management: undefined,
-      text: undefined,
-      max_output_tokens: undefined,
-      max_tool_calls: undefined,
-    })
+    if (overlay?.stream !== undefined && overlay.stream !== true)
+      return yield* ProviderShared.invalidRequest("Trigger compaction requires a streamed response")
+    const native = yield* fromRequest(request)
+    return {
+      ...native,
+      input: [...native.input, { type: "compaction_trigger" as const }],
+    }
   }),
 }
 
-const hostedToolResult = Effect.fn("OpenAIResponses.hostedToolResult")(function* (item: ResponsesHostedTools.Item) {
+const hostedToolResult = Effect.fnUntraced(function* (item: ResponsesHostedTools.Item) {
   const isError = item.error !== undefined && item.error !== null
   if (item.type === "image_generation_call" && item.result) {
-    yield* Effect.fromResult(Encoding.decodeBase64(item.result)).pipe(
+    yield* Effect.fromResult(Base64.decode(item.result)).pipe(
       Effect.mapError((cause) =>
         ProviderShared.eventError(ADAPTER, "OpenAI Responses returned invalid image base64", undefined, cause),
       ),
@@ -342,7 +316,10 @@ export const transport = channelTransport({
 })
 
 export const route = Route.make({
-  compact: { endpoint: ResponsesCompaction.make(adapter), trigger: ResponsesCheckpoint.make(checkpointBody) },
+  compact: {
+    endpoint: ResponsesCompaction.make(adapter, lowerTools),
+    trigger: ResponsesCheckpoint.make(checkpointBody),
+  },
   id: ADAPTER,
   provider: "openai",
   providerMetadataKey: "openai",

@@ -100,7 +100,7 @@ export const configure = (input: Config = {}) => {
   const modelDefaults = defaults(input)
   const responses = (id: string | ModelID) =>
     responsesRoute
-      .with(withOpenAIOptions(id, modelDefaults, { textVerbosity: true }))
+      .with(withOpenAIOptions(id, modelDefaults))
       .model<OpenAIProviderOptionsInput>({ id })
   const chat = (id: string | ModelID) =>
     chatRoute.with(withOpenAIOptions(id, modelDefaults)).model<OpenAIProviderOptionsInput>({
@@ -152,9 +152,9 @@ const config = ({
     apiKey,
     baseURL,
     headers: Object.keys(headers).length === 0 ? undefined : headers,
-    http: body === undefined ? undefined : { body: { ...body } },
+    http: body === undefined ? undefined : { body },
     providerOptions,
-    queryParams: queryParams === undefined ? undefined : { ...queryParams },
+    queryParams,
   }
 }
 

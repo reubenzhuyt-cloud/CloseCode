@@ -1,5 +1,5 @@
 import { Effect, Schema } from "effect"
-import type { HttpClientResponse } from "effect/unstable/http"
+import type { HttpClientResponse } from "effect/http"
 import { ImageModel, ImageResponse, type ImageRequestFor } from "../image.js"
 import { MediaProtocol } from "../route/media-protocol.js"
 import { MediaRoute } from "../route/media.js"
@@ -101,7 +101,7 @@ const generationConfig = (request: Request) => {
 const fromRequest = Effect.fn("GoogleImages.fromRequest")(function* (request: Request) {
   if (request.n !== undefined && request.n > 1)
     return yield* route.unsupported(
-      "image.n",
+      "media.n",
       `${route.name} generates one image per request; call it once per image instead of n=${request.n}`,
     )
   const parts = yield* Effect.forEach(request.images ?? [], (image) =>

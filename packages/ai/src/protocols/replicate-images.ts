@@ -1,5 +1,5 @@
 import { Duration, Effect, Schema } from "effect"
-import type { HttpClientResponse } from "effect/unstable/http"
+import type { HttpClientResponse } from "effect/http"
 import type { Status } from "../generation.js"
 import { ImageModel, ImageResponse, type ImageRequestFor } from "../image.js"
 import { Media } from "../media.js"
@@ -132,8 +132,7 @@ const decodeResult = Effect.fn("ReplicateImages.decodeResult")(function* (
       status,
       `${route.name} prediction ${context.token.id} ${prediction.status}${typeof prediction.error === "string" ? `: ${prediction.error}` : ""}`,
     )
-  if (status !== "completed")
-    return yield* output.invalid(`${route.name} prediction ${context.token.id} has not finished`)
+  if (status !== "completed") return yield* output.pending(context.token.id)
   if (prediction.data_removed === true)
     return yield* output.ended("expired", `${route.name} removed the output of prediction ${context.token.id}`)
   if (!isOutput(prediction.output))

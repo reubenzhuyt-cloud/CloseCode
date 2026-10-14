@@ -161,7 +161,8 @@ export type PromptState = {
   onPaste: (event: PasteEvent) => Promise<void>
   onContentChange: () => void
   onSizeChange: () => void
-  replacePrompt: (prompt: RunPrompt) => void
+  current: () => RunPrompt
+  replacePrompt: (prompt: RunPrompt, cursor?: number) => void
   bind: (area?: TextareaRenderable) => void
 }
 
@@ -1551,6 +1552,10 @@ export function createPromptState(input: PromptInput): PromptState {
       scheduleRows()
     },
     onSizeChange: scheduleRows,
+    current: () => {
+      syncDraft()
+      return promptCopy(draft)
+    },
     replacePrompt: restore,
     bind,
   }

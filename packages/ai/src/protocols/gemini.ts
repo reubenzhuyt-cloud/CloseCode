@@ -11,7 +11,6 @@ import {
   Usage,
   type FinishReason,
   type LLMRequest,
-  type LanguageModel,
   type MediaPart,
   type ProviderMetadata,
   type ProviderOptions,
@@ -24,7 +23,6 @@ import { Media } from "../media.js"
 import { JsonObject, knownString, lenient, optionalArray, optionalNull, ProviderShared } from "./shared.js"
 import { GeminiGenerateContent } from "./utils/gemini-generate-content.js"
 import { Lifecycle } from "./utils/lifecycle.js"
-import { ToolSchemaProjection } from "./utils/tool-schema.js"
 
 const ADAPTER = "gemini"
 // Google documents this sentinel for replaying Gemini 3 function calls after their original signature was lost.
@@ -270,12 +268,11 @@ interface ParserState {
 // =============================================================================
 // Request Lowering
 // =============================================================================
-// Tool schemas go in `parametersJsonSchema`, which accepts standard JSON Schema. Gemini's schema
-// rules are this API's default, including for tuned endpoints whose IDs do not name Gemini.
-const lowerTool = (tool: ToolDefinition, model: LanguageModel) => ({
+// Tool schemas go in `parametersJsonSchema`, which accepts standard JSON Schema.
+const lowerTool = (tool: ToolDefinition) => ({
   name: tool.name,
   description: tool.description,
-  parametersJsonSchema: ToolSchemaProjection.modelCompatibility(tool.inputSchema, model, "gemini"),
+  parametersJsonSchema: tool.inputSchema,
 })
 
 const lowerToolConfig = (toolChoice: NonNullable<LLMRequest["toolChoice"]>) =>
@@ -286,7 +283,7 @@ const lowerToolConfig = (toolChoice: NonNullable<LLMRequest["toolChoice"]>) =>
     tool: (name) => ({ functionCallingConfig: { mode: "ANY" as const, allowedFunctionNames: [name] } }),
   })
 
-const lowerContentPart = Effect.fn("Gemini.lowerContentPart")(function* (part: TextPart | MediaPart) {
+const lowerContentPart = Effect.fnUntraced(function* (part: TextPart | MediaPart) {
   if (part.type === "text") return { text: part.text }
   return yield* GeminiGenerateContent.mediaPart("Gemini", part.media)
 })
@@ -305,7 +302,7 @@ const lowerToolCall = (part: ToolCallPart, omitIds: boolean, metadataKey: string
   thoughtSignature: thoughtSignature(part.providerMetadata, metadataKey),
 })
 
-const lowerMessages = Effect.fn("Gemini.lowerMessages")(function* (request: LLMRequest) {
+const lowerMessages = Effect.fnUntraced(function* (request: LLMRequest) {
   const contents: GeminiContent[] = []
   const metadataKey = request.model.route.providerMetadataKey ?? String(request.model.provider)
   const omitCallIds = omitsFunctionCallIds(request.model.id)
@@ -478,11 +475,11 @@ const fromRequest = Effect.fn("Gemini.fromRequest")(function* (request: LLMReque
     safetySettings: options.safetySettings,
     serviceTier: options.serviceTier,
     systemInstruction:
-      request.system.length === 0 ? undefined : { parts: [{ text: ProviderShared.joinText(request.system) }] },
+      request.system.length === 0 ? undefined : { parts: request.system.map((part) => ({ text: part.text })) },
     tools: hasTools
       ? [
           {
-            functionDeclarations: flattened.tools.map((tool) => lowerTool(tool, request.model)),
+            functionDeclarations: flattened.tools.map(lowerTool),
           },
         ]
       : undefined,
@@ -529,19 +526,7 @@ const mapFinishReason = (finishReason: string | undefined, hasToolCalls: boolean
   if (finishReason === undefined) return hasToolCalls ? "tool-calls" : "unknown"
   if (finishReason === "STOP") return hasToolCalls ? "tool-calls" : "stop"
   if (finishReason === "MAX_TOKENS") return "length"
-  if (
-    finishReason === "IMAGE_SAFETY" ||
-    finishReason === "RECITATION" ||
-    finishReason === "SAFETY" ||
-    finishReason === "BLOCKLIST" ||
-    finishReason === "PROHIBITED_CONTENT" ||
-    finishReason === "SPII" ||
-    finishReason === "MODEL_ARMOR" ||
-    finishReason === "IMAGE_PROHIBITED_CONTENT" ||
-    finishReason === "IMAGE_RECITATION" ||
-    finishReason === "LANGUAGE"
-  )
-    return "content-filter"
+  if (GeminiGenerateContent.contentFiltered(finishReason)) return "content-filter"
   if (
     finishReason === "MALFORMED_FUNCTION_CALL" ||
     finishReason === "UNEXPECTED_TOOL_CALL" ||
@@ -818,6 +803,8 @@ export const protocol = Protocol.make({
     schema: GeminiBody,
     from: fromRequest,
   },
+  // Gemini's schema rules are this API's default, including for tuned endpoints whose IDs do not name Gemini.
+  sanitizer: "gemini",
   stream: {
     event: Protocol.jsonEvent(GeminiEvent),
     initial: (request) => ({

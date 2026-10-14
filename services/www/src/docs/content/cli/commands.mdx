@@ -3,7 +3,7 @@ title: "Commands"
 description: "Reference for the closecode command line."
 ---
 
-Every command accepts `--help` for its full flag list, for example `closecode run --help`. Commands that talk to a server also accept `--standalone` to run a private server and `--server <url>` to target a specific one.
+Every command accepts `--help` for its full flag list, for example `closecode run --help`. Some server-backed commands accept `--standalone` to run a private server or `--server <url>` to target a specific one; check the command's help for its supported flags.
 
 ## run
 
@@ -171,7 +171,7 @@ $ closecode auth login anthropic
 Log in with a specific authentication method.
 
 ```bash
-$ closecode auth login anthropic --method api-key
+$ closecode auth login anthropic --method key
 ```
 
 Log out of a saved account.
@@ -466,13 +466,13 @@ $ closecode api GET /api/session
 Call an operation ID with a query parameter.
 
 ```bash
-$ closecode api v2.session.list --param limit=10
+$ closecode api session.list --param limit=10
 ```
 
 Send a JSON body.
 
 ```bash
-$ closecode api v2.session.create --data '{"title": "New session"}'
+$ closecode api session.create --data '{"title": "New session"}'
 ```
 
 Add a request header.
@@ -544,7 +544,7 @@ $ closecode upgrade
 Upgrade to a specific version with a specific package manager.
 
 ```bash
-$ closecode upgrade 1.18.15 --method bun
+$ closecode upgrade 2.0.21 --method bun
 ```
 
 View all subcommands and flags.
@@ -565,12 +565,6 @@ Preview what would be removed.
 
 ```bash
 $ closecode uninstall --dry-run
-```
-
-Keep configuration and session data.
-
-```bash
-$ closecode uninstall --keep-config --keep-data
 ```
 
 View all subcommands and flags.

@@ -129,6 +129,7 @@ export const Definitions = {
   "session.aside": keybind("none", "Ask a side question"),
   "session.cd": keybind("none", "Change working directory"),
   "session.queued_prompts": keybind("<leader>q", "Manage queued prompts"),
+  "queued_prompt.undo": keybind("ctrl+u", "Undo queued prompt"),
   "queued_prompt.delete": keybind("ctrl+d", "Delete queued prompt"),
   "session.toggle.exploration_grouping": keybind("none", "Toggle related tool call grouping"),
   "session.verbosity.cycle": keybind("none", "Cycle transcript verbosity"),
@@ -277,7 +278,6 @@ export const Definitions = {
   "plugins.toggle": keybind("return", "Toggle plugin"),
   "dialog.mcp.toggle": keybind("space", "Toggle MCP server"),
   "dialog.plugins.error": keybind("space", "View plugin error"),
-  "dialog.plugins.install": keybind("shift+i", "Install plugin from plugin dialog"),
   "dialog.plugins.update": keybind("ctrl+u", "Update plugin from plugin dialog"),
   "dialog.plugins.check": keybind("ctrl+r", "Check for plugin updates from plugin dialog"),
   "dialog.agent.edit": keybind("ctrl+e", "Edit agent from the agent dialog"),
@@ -288,7 +288,6 @@ export const Definitions = {
   "terminal.suspend": keybind("ctrl+z", "Suspend terminal"),
   "terminal.title.toggle": keybind("none", "Toggle terminal title"),
   "plugins.list": keybind("none", "Open plugin manager dialog"),
-  "plugins.install": keybind("none", "Install plugin"),
 
   "which-key.toggle": keybind("ctrl+alt+k", "Toggle which-key panel"),
   "which-key.layout.toggle": keybind("ctrl+alt+shift+k", "Switch which-key layout"),
@@ -349,8 +348,6 @@ export function parse(keybinds: KeybindOverrides): Keybinds {
     ]),
   ) as Keybinds
 }
-
-export const Keybinds = { parse }
 
 export function unknownKeys(input: object) {
   return Object.keys(input).filter((key) => !KeybindNames.has(key))

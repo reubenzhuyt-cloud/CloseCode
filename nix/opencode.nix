@@ -12,7 +12,7 @@
   installShellFiles,
   versionCheckHook,
   writableTmpDirAsHomeHook,
-  node_modules ? callPackage ./node-modules.nix { },
+  node_modules ? callPackage ./node_modules.nix { },
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "opencode";
@@ -83,10 +83,16 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   postInstall = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
-    # trick yargs into also generating zsh completions
+    # v2 dropped the `completion` subcommand; --completions is the global flag.
+    # --completions also accepts sh, which emits the same script as bash.
+    $out/bin/closecode --completions bash > closecode.bash
+    $out/bin/closecode --completions zsh > _closecode
+    $out/bin/closecode --completions fish > closecode.fish
+
     installShellCompletion --cmd closecode \
-      --bash <($out/bin/closecode completion) \
-      --zsh <(SHELL=/bin/zsh $out/bin/closecode completion)
+      --bash closecode.bash \
+      --fish closecode.fish \
+      --zsh _closecode
   '';
 
   nativeInstallCheckInputs = [
