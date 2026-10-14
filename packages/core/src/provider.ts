@@ -127,8 +127,15 @@ export const loadPackage = Effect.fn("Provider.loadPackage")(function* (input: s
   const specifier = packageName(input)
   const builtin = builtins.get(specifier)
   if (builtin) return yield* importPackage(specifier, specifier, builtin)
+  // Every bundled `@opencode/ai` entrypoint is listed above; a variable dynamic import cannot
+  // resolve the internal package from a compiled binary's bundle root, so an unlisted one fails.
+  if (specifier.startsWith("@opencode/ai/"))
+    return yield* new LoadError({
+      package: specifier,
+      cause: new Error(`Provider package ${specifier} is not bundled`),
+    })
   const resolved = yield* Effect.sync(() => {
-    if (specifier.startsWith("file://") || specifier.startsWith("@opencode/ai/")) return specifier
+    if (specifier.startsWith("file://")) return specifier
     try {
       return import.meta.resolve(specifier)
     } catch {

@@ -2,6 +2,15 @@
 
 Staged notes awaiting archivist merge. Newest first.
 
+## 2026-10-14 — bundle `@opencode/ai/providers/anthropic-compatible`, harden `Provider.loadPackage`; release 0.3.0
+
+Source: compiled standalone `closecode` exe could not load a provider configured as `package: "@opencode/ai/providers/anthropic-compatible"`; it fell into a variable dynamic `import()` that fails with `Cannot find package '@opencode/ai' imported from B:\~BUN\root\chunk-*.js`.
+
+- `packages/core/src/provider.ts` — `Provider.loadPackage`: the static `builtins` import table already lists `@opencode/ai/providers/anthropic-compatible` (added upstream by `a19285d10d`, included by the v2 merge; the 0.2.6 release predates it, which is the root cause). Added a guard so any `@opencode/ai/` specifier not in `builtins` fails with `LoadError` instead of reaching `importModule`'s variable dynamic import, and removed the now-unreachable `@opencode/ai/` pass-through in the `import.meta.resolve` block. No other behaviour changed.
+- Version bump 0.2.6 → 0.3.0 over the fork release file set (mirrors `89ee76a978`): root `package.json`, `packages/{app,cli,client,core,desktop,plugin,sdk,server,session-ui,tui,ui}/package.json`, plus the 11 workspace entries in `bun.lock`. `OPENCODE_VERSION` is injected at build time from `Script.version`; there is no source version constant.
+
+Verification: `packages/cli` `bun run script/build.ts --single --skip-install --skip-web-ui` (`OPENCODE_VERSION=0.3.0`) produced `dist/cli-windows-x64/bin/closecode.exe` = `closecode v0.3.0`. Differential run with an isolated config (`providers.acme.package = @opencode/ai/providers/anthropic-compatible`, `baseURL http://127.0.0.1:1`): installed 0.2.6 → `Cannot initialize acme/claude-test: Cannot find package '@opencode/ai' imported from B:\~BUN\root\chunk-kbtmpcxv.js`; new 0.3.0 → adapter loads and the request fails only with `ConnectionRefused`.
+
 ## 2026-10-14 — resolve `upstream-v2` merge conflicts (branding + upstream adoption)
 
 Source: in-progress merge of `upstream-v2` (origin/v2, 575 commits) into `dev`. Conflict markers resolved in the files below while keeping CloseCode branding and fork features and adopting upstream's new structure.
