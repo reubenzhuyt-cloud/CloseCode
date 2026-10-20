@@ -2,6 +2,26 @@
 
 Staged notes awaiting archivist merge. Newest first.
 
+## 2026-10-21 — release 0.3.1; installer source-version preflight
+
+Source: a rebuilt `dist/cli-windows-x64/bin/closecode.exe` reported `0.3.1` while repository and package versions were still `0.3.0`. `script/install-closecode.ps1 -NoBuild` derived `0.3.0` from the repo, copied the newer binary, failed post-install version verification, and rolled every target back to `0.3.0`. Its npm target scan also looked only in the `@opencode`/`@opencode-ai` scopes, but published CloseCode packages are unscoped (`closecode-ai`, `closecode-windows-x64`).
+
+- Version bump `0.3.0` → `0.3.1` over the same release file set as `d092214f02`: root `package.json`, `packages/{app,cli,client,core,desktop,plugin,sdk,server,session-ui,tui,ui}/package.json`, and the 11 workspace version entries in `bun.lock` (`bun install --lockfile-only --ignore-scripts`).
+- `script/install-closecode.ps1` — `Test-InstalledBinary` generalised to `Test-Binary`; a source preflight runs the resolved `-Binary`/`-NoBuild`/built artifact's `--version` and fails with an actionable mismatch message before target collection, process stop, copy, or `package.json` patching. The pre-build process stop was removed so the only stop happens after preflight; the install-phase stop is unchanged. `Get-NpmTargetPaths` also scans unscoped `closecode-*` package directories, and `Update-PackageVersion` tracks changes across the package version and each matching `optionalDependencies` entry (writing and returning `$true` even when only a dependency pin was stale), so `postinstall.mjs` cannot re-link a stale platform binary.
+- `packages/core/src/config/plugin/auto-approve.ts` — comment only: the hook rewrites `ask` to `allow`, rule-based denies return before hooks run, and denies set by other hooks are untouched. No behaviour change.
+- `services/www/src/docs/content/permissions.mdx` — new "Server auto-approve" section: top-level `auto_approve` (default `false`) is resolved per Location (global applies by default, project configuration overrides), affects all sessions in that Location including subagents, is distinct from the CLI `session.permissions` setting, and never overrides `deny` rules or policies.
+
+Verification: PowerShell parser — parse OK; root `bun run check` completed (1497 lint warnings, 0 errors; 36/36 typecheck tasks successful). `packages/cli` build `bun run script/build.ts --single --skip-install --skip-web-ui` with `OPENCODE_VERSION=0.3.1` succeeded; artifact `--version` reported `closecode v0.3.1`. Final reviewer: no blockers. No tests run (per user). No Protocol or HttpApi changes, so no client regeneration is required.
+
+## 2026-10-21 — server-side auto-approve (`auto_approve` config)
+
+Source: TUI `session.permissions: "autoaccept"` (`packages/tui/src/routes/session/index.tsx:262-278`) only replies to requests of the session whose route is open, so subagent sessions blocked until the user navigated to them.
+
+- `packages/schema/src/config.ts` — new optional `auto_approve: boolean` on `Config.Info`; `packages/core/src/config/normalize.ts` adds it to `nativeAtomic`.
+- `packages/core/src/config/plugin/auto-approve.ts` (new, `opencode.config.auto-approve`) — `permission.evaluate` hook that turns `ask` into `allow` when `Config.latest(entries, "auto_approve") === true`; rule-based `deny` returns before the hook, hook-set denies are left untouched, and it is registered before `ConfigPolicyPlugin` in `plugin/internal.ts` so managed policy deny still wins.
+
+Verification: `bun typecheck` clean in `packages/schema` and `packages/core`. No tests run (per user).
+
 ## 2026-10-14 — bundle `@opencode/ai/providers/anthropic-compatible`, harden `Provider.loadPackage`; release 0.3.0
 
 Source: compiled standalone `closecode` exe could not load a provider configured as `package: "@opencode/ai/providers/anthropic-compatible"`; it fell into a variable dynamic `import()` that fails with `Cannot find package '@opencode/ai' imported from B:\~BUN\root\chunk-*.js`.

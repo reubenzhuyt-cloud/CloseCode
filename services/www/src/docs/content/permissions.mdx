@@ -278,6 +278,25 @@ Review broad approvals and remove those no longer needed.
 Clients may attach feedback when rejecting. Non-interactive clients must decide
 how to handle approval requests; configured `deny` rules always remain enforced.
 
+## Server auto-approve
+
+Approve every permission request that would otherwise ask for all sessions in
+the Location whose effective configuration enables it, including subagents:
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "auto_approve": true,
+}
+```
+
+This is a server configuration setting and defaults to `false`. It is resolved
+per Location: a global value applies to every Location, and project
+configuration overrides it. It is separate from the CLI's
+[`session.permissions`](/cli/config) setting, which only answers requests in the
+session open in that client. Configured `deny` rules still block the operation,
+and [policies](/policies) still hard-deny after rules run.
+
 ## Policies
 
 A [policy](/policies) can hard-deny a permission check after these rules and saved

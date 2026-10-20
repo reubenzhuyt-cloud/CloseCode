@@ -54,6 +54,10 @@ export class Info extends Schema.Class<Info>("Config.Info")({
   permissions: Permission.Ruleset.pipe(optional).annotate({
     description: "Ordered tool permission rules applied to agent tool use",
   }),
+  auto_approve: Schema.Boolean.pipe(optional).annotate({
+    description:
+      "Approve every permission request that would otherwise ask, for all sessions including subagents. Deny rules still apply (default: false)",
+  }),
   agents: Schema.Record(Schema.String, ConfigAgent.Info).pipe(optional).annotate({
     description: "Named built-in agent overrides and custom agent definitions",
   }),

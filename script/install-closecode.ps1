@@ -18,7 +18,9 @@
 .PARAMETER Version
     Version string encoded into the build and patched into the installed npm
     package.json files. When omitted, the version is read from the repository
-    root package.json. Pass -Version to override that derived version.
+    root package.json. Pass -Version to override that derived version. The
+    source binary must report this exact version; a mismatch fails before any
+    process is stopped or install target is modified.
 
 .PARAMETER Channel
     Release channel passed to the build as OPENCODE_CHANNEL. Default: latest.
@@ -169,6 +171,11 @@ function Get-NpmTargetPaths([string] $Root) {
             $paths += Join-Path $dir.FullName "bin\closecode.exe"
         }
     }
+    # Published CloseCode packages are unscoped: closecode-ai (launcher) plus
+    # closecode-<platform>-<arch> (binary source used by postinstall).
+    foreach ($dir in Get-ChildItem -LiteralPath $Root -Directory -Filter "closecode-*" -ErrorAction SilentlyContinue) {
+        $paths += Join-Path $dir.FullName "bin\closecode.exe"
+    }
     return $paths
 }
 
@@ -262,28 +269,37 @@ function Update-PackageVersion([string] $PackageDir, [string] $NewVersion) {
     $packageJson = Join-Path $PackageDir "package.json"
     if (-not (Test-Path -LiteralPath $packageJson)) { return $false }
     $json = Get-Content -LiteralPath $packageJson -Raw | ConvertFrom-Json
-    if ($json.version -eq $NewVersion) { return $false }
-    $json.version = $NewVersion
+    $changed = $false
+    if ($json.version -ne $NewVersion) {
+        $json.version = $NewVersion
+        $changed = $true
+    }
     if ($json.optionalDependencies) {
         foreach ($name in @($json.optionalDependencies.PSObject.Properties.Name)) {
-            if ($name -like "@opencode/cli-*" -or $name -like "@opencode-ai/cli-*") { $json.optionalDependencies.$name = $NewVersion }
+            if ($name -notlike "@opencode/cli-*" -and $name -notlike "@opencode-ai/cli-*" -and $name -notlike "closecode-*") { continue }
+            if ($json.optionalDependencies.$name -eq $NewVersion) { continue }
+            $json.optionalDependencies.$name = $NewVersion
+            $changed = $true
         }
     }
+    if (-not $changed) { return $false }
     $jsonText = $json | ConvertTo-Json -Depth 10
     [System.IO.File]::WriteAllText($packageJson, $jsonText, [System.Text.UTF8Encoding]::new($false))
     return $true
 }
 
-function Test-InstalledBinary([string] $Path, [string] $ExpectedVersion) {
+function Test-Binary([string] $Path, [string] $ExpectedVersion, [string] $Kind = "Binary", [string] $Hint) {
     $output = & $Path --version 2>&1 | Out-String
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($output)) {
-        throw "Installed binary failed to start: $Path`n$output"
+        throw "$Kind failed to start: $Path`n$output"
     }
     $lines = @($output.Trim() -split "`r?`n" | Where-Object { $_ })
     if ($ExpectedVersion) {
         $pattern = "(?<!\d)$([regex]::Escape($ExpectedVersion))(?!\d)"
         if (-not ($lines | Where-Object { $_ -match $pattern })) {
-            throw "Version mismatch at ${Path}: expected $ExpectedVersion but binary reported:`n$($output.Trim())"
+            $message = "$Kind version mismatch at ${Path}: expected $ExpectedVersion but binary reported:`n$($output.Trim())"
+            if ($Hint) { $message += "`n$Hint" }
+            throw $message
         }
     }
     return $lines | Select-Object -First 1
@@ -332,6 +348,7 @@ try {
     Write-Info "Repo root: $repoRoot"
     Write-Info "Version:   $Version"
     Write-Info "Channel:   $Channel"
+    $sourceVersionHint = "The expected version comes from -Version or the repository root package.json. Rebuild the binary for $Version, or pass -Version with the version the source binary reports."
 
     # --- Architecture --------------------------------------------------------
     $arch = Get-TargetArch
@@ -374,10 +391,6 @@ try {
             } elseif ($PSCmdlet.ShouldProcess($cliDir, "Build closecode v$Version ($targetName)")) {
                 $bun = Get-Command bun -ErrorAction SilentlyContinue
                 if (-not $bun) { throw "bun is not available on PATH; install Bun or pass -NoBuild -Binary <path>." }
-                $running = @(Get-Process -Name closecode -ErrorAction SilentlyContinue)
-                if ($running -and $PSCmdlet.ShouldProcess("closecode", "Stop running processes before build")) {
-                    Stop-CloseCodeProcesses
-                }
                 $previousVersion = $env:OPENCODE_VERSION
                 $previousChannel = $env:OPENCODE_CHANNEL
                 $env:OPENCODE_VERSION = $Version
@@ -404,6 +417,19 @@ try {
                 Write-Note "Build skipped; using $sourceExe."
             }
         }
+    }
+
+    # --- Preflight the source binary ---------------------------------------
+    # Run this before collecting targets, stopping processes, copying files, or
+    # patching package metadata so a stale artifact fails without any mutation.
+    if ($script:dryRun -and -not $Binary -and -not $NoBuild) {
+        Write-Note "Source version preflight skipped: the dry run would rebuild the artifact for $Version."
+    } elseif ($sourceExe -and (Test-Path -LiteralPath $sourceExe)) {
+        Write-Head "Verifying source binary"
+        $sourceVersion = Test-Binary $sourceExe $Version "Source binary" $sourceVersionHint
+        Write-Ok "$sourceExe -> $sourceVersion"
+    } elseif (-not $script:dryRun) {
+        throw "Source binary not found: $sourceExe"
     }
 
     # --- Collect install targets --------------------------------------------
@@ -525,7 +551,7 @@ try {
             if (-not (Test-Path -LiteralPath $path)) {
                 throw "Expected installed binary not found: $path"
             }
-            $version = Test-InstalledBinary $path $Version
+            $version = Test-Binary $path $Version "Installed binary"
             Write-Ok "$path -> $version"
             $versions.Add($version)
         }
