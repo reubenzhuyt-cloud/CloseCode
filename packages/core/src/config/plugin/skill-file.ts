@@ -10,6 +10,7 @@ const Frontmatter = Schema.Struct({
   name: Schema.String.pipe(Schema.optional),
   description: Schema.String.pipe(Schema.optional),
   metadata: Schema.Unknown.pipe(Schema.optional),
+  tags: Schema.Unknown.pipe(Schema.optional),
   "disable-model-invocation": Schema.Unknown.pipe(Schema.optional),
 })
 const decodeFrontmatter = SchemaParser.decodeUnknownResult(Frontmatter)
@@ -18,6 +19,17 @@ export type ParseResult =
   | { readonly _tag: "Parsed"; readonly skill: Skill.Info }
   | { readonly _tag: "Skipped"; readonly reason: "markdown" }
   | { readonly _tag: "Skipped"; readonly reason: "frontmatter"; readonly issue: SchemaIssue.Issue }
+
+const tagValues = (value: unknown): string[] | undefined => {
+  const values =
+    typeof value === "string"
+      ? [value]
+      : Array.isArray(value)
+        ? value.filter((item): item is string => typeof item === "string")
+        : []
+  const tags = values.map((tag) => tag.trim()).filter((tag) => tag.length > 0)
+  return tags.length === 0 ? undefined : tags
+}
 
 const metadataBoolean = (metadata: unknown, key: string) => {
   if (metadata === undefined || metadata === null || typeof metadata !== "object" || Array.isArray(metadata)) {
@@ -49,6 +61,7 @@ export function parse(directory: string, filepath: string, content: string): Par
   const opencodeAutoinvoke = metadataBoolean(frontmatter.metadata, "opencode/autoinvoke")
   const disableModelInvocation = booleanValue(frontmatter["disable-model-invocation"])
   const autoinvoke = opencodeAutoinvoke ?? (disableModelInvocation ? false : undefined)
+  const tags = tagValues(frontmatter.tags)
   return {
     _tag: "Parsed",
     skill: {
@@ -56,6 +69,7 @@ export function parse(directory: string, filepath: string, content: string): Par
       name: Skill.Name.make(frontmatter.name ?? id),
       ...(frontmatter.description === undefined ? {} : { description: frontmatter.description }),
       ...(autoinvoke === undefined ? {} : { autoinvoke }),
+      ...(tags === undefined ? {} : { tags }),
       path: AbsolutePath.make(filepath),
       content: markdown.content,
     },

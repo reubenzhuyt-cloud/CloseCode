@@ -1786,8 +1786,18 @@ export type SkillListInput = { readonly location?: { readonly directory?: string
 export type SkillListOutput = { readonly location: Location.PublicRef; readonly data: ReadonlyArray<Skill.Info> }
 export type SkillListOperation<E = never> = (input?: SkillListInput) => Effect.Effect<SkillListOutput, E>
 
+export type SkillDiagnosticInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly agent: Agent.ID
+}
+export type SkillDiagnosticOutput = { readonly location: Location.PublicRef; readonly data: Skill.Diagnostic }
+export type SkillDiagnosticOperation<E = never> = (
+  input: SkillDiagnosticInput,
+) => Effect.Effect<SkillDiagnosticOutput, E>
+
 export interface SkillApi<E = never> {
   readonly list: SkillListOperation<E>
+  readonly diagnostic: SkillDiagnosticOperation<E>
 }
 
 export type RpcCallInput = {

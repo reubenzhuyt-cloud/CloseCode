@@ -43,6 +43,7 @@ export const AssertInput = Schema.Struct({
   id: ID.pipe(Schema.optional),
   ...RequestFields,
   agent: Agent.ID.pipe(Schema.optional),
+  candidates: Schema.Array(Schema.String).pipe(Schema.optional),
 }).annotate({ identifier: "Permission.AssertInput" })
 export type AssertInput = typeof AssertInput.Type
 
@@ -89,6 +90,32 @@ export function evaluate(action: string, resource: string, ...rulesets: Permissi
     rulesets
       .flat()
       .findLast((rule) => Wildcard.match(action, rule.action) && Wildcard.match(resource, rule.resource)) ?? {
+      action,
+      resource: "*",
+      effect: "ask",
+    }
+  )
+}
+
+/**
+ * Evaluates several candidate resources for one action as a single last-match-wins decision: the
+ * latest rule matching any candidate decides, so a later ID rule overrides an earlier tag rule and
+ * vice versa. Used where resources are alternate names for the same subject, such as a skill ID and
+ * its `tag:` resources.
+ */
+export function evaluateAny(
+  action: string,
+  resources: ReadonlyArray<string>,
+  ...rulesets: Permission.Ruleset[]
+): Permission.Rule {
+  return (
+    rulesets
+      .flat()
+      .findLast(
+        (rule) =>
+          Wildcard.match(action, rule.action) &&
+          resources.some((resource) => Wildcard.match(resource, rule.resource)),
+      ) ?? {
       action,
       resource: "*",
       effect: "ask",
@@ -162,8 +189,17 @@ const layer = Layer.effect(
       return merge(agent?.permissions ?? missingAgentPermissions, session.permissions ?? [])
     })
 
-    function denied(input: Pick<Request, "action" | "resources">, rules: Permission.Ruleset) {
-      return input.resources.some((resource) => evaluate(input.action, resource, rules).effect === "deny")
+    function denied(input: AssertInput, rules: Permission.Ruleset) {
+      if (!input.candidates?.length)
+        return input.resources.some((resource) => evaluate(input.action, resource, rules).effect === "deny")
+      return evaluateAny(input.action, [...input.resources, ...input.candidates], rules).effect === "deny"
+    }
+
+    function outcome(input: AssertInput, rules: Permission.Ruleset): Permission.Effect {
+      if (input.candidates?.length)
+        return evaluateAny(input.action, [...input.resources, ...input.candidates], rules).effect
+      const effects = input.resources.map((resource) => evaluate(input.action, resource, rules).effect)
+      return effects.includes("ask") ? "ask" : "allow"
     }
 
     function relevant(input: AssertInput, rules: Permission.Ruleset) {
@@ -174,8 +210,7 @@ const layer = Layer.effect(
       const rules = yield* configured(input.sessionID, input.agent)
       if (denied(input, rules)) return { effect: "deny" as const, rules }
       const all = [...rules, ...(yield* savedRules())]
-      const effects = input.resources.map((resource) => evaluate(input.action, resource, all).effect)
-      const effect: Permission.Effect = effects.includes("ask") ? "ask" : "allow"
+      const effect = outcome(input, all)
       const event = yield* hooks.trigger("permission", "evaluate", {
         sessionID: input.sessionID,
         agent: input.agent,

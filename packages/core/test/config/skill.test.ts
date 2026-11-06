@@ -63,6 +63,7 @@ const startEntries = Effect.fnUntraced(function* (
   })
   yield* ConfigCompatibilityPlugin.Plugin.effect(pluginHost).pipe(
     Effect.provide(Config.testLayer(entries, compatibility)),
+    Effect.provideService(Location.Service, Location.Service.of(location({ directory: AbsolutePath.make(directory) }))),
   )
   yield* ConfigSkillPlugin.Plugin.effect(
     pluginHost,
@@ -133,6 +134,15 @@ describe("SkillFile.parse", () => {
     expect(
       parse("disable-model-invocation: true\nmetadata:\n  opencode/autoinvoke: true"),
     ).toMatchObject({ skill: { autoinvoke: true } })
+  })
+
+  test("reads tags as a YAML list or a bare string", () => {
+    const parse = (frontmatter: string) =>
+      SkillFile.parse("/repo/skills", "/repo/skills/deploy/SKILL.md", `---\n${frontmatter}\n---\n# deploy`)
+    expect(parse("tags:\n  - unity\n  - blender")).toMatchObject({ skill: { tags: ["unity", "blender"] } })
+    expect(parse("tags: unity")).toMatchObject({ skill: { tags: ["unity"] } })
+    expect(parse("tags: []")).not.toMatchObject({ skill: { tags: expect.anything() } })
+    expect(parse("description: untagged")).not.toMatchObject({ skill: { tags: expect.anything() } })
   })
 
   test("parses root and nested skill ids and metadata flags", () => {
@@ -244,6 +254,91 @@ describe("ConfigSkillPlugin.Plugin", () => {
           expect((yield* skill.list()).find((item) => item.id === "deploy")?.description).toBe("Deploy")
           expect((yield* skill.list()).find((item) => item.id === "review")?.description).toBe("Second")
           expect(pulls).toEqual(["https://example.test/skills/"])
+        }),
+      ),
+    ),
+  )
+
+  it.live("prefers a project skill over a later global skill with the same id and records the displaced entry", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
+      Effect.flatMap((tmp) =>
+        Effect.gen(function* () {
+          const directory = path.join(tmp.path, "project")
+          const projectSkills = path.join(directory, "skills")
+          const globalSkills = path.join(tmp.path, "global-skills")
+          yield* Effect.promise(async () => {
+            await fs.mkdir(path.join(projectSkills, "review"), { recursive: true })
+            await fs.mkdir(path.join(globalSkills, "review"), { recursive: true })
+            await write(projectSkills, "review", "Project")
+            await write(globalSkills, "review", "Global")
+          })
+          const skill = yield* startEntries(
+            [new Document({ type: "document", info: decode({ skills: [globalSkills, projectSkills] }) })],
+            directory,
+          )
+          expect((yield* skill.list()).find((item) => item.id === "review")?.description).toBe("Project")
+          expect(yield* skill.shadowed()).toMatchObject([
+            { skill: { id: Skill.ID.make("review"), description: "Global" }, source: "global", shadowedBy: "project" },
+          ])
+        }),
+      ),
+    ),
+  )
+
+  it.live("prefers a project skill over an earlier global skill with the same id", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
+      Effect.flatMap((tmp) =>
+        Effect.gen(function* () {
+          const directory = path.join(tmp.path, "project")
+          const projectSkills = path.join(directory, "skills")
+          const globalSkills = path.join(tmp.path, "global-skills")
+          yield* Effect.promise(async () => {
+            await fs.mkdir(path.join(projectSkills, "review"), { recursive: true })
+            await fs.mkdir(path.join(globalSkills, "review"), { recursive: true })
+            await write(projectSkills, "review", "Project")
+            await write(globalSkills, "review", "Global")
+          })
+          const skill = yield* startEntries(
+            [new Document({ type: "document", info: decode({ skills: [projectSkills, globalSkills] }) })],
+            directory,
+          )
+          expect((yield* skill.list()).find((item) => item.id === "review")?.description).toBe("Project")
+          expect(yield* skill.shadowed()).toMatchObject([
+            { skill: { id: Skill.ID.make("review"), description: "Global" }, source: "global", shadowedBy: "project" },
+          ])
+        }),
+      ),
+    ),
+  )
+
+  it.live("applies object skill sources with tags and agent restrictions", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
+      Effect.flatMap((tmp) =>
+        Effect.gen(function* () {
+          yield* Effect.promise(async () => {
+            await fs.mkdir(path.join(tmp.path, "review"), { recursive: true })
+            await fs.writeFile(
+              path.join(tmp.path, "review", "SKILL.md"),
+              "---\nname: review\ndescription: Review\ntags: base\n---\n# review",
+            )
+          })
+          const skill = yield* startEntries(
+            [
+              new Document({
+                type: "document",
+                info: decode({ skills: [{ path: tmp.path, tags: ["unity"], agents: ["reviewer"] }] }),
+              }),
+            ],
+            tmp.path,
+          )
+          const entries = yield* skill.entries()
+          expect(entries).toHaveLength(1)
+          expect(entries[0]).toMatchObject({
+            skill: { id: "review", description: "Review" },
+            source: "project",
+            agents: ["reviewer"],
+          })
+          expect(entries[0]?.skill.tags?.toSorted()).toEqual(["base", "unity"])
         }),
       ),
     ),

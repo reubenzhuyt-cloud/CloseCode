@@ -1,6 +1,6 @@
 # Protocol / HttpApi
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 36ea08c6b5 @ 2026-11-06
 
 ## Responsibility
 Defines the V2 HTTP contract as an Effect `HttpApi`: which groups exist, what middleware wraps them, and how concrete service identities are injected. Owns placement/typing of the API; it does **not** implement handlers (Server does) and does not perform I/O.
@@ -18,6 +18,7 @@ Defines the V2 HTTP contract as an Effect `HttpApi`: which groups exist, what mi
 - `makeDefaultApi(...)` — same with the default `EventGroup`
 - `Api<...>` — parameterized HttpApi type; middleware placement is owned by Protocol while Server injects concrete keys (see `api.ts:132` comment)
 - Group makers: `makeSessionGroup`, `makePermissionGroup`, `makeFormGroup`, `makeLocationGroup`, `makeEventGroup`
+- `server.skill` group (`groups/skill.ts`): `skill.list` (`GET /api/skill`) plus read-only `skill.diagnostic` (`GET /api/skill/diagnostic`, query `LocationQuery` + required `agent: Agent.ID`, success `Skill.Diagnostic`, errors `AgentNotFoundError`/`ServiceUnavailableError`)
 
 ## Dependencies
 - In: `schema` (event/session/config shapes), `effect/unstable/httpapi`.

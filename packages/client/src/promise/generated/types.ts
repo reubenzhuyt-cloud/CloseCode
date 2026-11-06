@@ -244,6 +244,10 @@ export type PermissionSavedID = string
 
 export type CommandInfo = { name: string; description?: string }
 
+export type SkillOrigin = "project" | "global" | "plugin"
+
+export type SkillDiagnosticWarning = { code: string; message: string }
+
 export type RpcOutput = { output?: any }
 
 export type PermissionReply = "once" | "always" | "reject"
@@ -291,6 +295,8 @@ export type WebSearchID = string
 export type WebSearchResult = { url: string; title?: string; content?: string; time: { published?: number } }
 
 export type McpProtocol = "legacy" | "auto" | "2026-07-28"
+
+export type ConfigSkillSource = { path: string; agents?: Array<string>; tags?: Array<string> }
 
 export type ConfigWorktree = { directory: string }
 
@@ -415,6 +421,14 @@ export type PromptFileAttachment = {
 
 export type PromptAgentAttachment = { name: string; mention?: PromptMention }
 
+export type SkillDiagnosticDenial = {
+  id: SkillID
+  rule: string
+  effect: "deny"
+  origin: "agent" | "global" | "session"
+  originPath?: string
+}
+
 export type PromptSkillAttachment = { id: SkillID; name: SkillName; text?: string; mention?: PromptMention }
 
 export type SessionMessageSkill = {
@@ -432,6 +446,7 @@ export type SkillInfo = {
   name: SkillName
   description?: string
   autoinvoke?: boolean
+  tags?: Array<string>
   path: AbsolutePath
   content: string
 }
@@ -717,6 +732,15 @@ export type PermissionSavedInfo = {
   time: { created: number; updated: number }
 }
 
+export type SkillDiagnosticSkill = {
+  id: SkillID
+  name: SkillName
+  description?: string
+  tags?: Array<string>
+  source: SkillOrigin
+  shadowedBy?: SkillOrigin
+}
+
 export type Pty = {
   id: PtyID
   title: string
@@ -826,6 +850,8 @@ export type FormAnswer2 = { [x: string]: FormValue1 }
 export type VcsInfo = { provider?: string; branch: VcsBranch }
 
 export type WebSearchProvider = { id: WebSearchID; name: string }
+
+export type ConfigSkillEntry = string | ConfigSkillSource
 
 export type SessionMessageLocationSwitched = {
   id: SessionMessageID
@@ -1914,6 +1940,14 @@ export type CredentialKey = {
 
 export type ConnectionInfo = ConnectionCredentialInfo | ConnectionEnvInfo
 
+export type SkillDiagnostic = {
+  agent: string
+  visible: Array<SkillDiagnosticSkill>
+  denied: Array<SkillDiagnosticDenial>
+  shadowed: Array<SkillDiagnosticSkill>
+  warnings?: Array<SkillDiagnosticWarning>
+}
+
 export type PtyCreated = {
   id: EventID
   created: number
@@ -2136,6 +2170,7 @@ export type ConfigEntry =
         enterprise?: { url?: string }
         username?: string
         permissions?: PermissionRuleset
+        auto_approve?: boolean
         agents?: {
           [x: string]: {
             model?: string | { providerID: string; model: string; variant?: string }
@@ -2217,7 +2252,7 @@ export type ConfigEntry =
           }
         }
         compaction?: { auto?: boolean; keep?: { tokens?: number }; buffer?: number }
-        skills?: Array<string>
+        skills?: Array<ConfigSkillEntry>
         commands?: {
           [x: string]: {
             template: string
@@ -6352,6 +6387,19 @@ export type SkillListInput = {
 }
 
 export type SkillListOutput = { location: LocationPublicRef; data: Array<SkillInfo> }
+
+export type SkillDiagnosticInput = {
+  readonly location?: {
+    readonly location?: { readonly directory?: string | undefined } | undefined
+    readonly agent: string
+  }["location"]
+  readonly agent: {
+    readonly location?: { readonly directory?: string | undefined } | undefined
+    readonly agent: string
+  }["agent"]
+}
+
+export type SkillDiagnosticOutput = { location: LocationPublicRef; data: SkillDiagnostic }
 
 export type RpcCallInput = {
   readonly rpcID: { readonly rpcID: string; readonly method: string }["rpcID"]

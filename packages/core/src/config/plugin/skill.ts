@@ -14,7 +14,24 @@ import { Skill } from "../../skill.js"
 import { SkillDiscovery } from "../../skill/discovery.js"
 import { SkillFile } from "./skill-file.js"
 
-type Source = Skill.DirectorySource | Skill.UrlSource
+type Source = {
+  readonly source: Skill.DirectorySource | Skill.UrlSource
+  agents?: readonly string[]
+  tags?: readonly string[]
+}
+
+type Discovered = {
+  readonly skill: Skill.Info
+  readonly source: Skill.Origin
+  readonly agents?: readonly string[]
+}
+
+const unionTags = (a?: readonly string[], b?: readonly string[]) =>
+  a === undefined && b === undefined ? undefined : [...new Set([...(a ?? []), ...(b ?? [])])]
+
+// `agents` absent means unrestricted, so any unrestricted duplicate keeps the source open.
+const unionAgents = (a?: readonly string[], b?: readonly string[]) =>
+  a === undefined || b === undefined ? undefined : [...new Set([...a, ...b])]
 
 export const Plugin = define({
   id: "opencode.config.skill",
@@ -25,7 +42,7 @@ export const Plugin = define({
     const global = yield* Global.Service
     const location = yield* Location.Service
     const watcher = yield* Watcher.Service
-    const loaded: { entries: Entry[]; skills: Skill.Info[] } = {
+    const loaded: { entries: Entry[]; skills: Discovered[] } = {
       entries: yield* config.entries(),
       skills: [],
     }
@@ -76,9 +93,17 @@ export const Plugin = define({
 
     const sources = () => {
       const result: Source[] = []
-      const add = (source: Source) => {
-        if (result.some((item) => Skill.Source.equals(item, source))) return
-        result.push(source)
+      const add = (
+        source: Skill.DirectorySource | Skill.UrlSource,
+        options?: { readonly agents?: readonly string[]; readonly tags?: readonly string[] },
+      ) => {
+        const existing = result.find((item) => Skill.Source.equals(item.source, source))
+        if (existing) {
+          existing.agents = unionAgents(existing.agents, options?.agents)
+          existing.tags = unionTags(existing.tags, options?.tags)
+          return
+        }
+        result.push({ source, ...options })
       }
       const directories = loaded.entries.flatMap((entry) => (entry.type === "directory" ? [entry.path] : []))
       const items = loaded.entries.flatMap((entry) => (entry.type === "document" ? (entry.info.skills ?? []) : []))
@@ -87,35 +112,41 @@ export const Plugin = define({
         add(Skill.DirectorySource.make({ type: "directory", path: AbsolutePath.make(path.join(directory, "skills")) }))
       }
       for (const item of items) {
-        if (URL.canParse(item) && /^(https?:)$/.test(new URL(item).protocol)) {
-          add(Skill.UrlSource.make({ type: "url", url: item }))
+        const entry = typeof item === "string" ? { path: item } : item
+        const options = { agents: entry.agents, tags: entry.tags }
+        if (URL.canParse(entry.path) && /^(https?:)$/.test(new URL(entry.path).protocol)) {
+          add(Skill.UrlSource.make({ type: "url", url: entry.path }), options)
           continue
         }
-        const expanded = item.startsWith("~/") ? path.join(global.home, item.slice(2)) : item
+        const expanded = entry.path.startsWith("~/") ? path.join(global.home, entry.path.slice(2)) : entry.path
         add(
           Skill.DirectorySource.make({
             type: "directory",
             path: AbsolutePath.make(path.isAbsolute(expanded) ? expanded : path.join(location.directory, expanded)),
           }),
+          options,
         )
       }
       return result
     }
 
+    const origin = (filepath: string): Skill.Origin =>
+      FSUtil.contains(location.directory, filepath) ? "project" : "global"
+
     const load = Effect.fn("ConfigSkillPlugin.load")(function* (source: Source) {
       const directories =
-        source.type === "directory"
-          ? [source.path]
-          : yield* discovery.pull(source.url).pipe(
+        source.source.type === "directory"
+          ? [source.source.path]
+          : yield* discovery.pull(source.source.url).pipe(
               Effect.catchCause((cause) =>
                 Effect.logWarning("failed to load skill source", {
-                  source: Skill.Source.key(source),
+                  source: Skill.Source.key(source.source),
                   cause,
                 }).pipe(Effect.as([] as AbsolutePath[])),
               ),
             )
       const roots = (yield* Effect.forEach(directories, watchDirectory)).flat()
-      const skills: Skill.Info[] = []
+      const skills: Discovered[] = []
       for (const directory of directories) {
         const files = yield* fs
           .scan("{*.md,**/SKILL.md}", { cwd: directory, absolute: true, include: "file", symlink: true, dot: true })
@@ -134,14 +165,19 @@ export const Plugin = define({
             })
             continue
           }
-          skills.push(parsed.skill)
+          const tags = unionTags(parsed.skill.tags, source.tags)
+          skills.push({
+            skill: tags === undefined ? parsed.skill : { ...parsed.skill, tags },
+            source: origin(filepath),
+            ...(source.agents === undefined ? {} : { agents: source.agents }),
+          })
         }
       }
       yield* Effect.logDebug("skill source loaded", {
-        source: Skill.Source.key(source),
-        type: source.type,
+        source: Skill.Source.key(source.source),
+        type: source.source.type,
         directories,
-        skills: skills.map((skill) => skill.id),
+        skills: skills.map((item) => item.skill.id),
       })
       return skills
     })
@@ -149,17 +185,19 @@ export const Plugin = define({
     const refresh = Effect.fn("ConfigSkillPlugin.refresh")(
       function* (file?: string) {
         yield* FiberMap.clear(watches)
-        const skills = new Map<Skill.ID, Skill.Info>()
+        // Keep every discovered entry: the registry resolves same-ID collisions by origin and
+        // records the displaced entry, so collapsing here would lose project > global precedence.
+        const skills: Discovered[] = []
         const current = sources()
         for (const source of current) {
-          for (const skill of yield* load(source)) skills.set(skill.id, skill)
+          skills.push(...(yield* load(source)))
         }
-        loaded.skills = Array.from(skills.values())
+        loaded.skills = skills
         if (file) {
           yield* Effect.logInfo("skills rescanned", {
             file,
-            sources: current.map(Skill.Source.key),
-            skills: loaded.skills.map((skill) => skill.id),
+            sources: current.map((item) => Skill.Source.key(item.source)),
+            skills: loaded.skills.map((item) => item.skill.id),
           })
         }
       },
@@ -176,7 +214,12 @@ export const Plugin = define({
     )
     yield* refresh()
     yield* ctx.skill.transform((editor) => {
-      for (const skill of loaded.skills) editor.add(skill)
+      for (const item of loaded.skills) {
+        editor.add(item.skill, {
+          source: item.source,
+          ...(item.agents === undefined ? {} : { agents: item.agents }),
+        })
+      }
     })
     yield* ctx.event.subscribe().pipe(
       Stream.filter((event) => event.type === "config.updated"),

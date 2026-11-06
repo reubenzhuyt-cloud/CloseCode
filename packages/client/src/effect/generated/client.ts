@@ -191,6 +191,8 @@ import type {
   CommandListOutput,
   SkillListInput,
   SkillListOutput,
+  SkillDiagnosticInput,
+  SkillDiagnosticOutput,
   RpcCallInput,
   RpcCallOutput,
   EventSubscribeOutput,
@@ -1225,7 +1227,17 @@ const EndpointSkillList = (raw: RawClient["server.skill"]) => (input?: SkillList
     raw["skill.list"]({ query: { location: input?.["location"] } }).pipe(Effect.mapError(mapClientError)),
   )
 
-const adaptGroupSkill = (raw: RawClient["server.skill"]) => ({ list: EndpointSkillList(raw) })
+const EndpointSkillDiagnostic = (raw: RawClient["server.skill"]) => (input: SkillDiagnosticInput) =>
+  preserveEffect<SkillDiagnosticOutput>()(
+    raw["skill.diagnostic"]({ query: { location: input["location"], agent: input["agent"] } }).pipe(
+      Effect.mapError(mapClientError),
+    ),
+  )
+
+const adaptGroupSkill = (raw: RawClient["server.skill"]) => ({
+  list: EndpointSkillList(raw),
+  diagnostic: EndpointSkillDiagnostic(raw),
+})
 
 const EndpointRpcCall = (raw: RawClient["server.rpc"]) => (input: RpcCallInput) =>
   preserveEffect<RpcCallOutput>()(

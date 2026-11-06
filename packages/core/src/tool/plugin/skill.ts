@@ -4,6 +4,7 @@ import type { Context } from "@opencode/plugin/effect/plugin"
 import { ToolFailure } from "@opencode/ai"
 import { Effect, Schema } from "effect"
 import { FSUtil } from "@opencode/util/fs-util"
+import { Agent } from "../../agent.js"
 import { Skill } from "../../skill.js"
 import { Permission } from "../../permission.js"
 
@@ -35,6 +36,7 @@ export const Plugin = {
     const fs = yield* FSUtil.Service
     const skills = yield* Skill.Service
     const permission = yield* Permission.Service
+    const agents = yield* Agent.Service
     yield* ctx.tool
       .transform((editor) =>
         editor.add({
@@ -45,18 +47,22 @@ export const Plugin = {
           output: Output,
           execute: (input, context) =>
             Effect.gen(function* () {
-              const skill = yield* skills.get(input.id)
-              if (!skill) return yield* unableToLoad(input.id)
+              const entry = (yield* skills.entries()).find((item) => item.skill.id === input.id)
+              if (!entry) return yield* unableToLoad(input.id)
+              // Resolve the full identity so `agents` source restrictions match by ID or display name.
+              const agent = (yield* agents.resolve(context.agent)) ?? { id: context.agent }
+              if (!Skill.visible(entry, agent)) return yield* unableToLoad(input.id)
               return yield* Effect.gen(function* () {
                 yield* permission.assert({
                   action: name,
-                  resources: [skill.id],
-                  save: [skill.id],
+                  resources: [entry.skill.id],
+                  candidates: Skill.resources(entry.skill),
+                  save: [entry.skill.id],
                   sessionID: context.sessionID,
                   agent: context.agent,
                   source: { type: "tool", messageID: context.messageID, id: context.id },
                 })
-                return { name: skill.name, ...(yield* Skill.prepare(fs, skill)) }
+                return { name: entry.skill.name, ...(yield* Skill.prepare(fs, entry.skill)) }
               }).pipe(Effect.mapError((error) => unableToLoad(input.id, error)))
             }).pipe(
               Effect.map((output) => ({

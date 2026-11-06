@@ -189,6 +189,8 @@ import type {
   CommandListOutput,
   SkillListInput,
   SkillListOutput,
+  SkillDiagnosticInput,
+  SkillDiagnosticOutput,
   RpcCallInput,
   RpcCallOutput,
   EventSubscribeOutput,
@@ -1687,6 +1689,18 @@ export function make(options: ClientOptions) {
           },
           requestOptions,
         ),
+      diagnostic: (input: SkillDiagnosticInput, requestOptions?: RequestOptions) =>
+        request<SkillDiagnosticOutput>(
+          {
+            method: "GET",
+            path: `/api/skill/diagnostic`,
+            query: { location: input["location"], agent: input["agent"] },
+            successStatus: 200,
+            declaredStatuses: [400, 401, 404, 503],
+            empty: false,
+          },
+          requestOptions,
+        ),
     },
     rpc: {
       call: (input: RpcCallInput, requestOptions?: RequestOptions) =>
@@ -2247,7 +2261,7 @@ export function make(options: ClientOptions) {
             query: { location: input["location"] },
             body: { scope: input["scope"], agents: input["agents"] },
             successStatus: 204,
-            declaredStatuses: [400, 401],
+            declaredStatuses: [400, 401, 404],
             empty: true,
           },
           requestOptions,

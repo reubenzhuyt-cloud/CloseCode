@@ -3,7 +3,7 @@ export * as ConfigNormalize from "./normalize.js"
 import { isDeepStrictEqual } from "node:util"
 import { isRecord } from "@opencode/ai/utils/record"
 import { Option, Schema } from "effect"
-import { Info } from "@opencode/schema/config"
+import { Info, SkillEntry } from "@opencode/schema/config"
 import { ConfigAgent } from "@opencode/schema/config/agent"
 import { ConfigCommand } from "@opencode/schema/config/command"
 import { ConfigCompaction } from "@opencode/schema/config/compaction"
@@ -233,7 +233,7 @@ export function normalize(input: unknown): Result {
 function normalizeSkills(input: Record<string, unknown>, encoded: Record<string, unknown>, diagnostics: Diagnostic[]) {
   if (!own(input, "skills")) return
   if (Array.isArray(input.skills)) {
-    encoded.skills = decodeList(input.skills, Schema.String, ["skills"], diagnostics, decodeEncoded)
+    encoded.skills = decodeList(input.skills, SkillEntry, ["skills"], diagnostics, decodeEncoded)
     return
   }
   if (!isRecord(input.skills)) {

@@ -1,6 +1,6 @@
 # Core / LLM & Models
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 36ea08c6b5 @ 2026-11-06
 
 ## Responsibility
 Owns model identifiers, provider selection, variant/reasoning resolution, the AI SDK bridge, and lightweight text generation. Does not own the low-level provider clients (that is `@opencode/ai`) nor the session step loop (session/runner.md).
@@ -8,7 +8,7 @@ Owns model identifiers, provider selection, variant/reasoning resolution, the AI
 ## Key Paths
 - `packages/core/src/model.ts` — `Model.ID`, `VariantID`, `Family`, `ReasoningField`, re-exported from `@opencode/schema/model`
 - `packages/core/src/model-resolver.ts` — `ModelResolver` service and typed errors (`VariantUnavailableError`, `UnsupportedPackageError`, `ModelConfigurationError`, `ModelInitializationError`, `UnresolvedProviderVariablesError`)
-- `packages/core/src/provider.ts` — `Provider.ID`, `AISDK_PREFIX` (`aisdk:`), `isAISDK`, `packageName`
+- `packages/core/src/provider.ts` — `Provider.ID`, `AISDK_PREFIX` (`aisdk:`), `isAISDK`, `packageName`; `loadPackage` resolves from the static `builtins` table (includes `@opencode/ai/providers/anthropic-compatible`), and an unknown `@opencode/ai/*` specifier fails with `LoadError` instead of reaching a variable dynamic import (standalone binaries cannot resolve unbundled packages)
 - `packages/core/src/aisdk.ts` — `AISDK.Service` (`@opencode/AISDK`) location-layer bridge to Vercel AI SDK streams
 - `packages/core/src/aisdk-native.ts` — `rewrite`/`native` provider-package mapping
 - `packages/core/src/variant.ts` — `Variant.resolve(model, supports)` (effort/reasoning variants)

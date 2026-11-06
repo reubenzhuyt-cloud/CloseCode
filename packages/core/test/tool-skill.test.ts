@@ -4,6 +4,7 @@ import { describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
 import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
 import { LayerNode } from "@opencode/util/effect/layer-node"
+import { Agent } from "@opencode/core/agent"
 import { Permission } from "@opencode/core/permission"
 import { AbsolutePath } from "@opencode/core/schema"
 import { Session } from "@opencode/core/session"
@@ -25,7 +26,7 @@ import { registerIntegrationPolicy } from "./fixture/policy"
 const skillToolNode = makeLocationNode({
   name: "test/skill-tool-plugin",
   layer: Layer.effectDiscard(registerToolPlugin(SkillTool.Plugin)),
-  deps: [Tool.node, FSUtil.node, Skill.node, Permission.node],
+  deps: [Tool.node, FSUtil.node, Skill.node, Permission.node, Agent.node],
 })
 
 const sessionID = Session.ID.make("ses_skill_tool_test")
@@ -61,6 +62,143 @@ describe("SkillTool", () => {
         AppNodeBuilder.build(LayerNode.group([Tool.node, skillToolNode, Skill.node, Config.node, ManagedPolicy.node]), [
           Config.node.replace(Config.testLayer()),
           Permission.node.replace(permissionLayer({ assert: () => Effect.die("Blocked skill reached authorization") })),
+          Image.node.replace(imagePassthrough),
+        ]),
+      ),
+    ),
+  )
+
+  it.effect("blocks a skill load when a tag rule denies it", () => {
+    const rules: Permission.Ruleset = [{ action: "skill", resource: "tag:unity", effect: "deny" }]
+    const assertions: Permission.AssertInput[] = []
+    return Effect.gen(function* () {
+      const skills = yield* Skill.Service
+      const tools = yield* Tool.Service
+      yield* skills.transform((editor) =>
+        editor.add(
+          Skill.Info.make({
+            id: Skill.ID.make("unity-edit"),
+            name: Skill.Name.make("Unity Edit"),
+            tags: ["unity"],
+            path: AbsolutePath.make("/unavailable/unity-edit/SKILL.md"),
+            content: "Unity instructions",
+          }),
+        ),
+      )
+      expect(
+        yield* executeTool(tools, {
+          sessionID,
+          ...toolIdentity,
+          call: { type: "tool-call", id: "call-tag-denied-skill", name: "skill", input: { id: "unity-edit" } },
+        }),
+      ).toEqual({ status: "error", error: { type: "permission.rejected", message: "Permission denied: skill" } })
+      expect(assertions).toMatchObject([
+        {
+          sessionID,
+          action: "skill",
+          resources: ["unity-edit"],
+          candidates: ["unity-edit", "tag:unity"],
+          save: ["unity-edit"],
+        },
+      ])
+    }).pipe(
+      Effect.provide(
+        AppNodeBuilder.build(LayerNode.group([Tool.node, skillToolNode, Skill.node, Config.node]), [
+          Config.node.replace(Config.testLayer()),
+          Permission.node.replace(
+            permissionLayer({
+              assert: (input) =>
+                Effect.sync(() => assertions.push(input)).pipe(
+                  Effect.andThen(
+                    Permission.evaluateAny(input.action, [...input.resources, ...(input.candidates ?? [])], rules)
+                      .effect === "deny"
+                      ? Effect.fail(
+                          new Permission.BlockedError({
+                            rules: [],
+                            permission: input.action,
+                            resources: input.resources,
+                          }),
+                        )
+                      : Effect.void,
+                  ),
+                ),
+            }),
+          ),
+          Image.node.replace(imagePassthrough),
+        ]),
+      ),
+    )
+  })
+
+  it.effect("denies a skill whose source is restricted to other agents", () =>
+    Effect.gen(function* () {
+      const skills = yield* Skill.Service
+      const tools = yield* Tool.Service
+      yield* skills.transform((editor) =>
+        editor.add(
+          Skill.Info.make({
+            id: Skill.ID.make("restricted"),
+            name: Skill.Name.make("Restricted"),
+            path: AbsolutePath.make("/unavailable/restricted/SKILL.md"),
+            content: "Restricted instructions",
+          }),
+          { source: "project", agents: ["reviewer"] },
+        ),
+      )
+      expect(
+        yield* executeTool(tools, {
+          sessionID,
+          ...toolIdentity,
+          call: { type: "tool-call", id: "call-agent-restricted", name: "skill", input: { id: "restricted" } },
+        }),
+      ).toEqual({ status: "error", error: { type: "tool.execution", message: "Unable to load skill restricted" } })
+    }).pipe(
+      Effect.provide(
+        AppNodeBuilder.build(LayerNode.group([Tool.node, skillToolNode, Skill.node, Config.node]), [
+          Config.node.replace(Config.testLayer()),
+          Permission.node.replace(
+            permissionLayer({ assert: () => Effect.die("agent-restricted skill reached authorization") }),
+          ),
+          Image.node.replace(imagePassthrough),
+        ]),
+      ),
+    ),
+  )
+
+  it.effect("loads a skill whose source lists the agent display name", () =>
+    Effect.gen(function* () {
+      const skills = yield* Skill.Service
+      const agents = yield* Agent.Service
+      const tools = yield* Tool.Service
+      yield* agents.transform((editor) =>
+        editor.update(Agent.ID.make("unitymaster"), (agent) => {
+          agent.name = Agent.Name.make("Unity Master")
+        }),
+      )
+      yield* skills.transform((editor) =>
+        editor.add(
+          Skill.Info.make({
+            id: Skill.ID.make("unity-edit"),
+            name: Skill.Name.make("Unity Edit"),
+            path: AbsolutePath.make("/unavailable/unity-edit.md"),
+            content: "Unity instructions",
+          }),
+          { source: "project", agents: ["Unity Master"] },
+        ),
+      )
+      expect(
+        yield* executeTool(tools, {
+          sessionID,
+          ...toolIdentity,
+          agent: Agent.ID.make("unitymaster"),
+          call: { type: "tool-call", id: "call-display-name", name: "skill", input: { id: "unity-edit" } },
+        }),
+      ).toMatchObject({ status: "completed", output: { name: "Unity Edit" } })
+    }).pipe(
+      Effect.provide(
+        AppNodeBuilder.build(LayerNode.group([Tool.node, skillToolNode, Skill.node, Config.node, Agent.node]), [
+          Config.node.replace(Config.testLayer()),
+          Permission.node.replace(permissionLayer({ assert: () => Effect.void })),
           Image.node.replace(imagePassthrough),
         ]),
       ),
@@ -111,6 +249,7 @@ describe("SkillTool", () => {
           const skills = Layer.mock(Skill.Service, {
             get: (id) => Effect.succeed(current.find((skill) => skill.id === id)),
             list: () => Effect.succeed(current),
+            entries: () => Effect.succeed(current.map((skill) => ({ skill, source: "plugin" as const }))),
           })
           const skillToolLayer = AppNodeBuilder.build(LayerNode.group([Tool.node, skillToolNode]), [
             Permission.node.replace(permission),

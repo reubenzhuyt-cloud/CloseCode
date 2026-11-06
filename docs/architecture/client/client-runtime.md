@@ -1,12 +1,13 @@
 # Client Runtime (`@opencode/client`)
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 36ea08c6b5 @ 2026-11-06
 
 ## Responsibility
 Headless client for the V2 server: discovers/ensures/stops a background server, holds the typed generated API in three flavors (effect, promise, solid), and manages connections/event subscriptions. Client runtime code may depend on Schema and Protocol but **never Core or Server**.
 
 ## Key Paths
-- `packages/client/src/service.ts`, `effect/service.ts` — `DiscoverOptions`, `EnsureOptions`, `StopOptions`, `Info`; `discover`/`incumbent`/`ensure`/`stop`/`headers`
+- `packages/client/src/service.ts`, `effect/service.ts`, `promise/service.ts` — `DiscoverOptions`, `EnsureOptions`, `StopOptions`, `Info`; `discover`/`incumbent`/`ensure`/`stop`/`headers`
+- `packages/client/src/service-probe.ts` — shared probe helpers (`decide`/`headers`/`probeResult`/`same`) used by both service flavors; `fallback()` returns the fork registration file `<state>/opencode/closecode-service.json` (written by `cli/src/services/service-config.ts`)
 - `packages/client/src/service-contender.ts`, `service-version.ts`, `service-timing.ts` — process contention, version matching, ensure timing
 - `packages/client/src/contract.ts` — re-exports `ClientApi`, `groupNames`, `promiseOmitEndpoints`, `effectOmitEndpoints` from `@opencode/protocol/client`
 - `packages/client/src/effect/` — `client.ts` (`OpenCode.make`), `api.ts`, `rpc.ts`, `service.ts`, `generated/`

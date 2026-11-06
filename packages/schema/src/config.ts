@@ -22,6 +22,23 @@ import { ConfigWatcher } from "./config/watcher.js"
 import { ConfigWarming } from "./config/warming.js"
 import { ConfigWorktree } from "./config/worktree.js"
 
+export interface SkillSource extends Schema.Schema.Type<typeof SkillSource> {}
+export const SkillSource = Schema.Struct({
+  path: Schema.String,
+  agents: Schema.Array(Schema.String).pipe(optional).annotate({
+    description: "Agent IDs or names allowed to use skills discovered from this source",
+  }),
+  tags: Schema.Array(Schema.String).pipe(optional).annotate({
+    description: "Tags added to every skill discovered from this source",
+  }),
+}).annotate({ identifier: "Config.SkillSource" })
+
+export const SkillEntry = Schema.Union([Schema.String, SkillSource]).annotate({
+  identifier: "Config.SkillEntry",
+  description: "A skill source path, URL, or source object",
+})
+export type SkillEntry = typeof SkillEntry.Type
+
 export class Info extends Schema.Class<Info>("Config.Info")({
   $schema: optional(Schema.String).annotate({
     description: "JSON schema reference for configuration validation",
@@ -85,8 +102,8 @@ export class Info extends Schema.Class<Info>("Config.Info")({
   compaction: ConfigCompaction.Info.pipe(optional).annotate({
     description: "Conversation compaction behavior",
   }),
-  skills: Schema.String.pipe(Schema.Array, optional).annotate({
-    description: "Additional paths or URLs to discover skills from",
+  skills: SkillEntry.pipe(Schema.Array, optional).annotate({
+    description: "Additional paths or URLs to discover skills from, optionally restricted to agents and tagged",
   }),
   commands: Schema.Record(Schema.String, ConfigCommand.Info).pipe(optional).annotate({
     description: "Named slash command definitions",

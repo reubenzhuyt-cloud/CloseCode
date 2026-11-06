@@ -1,6 +1,6 @@
 # Core / Plugin System
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 36ea08c6b5 @ 2026-11-06
 
 ## Responsibility
 Owns the in-process plugin host: discovering/loading plugin sources, exposing hooks, and the built-in plugin modules that extend Core services. Does not own the plugin authoring SDK package (`@opencode/plugin`, see platform/plugin-packages.md) nor individual plugin implementations.
@@ -18,6 +18,7 @@ Owns the in-process plugin host: discovering/loading plugin sources, exposing ho
 
 ## Notes
 - Native compaction strategies are registered through the `SessionCompaction` editor by plugins; later registrations win (AGENTS.md "V2 Session Core").
+- The plugin `skill` context (`host.ts`) forwards `SkillEditor.add(skill, registration?)` into the Skill registry; omitted registration defaults to `source: "plugin"`.
 
 ## Dependencies
 - In: `schema/plugin`, `@opencode/plugin`, State/Tool/Config services.

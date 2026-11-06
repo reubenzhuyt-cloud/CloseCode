@@ -23,15 +23,63 @@ export const UrlSource = Schema.Struct({
   url: Schema.String,
 }).annotate({ identifier: "Skill.UrlSource" })
 
+/** Where a registered skill came from; registry entries resolve same-ID conflicts by this precedence. */
+export const Origin = Schema.Literals(["project", "global", "plugin"]).annotate({
+  identifier: "Skill.Origin",
+  description: "Skill registration origin: project and global disk sources outrank plugin-provided entries",
+})
+export type Origin = typeof Origin.Type
+
+export interface Registration extends Schema.Schema.Type<typeof Registration> {}
+export const Registration = Schema.Struct({
+  source: Origin.pipe(optional),
+  agents: Schema.Array(Schema.String).pipe(optional),
+}).annotate({ identifier: "Skill.Registration" })
+
 export interface Info extends Schema.Schema.Type<typeof Info> {}
 export const Info = Schema.Struct({
   id: ID,
   name: Name,
   description: Schema.String.pipe(optional),
   autoinvoke: Schema.Boolean.pipe(optional),
+  tags: Schema.Array(Schema.String).pipe(optional),
   path: AbsolutePath,
   content: Schema.String,
 }).annotate({ identifier: "Skill.Info" })
+
+export interface DiagnosticSkill extends Schema.Schema.Type<typeof DiagnosticSkill> {}
+export const DiagnosticSkill = Schema.Struct({
+  id: ID,
+  name: Name,
+  description: Schema.String.pipe(optional),
+  tags: Schema.Array(Schema.String).pipe(optional),
+  source: Origin,
+  shadowedBy: Origin.pipe(optional),
+}).annotate({ identifier: "Skill.DiagnosticSkill" })
+
+export interface DiagnosticDenial extends Schema.Schema.Type<typeof DiagnosticDenial> {}
+export const DiagnosticDenial = Schema.Struct({
+  id: ID,
+  rule: Schema.String,
+  effect: Schema.Literal("deny"),
+  origin: Schema.Literals(["agent", "global", "session"]),
+  originPath: Schema.String.pipe(optional),
+}).annotate({ identifier: "Skill.DiagnosticDenial" })
+
+export interface DiagnosticWarning extends Schema.Schema.Type<typeof DiagnosticWarning> {}
+export const DiagnosticWarning = Schema.Struct({
+  code: Schema.String,
+  message: Schema.String,
+}).annotate({ identifier: "Skill.DiagnosticWarning" })
+
+export interface Diagnostic extends Schema.Schema.Type<typeof Diagnostic> {}
+export const Diagnostic = Schema.Struct({
+  agent: Schema.String,
+  visible: Schema.Array(DiagnosticSkill),
+  denied: Schema.Array(DiagnosticDenial),
+  shadowed: Schema.Array(DiagnosticSkill),
+  warnings: Schema.Array(DiagnosticWarning).pipe(optional),
+}).annotate({ identifier: "Skill.Diagnostic" })
 
 const Updated = ephemeral({ type: "skill.updated", schema: {} })
 export const Event = { Updated, Definitions: inventory(Updated) }

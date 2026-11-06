@@ -23,7 +23,12 @@ const skillRef = (name: string, id: string) => ({ name: Skill.Name.make(name), i
 
 const layer = (list: () => Skill.Info[]) =>
   AppNodeBuilder.build(SkillInstructions.node, [
-    Skill.node.replace(Layer.mock(Skill.Service, { list: () => Effect.succeed(list()) })),
+    Skill.node.replace(
+      Layer.mock(Skill.Service, {
+        list: () => Effect.succeed(list()),
+        entries: () => Effect.succeed(list().map((skill) => ({ skill, source: "plugin" as const }))),
+      }),
+    ),
   ])
 
 const agentInfo = (overrides: Partial<Agent.Info> = {}) =>

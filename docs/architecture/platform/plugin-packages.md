@@ -1,6 +1,6 @@
 # Plugin Packages (`@opencode/plugin`, `@opencode/plugin-browser`)
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 36ea08c6b5 @ 2026-11-06
 
 ## Responsibility
 `@opencode/plugin` is the plugin authoring/host SDK: plugin sources, lifecycle, storage, and the effect/promise/tui author APIs. `@opencode/plugin-browser` is the desktop browser plugin (connection, proxy, tunnel, tools). Owns the plugin-facing surface; Core owns the in-process host internals (core/plugin-system.md).
@@ -18,6 +18,7 @@
 
 ## Public API / Key Types
 - `@opencode/plugin` `host`, `source`, effect/promise `plugin` registration; `Plugin.hook`/`Plugin.reload`
+- effect/promise `skill` domain: `SkillDomain = Pick<SkillApi, "list">` (+ `transform`, `reload`); `SkillEditor.add(skill, registration?)` takes an optional `Skill.Registration` — 1-arg calls default to `source: "plugin"`
 - `@opencode/plugin-browser` tool + connection surface consumed by `app`/`desktop`
 
 ## Dependencies

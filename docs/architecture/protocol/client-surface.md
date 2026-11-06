@@ -1,6 +1,6 @@
 # Protocol / Client Surface
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 36ea08c6b5 @ 2026-11-06
 
 ## Responsibility
 Provides the typed client view of the HttpApi and the metadata needed to generate per-flavor clients. Owns the shape declared on the client side; the concrete effect/promise/solid client code lives in `@opencode/client`.

@@ -148,6 +148,42 @@ describe("Permission", () => {
     }),
   )
 
+  test("evaluates candidate resources as one last-match-wins decision", () => {
+    const unity = ["unity-edit", "tag:unity"]
+    expect(
+      Permission.evaluateAny("skill", unity, [
+        { action: "skill", resource: "tag:unity", effect: "deny" },
+        { action: "skill", resource: "unity-edit", effect: "allow" },
+      ]).effect,
+    ).toBe("allow")
+    expect(
+      Permission.evaluateAny("skill", unity, [
+        { action: "skill", resource: "unity-edit", effect: "deny" },
+        { action: "skill", resource: "tag:unity", effect: "allow" },
+      ]).effect,
+    ).toBe("allow")
+    expect(
+      Permission.evaluateAny("skill", unity, [{ action: "skill", resource: "tag:*", effect: "deny" }]).effect,
+    ).toBe("deny")
+  })
+
+  it.effect("applies tag denials to candidate resources without bypassing the ID", () =>
+    Effect.gen(function* () {
+      yield* setup([{ action: "skill", resource: "tag:unity", effect: "deny" }])
+      const service = yield* Permission.Service
+      const skill = assertion({ action: "skill", resources: ["unity-edit"], candidates: ["tag:unity"] })
+      expect(yield* service.ask(skill)).toEqual({ id: Permission.ID.create("per_test"), effect: "deny" })
+      const blocked = yield* service.assert(skill).pipe(Effect.flip)
+      expect(blocked).toBeInstanceOf(Permission.BlockedError)
+
+      yield* setRules([
+        { action: "skill", resource: "tag:unity", effect: "deny" },
+        { action: "skill", resource: "unity-edit", effect: "allow" },
+      ])
+      expect(yield* service.ask(skill)).toEqual({ id: Permission.ID.create("per_test"), effect: "allow" })
+    }),
+  )
+
   test("matches Windows rule resources against slash-normalized file access resources", () => {
     const rules: Permission.Ruleset = [
       { action: "external_directory", resource: "C:\\Users\\x\\proj\\*", effect: "allow" },

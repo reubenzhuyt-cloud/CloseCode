@@ -6,12 +6,12 @@ import type { Transform } from "./registration.js"
 export interface SkillEditor {
   list(): readonly Types.DeepMutable<Skill.Info>[]
   get(id: string): Types.DeepMutable<Skill.Info> | undefined
-  add(skill: Skill.Info): void
+  add(skill: Skill.Info, registration?: Skill.Registration): void
   update(id: string, update: (skill: Types.DeepMutable<Skill.Info>) => void): void
   remove(id: string): void
 }
 
-export interface SkillDomain extends SkillApi<unknown> {
+export interface SkillDomain extends Pick<SkillApi<unknown>, "list"> {
   readonly transform: Transform<SkillEditor>
   readonly reload: () => Effect.Effect<void>
 }

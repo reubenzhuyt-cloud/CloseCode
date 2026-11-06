@@ -343,6 +343,17 @@ describe("ConfigNormalize", () => {
     expect(result.diagnostics.filter((item) => item.kind === "invalid")).toHaveLength(4)
   })
 
+  test("keeps object skill sources and drops malformed entries", () => {
+    const result = normalized({
+      skills: ["./skills", { path: "~/unity", agents: ["reviewer"], tags: ["unity"] }, { agents: ["build"] }, 3],
+    })
+    expect(result.encoded.skills).toEqual(["./skills", { path: "~/unity", agents: ["reviewer"], tags: ["unity"] }])
+    expect(result.diagnostics).toEqual([
+      { kind: "invalid", path: ["skills", "2"], message: "skipped malformed recognized value" },
+      { kind: "invalid", path: ["skills", "3"], message: "skipped malformed recognized value" },
+    ])
+  })
+
   test("omits malformed collection roots instead of synthesizing empty values", () => {
     const result = normalized({
       commands: [],

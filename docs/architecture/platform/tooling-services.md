@@ -1,6 +1,6 @@
 # Tooling, Services & Infra
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 36ea08c6b5 @ 2026-11-06
 
 ## Responsibility
 Repo-level build/release tooling, deployed services, infrastructure-as-code, and the VS Code SDK. Owns the developer/release workflow and deployment definitions; not part of the shipped runtime.
@@ -19,6 +19,7 @@ Repo-level build/release tooling, deployed services, infrastructure-as-code, and
 
 ## Public API / Key Types
 - `@opencode/script` shared script helpers
+- `script/install-closecode.ps1` — `Test-Binary` source preflight verifies the resolved binary's `--version` before any target is stopped/patched; npm target scan includes unscoped `closecode-*` packages
 - Model snapshot: `bun run --cwd packages/core update-models-snapshot`
 - Full check: `bun run check` from repo root (lint + typecheck)
 

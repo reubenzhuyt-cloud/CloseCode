@@ -79,7 +79,8 @@ const layer = Layer.effect(
 
     return Service.of({
       load: Effect.fn("SkillInstructions.load")(function* (permissions, input) {
-        const all = yield* skills.list()
+        const entries = yield* skills.entries()
+        const all = entries.filter((entry) => Skill.visible(entry, input?.agent)).map((entry) => entry.skill)
         const levels = resolveSkillLevels(input?.agent, input?.metadata, all)
         const available = Skill.available(all, permissions)
           .flatMap((skill) => {

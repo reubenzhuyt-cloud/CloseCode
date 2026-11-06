@@ -1,6 +1,6 @@
 # Core / Integrations & Auth
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 36ea08c6b5 @ 2026-11-06
 
 ## Responsibility
 Owns external capability integration and credentials: MCP servers, credential storage/OAuth, account/identity, integrations, web search, skills, and references. Does not own tools that call them (tools.md) nor HTTP transport.
@@ -12,17 +12,19 @@ Owns external capability integration and credentials: MCP servers, credential st
 - `packages/core/src/account/sql.ts` — account/identity persistence
 - `packages/core/src/integration.ts`, `integration/connection.ts` — `Integration.Service`, `ID`, `MethodID`, `AttemptID`, `OAuthMethod`
 - `packages/core/src/websearch.ts` — `WebSearch.Service`, `ID`, `Provider`, `Input`
-- `packages/core/src/skill.ts`, `skill/` (`discovery.ts`, `instructions.ts`) — `Skill.Service`, source unions
+- `packages/core/src/skill.ts` — `Skill.Service` (`list`/`get`/`entries`/`shadowed`); the registry alone resolves same-ID entries by origin `project > global > plugin` — discovery hands it flat lists, so disk-vs-disk collisions resolve too and displaced entries land in `shadowed()` → `skill.diagnostic` `shadowed[]`. Helpers: `resources` (ID + `tag:<tag>`), `visible` (matches agent ID **or** display name), `available` (uses `Permission.evaluateAny`)
+- `packages/core/src/skill/` — `discovery.ts`, `instructions.ts` (advertises via `Skill.visible`), `diagnostic.ts` (`SkillDiagnostic.diagnose` → `Skill.Diagnostic`; visibility mirrors the skill tool, including full `Agent.Info` identity matching)
 - `packages/core/src/reference.ts`, `reference/instructions.ts` — `Reference.Service`, `LocalSource`/`GitSource`, `Source`
 - `packages/schema/src/{mcp,credential,integration,websearch,skill,reference}.ts`, `mcp-event.ts`, `ide-event.ts`
 
 ## Public API / Key Types
 - `Mcp.Service`, `Credential.Service`, `Integration.Service`, `WebSearch.Service`, `Skill.Service`, `Reference.Service`
+- Skill contracts (`schema/skill.ts`): `Skill.Info.tags`, `Skill.Origin` (`project|global|plugin`), `Skill.Registration` (`{source?, agents?}`), `Skill.Diagnostic*` (wire shape for `skill.diagnostic`)
 - Credential OAuth flows back the `credential` route; integrations back `integration`/`mcp` routes
 
 ## Dependencies
 - In: `schema/*`, database, util, filesystem.
-- Out: tools (mcp/websearch/skill), session instructions, server (`mcp`/`credential`/`integration`/`websearch` routes), plugin.
+- Out: tools (mcp/websearch/skill), session instructions, server (`mcp`/`credential`/`integration`/`websearch`/`skill` routes), plugin.
 
 ## Links
 - Parent: INDEX.md

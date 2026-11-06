@@ -31,6 +31,8 @@ const info = (id: string, description: string) =>
     content: `# ${id}`,
   })
 
+const tagged = (id: string, tags: string[]) => Skill.Info.make({ ...info(id, id), tags })
+
 describe("Skill", () => {
   it.live("hides and refuses denied skills while organization policy overrides local allows", () =>
     Effect.gen(function* () {
@@ -153,6 +155,65 @@ describe("Skill", () => {
       expect(yield* skill.get(Skill.ID.make("missing"))).toBeUndefined()
     }),
   )
+
+  it.effect("resolves same-ID entries by project, global, then plugin precedence", () =>
+    Effect.gen(function* () {
+      const skill = yield* Skill.Service
+      yield* skill.transform((editor) => {
+        editor.add(info("review", "Plugin"), { source: "plugin" })
+        editor.add(info("review", "Global"), { source: "global" })
+        editor.add(info("review", "Project"), { source: "project" })
+      })
+
+      expect(yield* skill.list()).toEqual([info("review", "Project")])
+      expect(yield* skill.entries()).toMatchObject([{ skill: { description: "Project" }, source: "project" }])
+      expect(yield* skill.shadowed()).toMatchObject([
+        { skill: { description: "Plugin" }, source: "plugin", shadowedBy: "global" },
+        { skill: { description: "Global" }, source: "global", shadowedBy: "project" },
+      ])
+    }),
+  )
+
+  it.effect("keeps a later lower-precedence entry shadowed instead of effective", () =>
+    Effect.gen(function* () {
+      const skill = yield* Skill.Service
+      yield* skill.transform((editor) => {
+        editor.add(info("review", "Project"), { source: "project" })
+        editor.add(info("review", "Plugin"), { source: "plugin" })
+      })
+
+      expect(yield* skill.list()).toEqual([info("review", "Project")])
+      expect(yield* skill.shadowed()).toMatchObject([
+        { skill: { description: "Plugin" }, source: "plugin", shadowedBy: "project" },
+      ])
+    }),
+  )
+
+  it.effect("hides skills denied by a tag rule and honors last-match-wins across tags and IDs", () => {
+    const unity = tagged("unity-edit", ["unity"])
+    return Effect.sync(() => {
+      expect(Skill.available([unity], [{ action: "skill", resource: "tag:unity", effect: "deny" }])).toEqual([])
+      expect(
+        Skill.available([unity], [
+          { action: "skill", resource: "tag:unity", effect: "deny" },
+          { action: "skill", resource: "unity-edit", effect: "allow" },
+        ]),
+      ).toEqual([unity])
+      expect(
+        Skill.available([unity], [
+          { action: "skill", resource: "unity-edit", effect: "deny" },
+          { action: "skill", resource: "tag:unity", effect: "allow" },
+        ]),
+      ).toEqual([unity])
+      expect(
+        Skill.available([unity], [
+          { action: "skill", resource: "tag:unity", effect: "deny" },
+          { action: "skill", resource: "unity-edit", effect: "allow" },
+          { action: "skill", resource: "tag:*", effect: "deny" },
+        ]),
+      ).toEqual([])
+    })
+  })
 
   it.effect("updates and removes registered values", () =>
     Effect.gen(function* () {

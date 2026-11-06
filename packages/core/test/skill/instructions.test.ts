@@ -41,7 +41,12 @@ const manual = Skill.Info.make({
 
 const layer = (list: () => Skill.Info[]) =>
   AppNodeBuilder.build(SkillInstructions.node, [
-    Skill.node.replace(Layer.mock(Skill.Service, { list: () => Effect.succeed(list()) })),
+    Skill.node.replace(
+      Layer.mock(Skill.Service, {
+        list: () => Effect.succeed(list()),
+        entries: () => Effect.succeed(list().map((skill) => ({ skill, source: "plugin" as const }))),
+      }),
+    ),
   ])
 
 describe("SkillInstructions", () => {
@@ -150,6 +155,85 @@ describe("SkillInstructions", () => {
         ),
       })
     }).pipe(Effect.provide(layer(() => skills)))
+  })
+
+  it.effect("excludes tag-denied skills and honors later ID allows", () => {
+    const unity = Skill.Info.make({
+      ...effect,
+      id: Skill.ID.make("unity-edit"),
+      name: Skill.Name.make("Unity Edit"),
+      tags: ["unity"],
+    })
+    const deniedByTag = Agent.Info.make({
+      ...Agent.Info.default(build),
+      permissions: [{ action: "skill", resource: "tag:unity", effect: "deny" }],
+    })
+    const allowedById = Agent.Info.make({
+      ...Agent.Info.default(build),
+      permissions: [
+        { action: "skill", resource: "tag:unity", effect: "deny" },
+        { action: "skill", resource: "unity-edit", effect: "allow" },
+      ],
+    })
+    return Effect.gen(function* () {
+      const instructions = yield* SkillInstructions.Service
+      const denied = yield* instructions.load(deniedByTag.permissions).pipe(Effect.flatMap(readInitial))
+      expect(denied.text).not.toContain("unity-edit")
+      const allowed = yield* instructions.load(allowedById.permissions).pipe(Effect.flatMap(readInitial))
+      expect(allowed.text).toContain("<id>unity-edit</id>")
+    }).pipe(Effect.provide(layer(() => [effect, unity])))
+  })
+
+  it.effect("hides skills from sources restricted to other agents", () => {
+    const unity = Skill.Info.make({
+      ...effect,
+      id: Skill.ID.make("unity-edit"),
+      name: Skill.Name.make("Unity Edit"),
+      tags: ["unity"],
+    })
+    const reviewer = Agent.Info.make({ ...Agent.Info.default(Agent.ID.make("reviewer")) })
+    const builder = Agent.Info.make({ ...Agent.Info.default(build) })
+    const restricted = AppNodeBuilder.build(SkillInstructions.node, [
+      Skill.node.replace(
+        Layer.mock(Skill.Service, {
+          entries: () => Effect.succeed([{ skill: unity, source: "project" as const, agents: ["reviewer"] }]),
+        }),
+      ),
+    ])
+    return Effect.gen(function* () {
+      const instructions = yield* SkillInstructions.Service
+      const hidden = yield* instructions.load(builder.permissions, { agent: builder }).pipe(Effect.flatMap(readInitial))
+      expect(hidden.text).not.toContain("unity-edit")
+      const visible = yield* instructions.load(reviewer.permissions, { agent: reviewer }).pipe(Effect.flatMap(readInitial))
+      expect(visible.text).toContain("<id>unity-edit</id>")
+    }).pipe(Effect.provide(restricted))
+  })
+
+  it.effect("advertises a skill whose source lists the agent display name", () => {
+    const unity = Skill.Info.make({
+      ...effect,
+      id: Skill.ID.make("unity-edit"),
+      name: Skill.Name.make("Unity Edit"),
+      tags: ["unity"],
+    })
+    const unitymaster = Agent.Info.make({
+      ...Agent.Info.default(Agent.ID.make("unitymaster")),
+      name: Agent.Name.make("Unity Master"),
+    })
+    const restricted = AppNodeBuilder.build(SkillInstructions.node, [
+      Skill.node.replace(
+        Layer.mock(Skill.Service, {
+          entries: () => Effect.succeed([{ skill: unity, source: "project" as const, agents: ["Unity Master"] }]),
+        }),
+      ),
+    ])
+    return Effect.gen(function* () {
+      const instructions = yield* SkillInstructions.Service
+      const visible = yield* instructions
+        .load(unitymaster.permissions, { agent: unitymaster })
+        .pipe(Effect.flatMap(readInitial))
+      expect(visible.text).toContain("<id>unity-edit</id>")
+    }).pipe(Effect.provide(restricted))
   })
 
   it.effect("omits instructions when the selected agent denies all skills", () => {

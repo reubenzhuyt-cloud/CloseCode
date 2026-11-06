@@ -6,6 +6,7 @@ import path from "path"
 import { Effect, FiberMap, PubSub, Semaphore, Stream } from "effect"
 import { Config } from "../../config.js"
 import { Watcher } from "../../filesystem/watcher.js"
+import { Location } from "../../location.js"
 import { Skill } from "../../skill.js"
 import { SkillFile } from "./skill-file.js"
 
@@ -14,11 +15,12 @@ export const Plugin = define({
   effect: Effect.fn(function* (ctx) {
     const config = yield* Config.Service
     const fs = yield* FSUtil.Service
+    const location = yield* Location.Service
     const watcher = yield* Watcher.Service
     const watches = yield* FiberMap.make<string>()
     const changes = yield* PubSub.sliding<string>(1)
     const lock = Semaphore.makeUnsafe(1)
-    const skills: Skill.Info[] = []
+    const skills: { skill: Skill.Info; source: Skill.Origin }[] = []
 
     const watch = Effect.fn("ConfigCompatibilityPlugin.watch")(function* (
       target: string,
@@ -38,7 +40,9 @@ export const Plugin = define({
         yield* FiberMap.clear(watches)
         const roots = config.compatibility ? yield* config.compatibility() : { claude: [], agents: [] }
         const directories = [...roots.claude, ...roots.agents].map((root) => path.join(root, "skills"))
-        const loaded = new Map<Skill.ID, Skill.Info>()
+        // Keep every entry: the registry resolves same-ID collisions by origin and records the
+        // displaced one, so deduplicating here would lose project > global precedence.
+        const loaded: { skill: Skill.Info; source: Skill.Origin }[] = []
         for (const directory of directories) {
           const resolved = yield* fs.realPath(directory).pipe(Effect.orElseSucceed(() => undefined))
           if (!resolved) continue
@@ -50,10 +54,14 @@ export const Plugin = define({
             const content = yield* fs.readFileStringSafe(filepath).pipe(Effect.orElseSucceed(() => undefined))
             if (!content) continue
             const parsed = SkillFile.parse(resolved, filepath, content)
-            if (parsed._tag === "Parsed") loaded.set(parsed.skill.id, parsed.skill)
+            if (parsed._tag === "Parsed")
+              loaded.push({
+                skill: parsed.skill,
+                source: FSUtil.contains(location.directory, filepath) ? "project" : "global",
+              })
           }
         }
-        skills.splice(0, skills.length, ...loaded.values())
+        skills.splice(0, skills.length, ...loaded)
       },
       (effect) => lock.withPermit(effect),
     )
@@ -71,7 +79,7 @@ export const Plugin = define({
     )
     yield* refresh()
     yield* ctx.skill.transform((editor) => {
-      for (const skill of skills) editor.add(skill)
+      for (const item of skills) editor.add(item.skill, { source: item.source })
     })
   }),
 })
