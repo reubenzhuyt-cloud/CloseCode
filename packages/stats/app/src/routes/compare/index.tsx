@@ -7,12 +7,8 @@ import { LocaleLinks } from "../../component/locale-links"
 import { useI18n } from "../../context/i18n"
 import { useLanguage } from "../../context/language"
 import { localizedUrl } from "../../lib/language"
-import {
-  ComparisonCardsSection,
-  comparisonHref,
-  modelRefFromCatalog,
-  type ComparisonPair,
-} from "../compare-cards"
+import { providerIconId } from "../../lib/provider-icon"
+import { ComparisonCardsSection, comparisonHref, modelRefFromCatalog, type ComparisonPair } from "../compare-cards"
 import { formatCatalogLabName, getModelCatalog, type ModelCatalogEntry } from "../model-catalog"
 import { setStatsPageCacheHeaders } from "../stats-cache"
 import {
@@ -89,6 +85,7 @@ export default function ModelCompareIndex() {
     { href: `${import.meta.env.BASE_URL}#market-share`, label: i18n.t("nav.marketShare") },
     { href: `${import.meta.env.BASE_URL}#token-cost`, label: i18n.t("nav.tokenCost") },
     { href: `${import.meta.env.BASE_URL}#session-cost`, label: i18n.t("nav.sessionCost") },
+    { href: `${import.meta.env.BASE_URL}#methodology`, label: i18n.t("methodology.title") },
   ])
   const updateThemePreference = (preference: ThemePreference) => {
     applyThemePreference(preference)
@@ -107,24 +104,27 @@ export default function ModelCompareIndex() {
 
   return (
     <main data-page="stats" data-theme={themePreference()}>
-      <Title>{compareTitle}</Title>
-      <Meta name="description" content={compareDescription} />
-      <LocaleLinks path={comparePath} />
-      <Meta property="og:type" content="website" />
-      <Meta property="og:site_name" content="OpenCode" />
-      <Meta property="og:title" content={compareTitle} />
-      <Meta property="og:description" content={compareDescription} />
-      <Meta property="og:url" content={compareUrl()} />
-      <Meta property="og:image" content={statsUnfurlUrl} />
-      <Meta property="og:image:type" content="image/png" />
-      <Meta property="og:image:width" content="1200" />
-      <Meta property="og:image:height" content="630" />
-      <Meta property="og:image:alt" content={i18n.t("app.unfurlAlt")} />
-      <Meta name="twitter:card" content="summary_large_image" />
-      <Meta name="twitter:title" content={compareTitle} />
-      <Meta name="twitter:description" content={compareDescription} />
-      <Meta name="twitter:image" content={statsUnfurlUrl} />
-      <Meta name="twitter:image:alt" content={i18n.t("app.unfurlAlt")} />
+      {/* Server-rendered head tags are never removed, so render them once data has loaded. */}
+      <Show when={catalog()}>
+        <Title>{compareTitle}</Title>
+        <Meta name="description" content={compareDescription} />
+        <LocaleLinks path={comparePath} />
+        <Meta property="og:type" content="website" />
+        <Meta property="og:site_name" content="OpenCode" />
+        <Meta property="og:title" content={compareTitle} />
+        <Meta property="og:description" content={compareDescription} />
+        <Meta property="og:url" content={compareUrl()} />
+        <Meta property="og:image" content={statsUnfurlUrl} />
+        <Meta property="og:image:type" content="image/png" />
+        <Meta property="og:image:width" content="1200" />
+        <Meta property="og:image:height" content="630" />
+        <Meta property="og:image:alt" content={i18n.t("app.unfurlAlt")} />
+        <Meta name="twitter:card" content="summary_large_image" />
+        <Meta name="twitter:title" content={compareTitle} />
+        <Meta name="twitter:description" content={compareDescription} />
+        <Meta name="twitter:image" content={statsUnfurlUrl} />
+        <Meta name="twitter:image:alt" content={i18n.t("app.unfurlAlt")} />
+      </Show>
       <Header
         githubStars={githubStars() ?? githubLink.fallbackStars}
         links={compareHeaderLinks()}
@@ -447,7 +447,7 @@ function ModelAvatar(props: { model: ModelCatalogEntry; size: "large" | "small" 
 }
 
 function LabLogo(props: { lab: string; label: string; size: "large" | "small" | "tiny" }) {
-  const iconId = () => getProviderIconId(props.lab)
+  const iconId = () => providerIconId(props.lab)
 
   return (
     <span data-slot="compare-home-avatar" data-lab={iconId()} data-size={props.size} aria-label={props.label}>
@@ -601,11 +601,4 @@ function displayDateTime(value: string | undefined) {
   if (!Number.isNaN(date.getTime())) return date.getTime()
   const year = Number(value.match(/\d{4}/)?.[0] ?? 0)
   return Number.isFinite(year) ? year : 0
-}
-
-function getProviderIconId(provider: string) {
-  const id = provider.toLowerCase().replace(/[^a-z0-9]+/g, "")
-  if (id === "moonshot") return "moonshotai"
-  if (id === "zhipu") return "zhipuai"
-  return id
 }

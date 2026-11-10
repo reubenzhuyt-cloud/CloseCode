@@ -9,6 +9,7 @@ import { Watcher } from "../../filesystem/watcher.js"
 import { Location } from "../../location.js"
 import { Skill } from "../../skill.js"
 import { SkillFile } from "./skill-file.js"
+import { SkillScan } from "./skill-scan.js"
 
 export const Plugin = define({
   id: "opencode.config.compatibility",
@@ -21,12 +22,16 @@ export const Plugin = define({
     const changes = yield* PubSub.sliding<string>(1)
     const lock = Semaphore.makeUnsafe(1)
     const skills: { skill: Skill.Info; source: Skill.Origin }[] = []
+    const compatibility = () =>
+      config.compatibility ? config.compatibility() : Effect.succeed({ claude: [], agents: [] })
 
     const watch = Effect.fn("ConfigCompatibilityPlugin.watch")(function* (
       target: string,
       type: "file" | "directory",
     ) {
-      const updates = yield* watcher.subscribe({ path: target, type })
+      const updates = yield* watcher.subscribe(
+        type === "directory" ? { path: target, type, ignore: SkillScan.ignore } : { path: target, type },
+      )
       yield* FiberMap.run(
         watches,
         `${type}:${target}`,
@@ -38,7 +43,7 @@ export const Plugin = define({
     const refresh = Effect.fn("ConfigCompatibilityPlugin.refresh")(
       function* () {
         yield* FiberMap.clear(watches)
-        const roots = config.compatibility ? yield* config.compatibility() : { claude: [], agents: [] }
+        const roots = yield* compatibility()
         const directories = [...roots.claude, ...roots.agents].map((root) => path.join(root, "skills"))
         // Keep every entry: the registry resolves same-ID collisions by origin and records the
         // displaced one, so deduplicating here would lose project > global precedence.
@@ -47,10 +52,7 @@ export const Plugin = define({
           const resolved = yield* fs.realPath(directory).pipe(Effect.orElseSucceed(() => undefined))
           if (!resolved) continue
           yield* watch(resolved, "directory")
-          const files = yield* fs
-            .scan("{*.md,**/SKILL.md}", { cwd: resolved, absolute: true, include: "file", symlink: true, dot: true })
-            .pipe(Effect.orElseSucceed(() => [] as string[]))
-          for (const filepath of files.toSorted()) {
+          for (const filepath of yield* SkillScan.scan(resolved)) {
             const content = yield* fs.readFileStringSafe(filepath).pipe(Effect.orElseSucceed(() => undefined))
             if (!content) continue
             const parsed = SkillFile.parse(resolved, filepath, content)
@@ -74,7 +76,10 @@ export const Plugin = define({
       Effect.forkScoped({ startImmediately: true }),
     )
     yield* config.changes().pipe(
-      Stream.runForEach(() => reload),
+      Stream.filterEffect((update) =>
+        Effect.map(compatibility(), (roots) => isCompatibilitySource(roots, update.path)),
+      ),
+      Stream.runForEach((update) => PubSub.publish(changes, update.path).pipe(Effect.asVoid)),
       Effect.forkScoped({ startImmediately: true }),
     )
     yield* refresh()
@@ -83,3 +88,15 @@ export const Plugin = define({
     })
   }),
 })
+
+const sourceDirectories = [".claude", ".agents"] as const
+
+function isCompatibilitySource(
+  roots: { readonly claude: readonly string[]; readonly agents: readonly string[] },
+  file: string,
+) {
+  return (
+    sourceDirectories.some((name) => path.basename(file) === name) ||
+    [...roots.claude, ...roots.agents].some((root) => FSUtil.contains(root, file))
+  )
+}

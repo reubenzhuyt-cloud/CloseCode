@@ -2,7 +2,7 @@ import { describe, expect, mock, test } from "bun:test"
 
 mock.module("@solidjs/router", () => ({ query: (load: () => unknown) => load }))
 
-const { buildModelCatalog, findModelCatalogEntry } = await import("./model-catalog")
+const { buildModelCatalog, findModelCatalogEntry, isKnownCatalogLab, modelPagePath } = await import("./model-catalog")
 
 describe("model catalog pricing", () => {
   test("prefers OpenCode Go pricing over a zero-cost coding plan with the same model id", () => {
@@ -43,5 +43,40 @@ describe("model catalog pricing", () => {
       cacheRead: 0.26,
       cacheWrite: undefined,
     })
+  })
+})
+
+describe("known catalog labs", () => {
+  test("resolves stats author aliases to their catalog lab", () => {
+    expect(isKnownCatalogLab("qwen", ["alibaba"])).toBe(true)
+    expect(isKnownCatalogLab("zhipu", ["zhipuai"])).toBe(true)
+    expect(isKnownCatalogLab("meta", ["alibaba"])).toBe(false)
+  })
+})
+
+describe("revealed model pages", () => {
+  test("resolves Beam usage names to the Beam 1.0 501B A23B catalog page", () => {
+    const catalog = buildModelCatalog({
+      models: {
+        "reflection/beam-1.0-501b-a23b": {
+          id: "reflection/beam-1.0-501b-a23b",
+          name: "Beam 1.0 501B A23B",
+        },
+      },
+    })
+
+    ;["beam", "beam-free", "cat-jam", "beam-1.0-501b-a23b", "beam-1-0-501b-a23b"].forEach((model) => {
+      expect(findModelCatalogEntry(catalog, model, "reflection")?.name).toBe("Beam 1.0 501B A23B")
+      expect(modelPagePath(catalog, "reflection", model)).toBe("/data/reflection/beam-1-0-501b-a23b")
+    })
+  })
+
+  test("sends the Crouton Alpha page to Muse Ember 1.0", () => {
+    const catalog = buildModelCatalog({
+      models: { "meta/muse-ember-1.0": { id: "meta/muse-ember-1.0", name: "Muse Ember" } },
+    })
+
+    expect(findModelCatalogEntry(catalog, "crouton-alpha", "unknown")?.id).toBe("meta/muse-ember-1.0")
+    expect(modelPagePath(catalog, "unknown", "crouton-alpha")).toBe("/data/meta/muse-ember-1-0")
   })
 })

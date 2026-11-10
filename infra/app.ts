@@ -1,53 +1,42 @@
-import { domain } from "./stage"
-import { createWebApp } from "./webapp"
+import { domain, zoneID } from "./stage"
 
 const GITHUB_APP_ID = new sst.Secret("GITHUB_APP_ID")
 const GITHUB_APP_PRIVATE_KEY = new sst.Secret("GITHUB_APP_PRIVATE_KEY")
-export const EMAILOCTOPUS_API_KEY = new sst.Secret("EMAILOCTOPUS_API_KEY")
 const ADMIN_SECRET = new sst.Secret("ADMIN_SECRET")
-const DISCORD_SUPPORT_BOT_TOKEN = new sst.Secret("DISCORD_SUPPORT_BOT_TOKEN")
-const DISCORD_SUPPORT_CHANNEL_ID = new sst.Secret("DISCORD_SUPPORT_CHANNEL_ID")
-const FEISHU_APP_ID = new sst.Secret("FEISHU_APP_ID")
-const FEISHU_APP_SECRET = new sst.Secret("FEISHU_APP_SECRET")
-const bucket = new sst.cloudflare.Bucket("Bucket")
 
 export const api = new sst.cloudflare.Worker("Api", {
   domain: `api.${domain}`,
   handler: "packages/function/src/api.ts",
-  environment: {
-    WEB_DOMAIN: domain,
-  },
   url: true,
-  link: [
-    bucket,
-    GITHUB_APP_ID,
-    GITHUB_APP_PRIVATE_KEY,
-    ADMIN_SECRET,
-    DISCORD_SUPPORT_BOT_TOKEN,
-    DISCORD_SUPPORT_CHANNEL_ID,
-    FEISHU_APP_ID,
-    FEISHU_APP_SECRET,
-  ],
+  link: [GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, ADMIN_SECRET],
   transform: {
     worker: (args) => {
       args.logpush = true
-      if ($app.stage === "vimtor" || $app.stage === "adam") return
-      args.bindings = $resolve(args.bindings).apply((bindings) => [
-        ...bindings,
-        {
-          name: "SYNC_SERVER",
-          type: "durable_object_namespace",
-          className: "SyncServer",
-        },
-      ])
-      args.migrations = {
-        // Note: when releasing the next tag, make sure all stages use tag v2
-        oldTag: $app.stage === "production" || $app.stage === "thdxr" ? "" : "v1",
-        newTag: $app.stage === "production" || $app.stage === "thdxr" ? "" : "v1",
-        //newSqliteClasses: ["SyncServer"],
-      }
     },
   },
 })
 
-createWebApp("app." + domain)
+// docs.opencode.ai and docs.dev.opencode.ai belong to the site Worker (services/site), which sends the old docs
+// URLs there to the same path on the V1 docs at /v1/docs. Their custom domain was the V1 docs app's and is moved to
+// the site Worker by hand in place, keeping its ID: every input of a custom domain forces a replacement, which would
+// create the same ID and then delete it. DocsDomain adopts that resource so SST never deletes the live hostname: it
+// is retained on delete, and its inputs are ignored so it is never updated or replaced.
+if ($app.stage === "production" || $app.stage === "dev") {
+  new cloudflare.WorkersCustomDomain(
+    "DocsDomain",
+    {
+      accountId: "15d29c8639fd3733b1b5486a2acfd968",
+      hostname: `docs.${domain}`,
+      service: `opencode-site-${$app.stage}`,
+      zoneId: zoneID,
+      environment: "production",
+    },
+    {
+      aliases: [
+        `urn:pulumi:${$app.stage}::${$app.name}::sst:cloudflare:Astro$sst:cloudflare:Worker$cloudflare:index/workersCustomDomain:WorkersCustomDomain::WebWorkerDomain`,
+      ],
+      retainOnDelete: true,
+      ignoreChanges: ["accountId", "hostname", "service", "zoneId", "environment"],
+    },
+  )
+}

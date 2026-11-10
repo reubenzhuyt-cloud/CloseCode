@@ -1,7 +1,7 @@
 export * as SkillTool from "./skill.js"
 
 import type { Context } from "@opencode/plugin/effect/plugin"
-import { ToolFailure } from "@opencode/ai"
+import { ToolFailure } from "@opencode/ai/effect"
 import { Effect, Schema } from "effect"
 import { FSUtil } from "@opencode/util/fs-util"
 import { Agent } from "../../agent.js"
@@ -58,11 +58,10 @@ export const Plugin = {
                   resources: [entry.skill.id],
                   candidates: Skill.resources(entry.skill),
                   save: [entry.skill.id],
-                  sessionID: context.sessionID,
-                  agent: context.agent,
-                  source: { type: "tool", messageID: context.messageID, id: context.id },
+                  ...Permission.invocation(context),
                 })
-                return { name: entry.skill.name, ...(yield* Skill.prepare(fs, entry.skill)) }
+                const files = yield* skills.files(entry.skill.id)
+                return { name: entry.skill.name, ...(yield* Skill.prepare(fs, entry.skill, files)) }
               }).pipe(Effect.mapError((error) => unableToLoad(input.id, error)))
             }).pipe(
               Effect.map((output) => ({

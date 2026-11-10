@@ -1,5 +1,5 @@
-import { route as localeRoute, strip as localeStrip } from "../../../../console/app/src/lib/language"
-import type { Locale } from "../../../../console/app/src/lib/language"
+import { route as localeRoute, strip as localeStrip } from "./locale"
+import type { Locale } from "./locale"
 
 export {
   LOCALES,
@@ -16,9 +16,22 @@ export {
   localeFromRequest,
   parseLocale,
   tag,
-} from "../../../../console/app/src/lib/language"
+} from "./locale"
 
-export type { Locale } from "../../../../console/app/src/lib/language"
+export type { Locale } from "./locale"
+
+export function prefersMarkdown(accept: string | null | undefined) {
+  if (!accept) return false
+  const weights = new Map(
+    accept.split(",").map((part) => {
+      const fields = part.split(";").map((value) => value.trim().toLowerCase())
+      const quality = fields.slice(1).find((field) => field.startsWith("q="))
+      return [fields[0] ?? "", quality ? Number(quality.slice(2)) : 1] as const
+    }),
+  )
+  const markdown = Math.max(weights.get("text/markdown") ?? 0, weights.get("text/x-markdown") ?? 0)
+  return markdown > 0 && markdown >= (weights.get("text/html") ?? 0)
+}
 
 export const basePath = "/data"
 export const baseUrl = "https://opencode.ai"
@@ -45,4 +58,22 @@ export function route(locale: Locale, pathname: string) {
 
 export function localizedUrl(locale: Locale, pathname: string) {
   return `${baseUrl}${route(locale, pathname)}`
+}
+
+export function pageUrl(pathname: string) {
+  return `${baseUrl}${pathname}`
+}
+
+export function markdownUrl(pathname: string) {
+  return `${baseUrl}${formatPathname(pathname, "md")}`
+}
+
+export function jsonUrl(pathname: string) {
+  return `${baseUrl}${formatPathname(pathname, "json")}`
+}
+
+function formatPathname(pathname: string, extension: "md" | "json") {
+  const trimmed = pathname.replace(/\/+$/, "")
+  if (trimmed === basePath) return `${basePath}/index.${extension}`
+  return `${trimmed}.${extension}`
 }

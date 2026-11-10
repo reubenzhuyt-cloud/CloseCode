@@ -1,104 +1,8 @@
-import { lakeAthenaWorkgroup, lakeCatalog, lakeCluster, lakeQueryPermissions, lakeRegion, tableBucket } from "./lake"
-import { EMAILOCTOPUS_API_KEY } from "./app"
-import { domain } from "./stage"
-
-////////////////
-// LAKE
-////////////////
-
-const inferenceNamespace = new aws.s3tables.Namespace("LakeInferenceNamespace", {
-  namespace: "inference",
-  tableBucketArn: tableBucket.arn,
-})
-
-const inferenceEventTable = new aws.s3tables.Table(
-  "LakeInferenceEventTable",
-  {
-    name: "event",
-    namespace: inferenceNamespace.namespace,
-    tableBucketArn: inferenceNamespace.tableBucketArn,
-    format: "ICEBERG",
-    metadata: {
-      iceberg: {
-        schema: {
-          fields: [
-            { name: "event_timestamp", type: "string", required: false },
-            { name: "event_date", type: "string", required: false },
-            { name: "event_type", type: "string", required: false },
-            { name: "dataset", type: "string", required: false },
-            { name: "cf_continent", type: "string", required: false },
-            { name: "cf_country", type: "string", required: false },
-            { name: "cf_city", type: "string", required: false },
-            { name: "cf_region", type: "string", required: false },
-            { name: "cf_latitude", type: "double", required: false },
-            { name: "cf_longitude", type: "double", required: false },
-            { name: "cf_timezone", type: "string", required: false },
-            { name: "duration", type: "double", required: false },
-            { name: "request_length", type: "long", required: false },
-            { name: "status", type: "int", required: false },
-            { name: "ip", type: "string", required: false },
-            { name: "is_stream", type: "boolean", required: false },
-            { name: "session", type: "string", required: false },
-            { name: "request", type: "string", required: false },
-            { name: "client", type: "string", required: false },
-            { name: "user_agent", type: "string", required: false },
-            { name: "model", type: "string", required: false },
-            { name: "model_tier", type: "string", required: false },
-            { name: "model_variant", type: "string", required: false },
-            { name: "source", type: "string", required: false },
-            { name: "provider", type: "string", required: false },
-            { name: "provider_model", type: "string", required: false },
-            { name: "llm_error_code", type: "int", required: false },
-            { name: "llm_error_message", type: "string", required: false },
-            { name: "error_response", type: "string", required: false },
-            { name: "error_type", type: "string", required: false },
-            { name: "error_message", type: "string", required: false },
-            { name: "error_cause", type: "string", required: false },
-            { name: "error_cause2", type: "string", required: false },
-            { name: "api_key", type: "string", required: false },
-            { name: "workspace", type: "string", required: false },
-            { name: "user_id", type: "string", required: false },
-            { name: "is_subscription", type: "boolean", required: false },
-            { name: "subscription", type: "string", required: false },
-            { name: "response_length", type: "long", required: false },
-            { name: "time_to_first_byte", type: "long", required: false },
-            { name: "timestamp_first_byte", type: "long", required: false },
-            { name: "timestamp_last_byte", type: "long", required: false },
-            { name: "tokens_input", type: "long", required: false },
-            { name: "tokens_output", type: "long", required: false },
-            { name: "tokens_reasoning", type: "long", required: false },
-            { name: "tokens_cache_read", type: "long", required: false },
-            { name: "tokens_cache_write_5m", type: "long", required: false },
-            { name: "tokens_cache_write_1h", type: "long", required: false },
-            { name: "cost_input_microcents", type: "long", required: false },
-            { name: "cost_output_microcents", type: "long", required: false },
-            { name: "cost_cache_read_microcents", type: "long", required: false },
-            { name: "cost_cache_write_microcents", type: "long", required: false },
-            { name: "cost_total_microcents", type: "long", required: false },
-            { name: "cost_input", type: "long", required: false },
-            { name: "cost_output", type: "long", required: false },
-            { name: "cost_cache_read", type: "long", required: false },
-            { name: "cost_cache_write_5m", type: "long", required: false },
-            { name: "cost_cache_write_1h", type: "long", required: false },
-            { name: "cost_total", type: "long", required: false },
-          ],
-        },
-      },
-    },
-  },
-  { deleteBeforeReplace: $app.stage !== "production", ignoreChanges: ["metadata"] },
-)
-
-export const inferenceEvent = new sst.Linkable("InferenceEvent", {
-  properties: {
-    region: lakeRegion,
-    catalog: lakeCatalog,
-    database: inferenceNamespace.namespace,
-    table: inferenceEventTable.name,
-    tableBucket: tableBucket.name,
-    workgroup: lakeAthenaWorkgroup.name,
-  },
-})
+import { execFileSync } from "node:child_process"
+import { readdirSync } from "node:fs"
+import path from "node:path"
+import { LOCALES } from "../packages/stats/app/src/lib/language"
+import { domain, zoneID } from "./stage"
 
 ////////////////
 // DATABASE
@@ -161,15 +65,85 @@ new sst.x.DevCommand("StatsStudio", {
 // APP
 ////////////////
 
-export const app = new sst.cloudflare.x.SolidStart("Stats", {
+export const publicUrl = `https://${domain}/data`
+const accountId = "15d29c8639fd3733b1b5486a2acfd968"
+
+// The private Worker that renders the pages' Open Graph images (packages/stats/app/src/og/worker.ts). Its Wasm and font
+// modules can't ship in the Stats Worker, which SST uploads as one file, so it is its own Worker with no URL or route,
+// reached only through the Stats Worker's OG_WORKER Service Binding. It is built here, before any resource reads its
+// files. `sst dev` deploys no Worker.
+const ogWorker = $dev ? undefined : createOgWorker()
+
+const app = new sst.cloudflare.x.SolidStart("Stats", {
   path: "packages/stats/app",
   buildCommand: "bun run build",
-  domain: `stats.${domain}`,
-  link: [database, EMAILOCTOPUS_API_KEY],
+  link: [database],
   environment: {
-    PUBLIC_URL: `https://${domain}/data`,
+    PUBLIC_URL: publicUrl,
+  },
+  transform: {
+    server: (args) => {
+      args.url = false
+      if (!ogWorker) return
+      args.transform = {
+        worker: (worker) => {
+          // The deployment's script name, so the binding waits for the OG Worker to have a live version.
+          worker.bindings = $util
+            .all([$output(worker.bindings ?? []), ogWorker.scriptName])
+            .apply(([bindings, service]) => [...bindings, { type: "service", name: "OG_WORKER", service }])
+        },
+      }
+    },
   },
 })
+
+function createOgWorker() {
+  const root = path.join($cli.paths.root, "packages/stats/app")
+  execFileSync("bun", ["run", "build:og"], { cwd: root, stdio: "inherit" })
+  const dir = path.join(root, ".og-worker")
+  const types: Record<string, string> = {
+    ".mjs": "application/javascript+module",
+    ".wasm": "application/wasm",
+    ".bin": "application/octet-stream",
+  }
+  const worker = new cloudflare.Worker("StatsOg", {
+    accountId,
+    name: `${$app.name}-${$app.stage}-stats-og`,
+    subdomain: { enabled: false, previewsEnabled: false },
+    observability: { enabled: true },
+  })
+  const version = new cloudflare.WorkerVersion("StatsOgVersion", {
+    accountId,
+    workerId: worker.id,
+    mainModule: "index.mjs",
+    compatibilityDate: "2026-07-01",
+    modules: readdirSync(dir).map((name) => ({
+      name,
+      contentFile: path.join(dir, name),
+      contentType: types[path.extname(name)],
+    })),
+  })
+  return new cloudflare.WorkersDeployment("StatsOgDeployment", {
+    accountId,
+    scriptName: worker.name,
+    strategy: "percentage",
+    versions: [{ percentage: 100, versionId: version.id }],
+  })
+}
+
+// The site serves itself under /data and /<locale>/data, and these routes are its only way in: it has no custom domain
+// or workers.dev URL. An exact `/data` pattern misses `/data?query`, so each pattern is a `/data*` prefix. Route patterns
+// can't wildcard the middle of a path, hence one per locale. `sst dev` deploys no Worker.
+const appServer = app.nodes.server
+if (appServer) {
+  for (const prefix of ["data", ...LOCALES.map((locale) => `${locale}/data`)]) {
+    new cloudflare.WorkersRoute(`StatsRoute${prefix.replaceAll("/", "")}`, {
+      zoneId: zoneID,
+      pattern: `${domain}/${prefix}*`,
+      script: appServer.nodes.worker.scriptName,
+    })
+  }
+}
 
 ////////////////
 // SERVICES
@@ -181,26 +155,60 @@ const statsSyncConfig = new sst.Linkable("StatsSyncConfig", {
   },
 })
 
-export const statSync = new sst.aws.Service("StatsSyncService", {
-  cluster: lakeCluster,
-  architecture: "arm64",
-  cpu: "0.25 vCPU",
-  // 0.5 GB caused an OOM crash loop: every restart immediately re-ran the 4 Athena
-  // stats queries (~$5/pass) every ~5 minutes instead of hourly.
-  memory: "2 GB",
-  image: {
-    context: ".",
-    dockerfile: "packages/stats/server/Dockerfile",
+// Comma-separated model IDs kept off the public stats site. A secret, so excluding
+// an unreleased model does not publish its name in git.
+const statsHiddenModels = new sst.Secret("StatsHiddenModels", "")
+
+const r2SqlAuthToken = new sst.Secret("R2SqlAuthToken")
+const r2Sql = new sst.Linkable("R2Sql", {
+  properties: {
+    accountId,
+    bucket: `platform-${$app.stage}-lake`,
+    namespace: "inference",
+    table: "generation",
   },
-  command: ["bun", "src/stat-sync.ts"],
-  link: [database, inferenceEvent, statsSyncConfig],
-  permissions: lakeQueryPermissions,
-  scaling: {
-    min: 1,
-    max: 1,
+})
+
+// One instance per run: a plan step, then one step per stat period and retention
+// cohort. See packages/stats/README.md for triggering a run by hand.
+export const statsSyncWorkflow = new sst.cloudflare.Workflow("StatsSyncWorkflow", {
+  handler: "packages/stats/server/src/workflow.ts",
+  className: "StatsSyncWorkflow",
+  link: [database, r2Sql, r2SqlAuthToken, statsHiddenModels, statsSyncConfig],
+  transform: {
+    worker: {
+      transform: {
+        worker: (args) => {
+          // Raise CPU time from the 30-second default to the 5-minute maximum for
+          // ranking a full week of geo rows.
+          args.limits = { cpuMs: 300_000 }
+          args.observability = { enabled: true }
+        },
+      },
+    },
   },
+})
+
+// Schedules must match packages/stats/server/src/schedule.ts, which maps the
+// daily one to a history run.
+if (!$dev)
+  new sst.cloudflare.Cron("StatsSyncCron", {
+    schedules: ["5 * * * *", "20 3 * * *"],
+    worker: {
+      handler: "packages/stats/server/src/cron.ts",
+      link: [statsSyncWorkflow],
+      transform: {
+        worker: (args) => {
+          args.observability = { enabled: true }
+        },
+      },
+    },
+  })
+
+new sst.x.DevCommand("StatsSync", {
+  link: [database, r2Sql, r2SqlAuthToken, statsHiddenModels, statsSyncConfig],
   dev: {
-    command: "bun src/stat-sync.ts",
+    command: "bun src/sync.ts",
     directory: "packages/stats/server",
     autostart: false,
   },
