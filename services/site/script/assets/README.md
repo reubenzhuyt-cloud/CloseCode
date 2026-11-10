@@ -179,12 +179,9 @@ jobs:
         with: { ref: v2 }
       - uses: oven-sh/setup-bun@v2
       - run: brew install vhs
-      # The released CLI (the package behind ~/.bun/bin/opencode). On workflow_dispatch, use the latest.
-      - env: { TAG: "${{ github.event.release.tag_name }}" }
-        run: |
-          VERSION="${TAG#v}"
-          bun add -g --trust "@opencode/cli@${VERSION:-latest}"
+      # The CLI from this checkout (packages/cli/dist/cli-<os>-<arch>/bin/closecode).
       - run: bun install
+      - run: bun run --cwd packages/cli build --single
       - name: Capture
         working-directory: packages/console/app
         env: { CAPTURE_FONT: "JetBrains Mono" }

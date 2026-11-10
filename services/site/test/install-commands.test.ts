@@ -3,15 +3,23 @@ import path from "node:path"
 import { Glob } from "bun"
 import { desktopInstall, docsInstalls, installs, sdkInstalls } from "../src/lib/install-commands"
 
-// The site shows OpenCode 2. These names install OpenCode 1 (see src/lib/install-commands.ts):
-// the opencode-ai npm package, the unversioned install script, the tap's opencode formula and the
-// opencode-bin AUR package. Scoped @opencode-ai/... packages are code samples, not installs.
-const v1 = [
-  { name: "the opencode-ai npm package", pattern: /(?<![@\w/-])opencode-ai(?![\w/-])/ },
+// The site shows CloseCode's install paths. These name the upstream product instead (see
+// src/lib/install-commands.ts): its install scripts, npm package, tap formulas and AUR packages.
+// @opencode/... imports and code samples are not installs, so they only match with a package manager.
+const upstream = [
   { name: "the OpenCode 1 install script", pattern: /opencode\.ai\/install\b/ },
+  { name: "the OpenCode 2 install script", pattern: /opencode\.ai\/v2\/install/ },
+  { name: "the OpenCode 1 npm package", pattern: /(?<![@\w/-])opencode-ai(?![\w/-])/ },
+  {
+    name: "the OpenCode 2 npm package",
+    pattern: /\b(npm|bun|pnpm|yarn|vp)\s+(install|add|i)\b[^\n]*@opencode\/cli(?![\w-])/,
+  },
   { name: "the tap's OpenCode 1 formula", pattern: /anomalyco\/tap\/opencode(?![\w-])/ },
+  { name: "the OpenCode 2 Homebrew formula", pattern: /anomalyco\/tap\/opencode-v2\b/ },
   { name: "the opencode-bin AUR package", pattern: /\bopencode-bin\b/ },
+  { name: "the OpenCode 2 AUR package", pattern: /\b(paru|yay|pacman) -S opencode-beta\b/ },
   { name: "the AUR opencode package", pattern: /\b(paru|yay|pacman) -S opencode(?![\w-])/ },
+  { name: "mise's opencode", pattern: /\bmise use -g opencode(?![\w-])/ },
 ]
 
 const app = path.join(import.meta.dir, "..")
@@ -36,34 +44,31 @@ async function files() {
 }
 
 describe("install commands", () => {
-  test("every command installs OpenCode 2", () => {
+  test("every command installs this fork", () => {
     const commands = [
       ...installs.map((item) => item.command),
       ...docsInstalls.map((item) => item.code),
       ...sdkInstalls.map((item) => item.command),
       desktopInstall.command,
     ]
-    commands.forEach((command) => v1.forEach((item) => expect(command).not.toMatch(item.pattern)))
+    commands.forEach((command) => upstream.forEach((item) => expect(command).not.toMatch(item.pattern)))
     expect(installs.map((item) => item.command)).toEqual([
-      "curl -fsSL https://opencode.ai/v2/install | bash",
-      "npm install -g @opencode/cli",
-      "bun install -g --trust @opencode/cli",
-      "brew install anomalyco/tap/opencode-v2",
-      "paru -S opencode-beta",
+      "git clone https://github.com/reubenzhuyt-cloud/CloseCode && cd CloseCode && bun install && bun run --cwd packages/cli build --single",
+      "git clone https://github.com/reubenzhuyt-cloud/CloseCode && cd CloseCode && pwsh -File ./script/install-closecode.ps1",
     ])
   })
 
-  test("site copy and generated text name no OpenCode 1 install", async () => {
+  test("site copy and generated text name no upstream install", async () => {
     const list = await files()
     expect(list.length).toBeGreaterThan(100)
     const hits = (
       await Promise.all(
         list.map(async (file) =>
           (await Bun.file(path.join(app, file)).text()).split("\n").flatMap((line, index) =>
-            // Comments may name the OpenCode 1 packages to explain why the site doesn't.
+            // Comments may name the upstream packages to explain why the site doesn't.
             /^\s*(\/\/|\*|\/\*)/.test(line)
               ? []
-              : v1.filter((item) => item.pattern.test(line)).map((item) => `${file}:${index + 1} ${item.name}`),
+              : upstream.filter((item) => item.pattern.test(line)).map((item) => `${file}:${index + 1} ${item.name}`),
           ),
         ),
       )

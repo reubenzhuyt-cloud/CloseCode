@@ -433,7 +433,7 @@ function stripTags(html: string) {
 function docsBody(id: string) {
   const bodies: Record<string, string> = {
     cli: docsIntro.cli.map(plainRich).join(" "),
-    desktop: docsIntro.desktop,
+    desktop: plainRich(docsIntro.desktop),
     web: plainRich(docsIntro.web.lead),
     docker: plainRich(docsIntro.docker),
     connect: docsIntro.connect.map(plainRich).join(" "),

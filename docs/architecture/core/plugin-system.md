@@ -1,6 +1,6 @@
 # Core / Plugin System
 
-> last-verified: 36ea08c6b5 @ 2026-11-06
+> last-verified: 05bcb72b59 @ 2026-11-10
 
 ## Responsibility
 Owns the in-process plugin host: discovering/loading plugin sources, exposing hooks, and the built-in plugin modules that extend Core services. Does not own the plugin authoring SDK package (`@opencode/plugin`, see platform/plugin-packages.md) nor individual plugin implementations.
@@ -17,8 +17,9 @@ Owns the in-process plugin host: discovering/loading plugin sources, exposing ho
 - Plugin state transforms via `State.Transformable` (e.g. `SessionCompaction` editor registration)
 
 ## Notes
+- Plugins load asynchronously: handlers answer with what is loaded now and never block on activation, except the temporary `awaitPlugins` gate exported by `packages/server/src/location.ts:39`, used only by the `model`, `provider`, `generate`, `voice`, `websearch`, and `skill` handlers (policy/diagnostic waits — AGENTS.md "Plugin Loading").
 - Native compaction strategies are registered through the `SessionCompaction` editor by plugins; later registrations win (AGENTS.md "V2 Session Core").
-- The plugin `skill` context (`host.ts`) forwards `SkillEditor.add(skill, registration?)` into the Skill registry; omitted registration defaults to `source: "plugin"`.
+- The plugin `skill` context (`host.ts:492`) forwards `SkillEditor.add(skill, registration?)` into the Skill registry; omitted registration defaults to `source: "plugin"`.
 
 ## Dependencies
 - In: `schema/plugin`, `@opencode/plugin`, State/Tool/Config services.

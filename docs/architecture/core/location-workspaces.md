@@ -1,6 +1,6 @@
 # Core / Location, Projects & Workspaces
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 05bcb72b59 @ 2026-11-10
 
 ## Responsibility
 Owns the placement model: a `Location` (a directory + optional workspace) that scopes services, plus project identity, workspaces, worktrees, and git/VCS integration. Does not own session placement semantics beyond resolving a location for a session.
@@ -10,7 +10,7 @@ Owns the placement model: a `Location` (a directory + optional workspace) that s
 - `packages/core/src/location-services.ts`, `location-service-map.ts` — `LocationServices`, `LocationServiceMap.get(ref)`, `buildLocationServiceMap`
 - `packages/core/src/location-lifecycle.ts`, `location-mutation.ts`, `location-activity.ts` — lifecycle/activity transitions
 - `packages/core/src/project.ts`, `project/` (`schema.ts`, `sql.ts`) — project identity, `Project.ID`, `Current`, `Info`
-- `packages/core/src/workspace.ts`, `workspace/` (`driver.ts`, `sql.ts`) — provider-backed workspaces (internal; not in the V2 HTTP contract — see `V2_HTTP_API_AUDIT.md`)
+- `packages/core/src/workspace.ts`, `workspace/` (`driver.ts`, `sql.ts`) — provider-backed workspaces (internal; no `workspace` group exists in `packages/protocol/src/groups/`, so they are not part of the V2 HTTP contract)
 - `packages/core/src/worktree.ts`, `worktree/` (`git.ts`, `directory.ts`, `strategies.ts`, `sql.ts`) — worktree strategies
 - `packages/core/src/vcs.ts`, `vcs/patch.ts` — `Vcs.Service` (adapter + `State.Transformable<VcsEditor>`), `DiffError`
 - `packages/core/src/git.ts`, `repository.ts`, `repository-cache.ts` — git repository access

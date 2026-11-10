@@ -1,14 +1,14 @@
 # Server / Handlers
 
-> last-verified: 36ea08c6b5 @ 2026-11-06
+> last-verified: 05bcb72b59 @ 2026-11-10
 
 ## Responsibility
 Implements every HttpApi group as an Effect handler layer, translating HTTP inputs into Core service calls and shaping responses. One file per resource; `handlers.ts` merges them. Does not declare the contract (protocol) or own domain behavior (Core).
 
 ## Key Paths
 - `packages/server/src/handlers.ts` — `handlers` = merge of all handler layers
-- `packages/server/src/handlers/` — one handler per group: `agent`, `command`, `config`, `credential`, `debug`, `event`, `form`, `fs`, `generate`, `integration`, `location`, `mcp`, `message`, `migration`, `model`, `permission`, `persistent-pty`, `plugin`, `project`, `provider`, `pty`, `pty-socket`, `reference`, `rpc`, `server`, `session`, `session-error`, `shell`, `skill`, `vcs`, `websearch`, `worktree`
-- `packages/server/src/location.ts` — `LocationMiddleware`, `LocationServices`, `requestRef(request)`, `sessionInfo`, `response`
+- `packages/server/src/handlers/` — one handler per group: `agent`, `artifact`, `command`, `config`, `credential`, `debug`, `event`, `form`, `fs`, `generate`, `integration`, `job`, `location`, `mcp`, `media`, `message`, `migration`, `model`, `permission`, `persistent-pty`, `plugin`, `project`, `provider`, `pty`, `pty-socket`, `reference`, `rpc`, `schedule`, `server`, `session`, `session-error`, `shell`, `skill`, `usage`, `vcs`, `voice`, `websearch`, `worktree`
+- `packages/server/src/location.ts` — `LocationMiddleware`, `LocationServices`, `requestRef(request)`, `sessionInfo`, `response`; exports `awaitPlugins` (`location.ts:39`), the temporary plugin-activation wait used only by policy/diagnostic handlers (see core/plugin-system.md)
 
 ## Public API / Key Types
 - `handlers` (`Layer`) — provides all group handlers; consumed by `fetch.ts`/`routes.ts`

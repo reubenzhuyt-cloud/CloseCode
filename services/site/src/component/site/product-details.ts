@@ -151,7 +151,7 @@ export const productDetails: Record<
       { title: "TypeScript client", body: "Typed requests and events, the same values as @opencode/client." },
       { title: "Sessions from code", body: "Create sessions and send prompts from any script." },
       { title: "Any model", body: "Uses whichever models your OpenCode setup has." },
-      { title: "npm or bun", body: "Install it with npm i @opencode/sdk or bun add @opencode/sdk." },
+      { title: "Workspace package", body: "The SDK ships in packages/sdk of the repository; it is not published yet." },
       { title: "In-process host", body: "Runs OpenCode in memory, with no network hop." },
       { title: "Your plugins", body: "Pass your own plugins in when you create the in-process host." },
       { title: "Promise or Effect", body: "A Promise API and an Effect API with the same values." },

@@ -1,6 +1,6 @@
 # Schema (`@opencode/schema`)
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 05bcb72b59 @ 2026-11-10
 
 ## Responsibility
 Owns the serializable domain contracts shared by every package: Effect `Schema` definitions, identifier codecs, and event definitions. It is a leaf package — it must not import Core, Protocol, Server, or Client. Does not own behavior, persistence, or transport.
@@ -8,7 +8,7 @@ Owns the serializable domain contracts shared by every package: Effect `Schema` 
 ## Key Paths
 - `packages/schema/src/index.ts` — named re-export barrel of all schema modules
 - `packages/schema/src/schema.ts` — shared schema helpers/refinements
-- `packages/schema/src/config/` — config shapes (`agent`, `command`, `compaction`, `lsp`, `mcp`, `media`, `model`, `plugin`, `provider`, `reference`, `shell`, `tool-output`, `watcher`, `websearch`, `worktree`)
+- `packages/schema/src/config/` — config shapes (`agent`, `command`, `compaction`, `experimental`, `flag`, `formatter`, `lsp`, `mcp`, `media`, `model`, `plugin`, `policy`, `provider`, `reference`, `shell`, `tool-output`, `warming`, `watcher`, `websearch`, `worktree`)
 - `packages/schema/src/v1/` — legacy v1 shapes retained for migration
 
 ## Public API / Key Types

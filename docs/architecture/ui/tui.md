@@ -1,6 +1,6 @@
 # TUI (`@opencode/tui`)
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 05bcb72b59 @ 2026-11-10
 
 ## Responsibility
 The terminal UI built on OpenTUI/Solid: app shell, routes, components, prompt/editor, feature plugins, and the storybook harness. Owns rendering and client-local state; it talks to the server only through `@opencode/client`.
@@ -14,6 +14,7 @@ The terminal UI built on OpenTUI/Solid: app shell, routes, components, prompt/ed
 - `packages/tui/src/plugin/` — TUI plugin host (`api.tsx`, `builtins.ts`, `discovery.ts`, `markdown.ts`, `render.tsx`, `source.ts`, `watch.ts`)
 - `packages/tui/src/context/`, `prompt/`, `theme/`, `ui/`, `devtools/`, `mini/`, `simulation/`
 - `packages/tui/src/editor.ts`, `editor-zed*.ts`, `clipboard.ts`, `attention.ts`, `attention-sounds.*.ts`, `parsers-config.ts`
+- `packages/tui/src/util/renderer.ts` (`setTerminalTitle`), `util/presentation.ts` (`epilogue({ session?, updatedVersion? })` closing screen)
 
 ## Public API / Key Types
 - `run`, `TuiInput`, `LogProvider`/`useLog`; `@opencode/tui/mini` frontend input

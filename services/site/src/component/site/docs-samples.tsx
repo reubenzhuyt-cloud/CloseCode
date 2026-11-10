@@ -107,8 +107,8 @@ export function DocsSamples(props: {
         <props.Sample variant="blockquote">
           <blockquote>
             <p>
-              Homebrew's own <code>brew install opencode</code> formula also installs OpenCode 2. Each release publishes
-              first to the <code>anomalyco/tap/opencode-v2</code> formula.
+              CloseCode publishes no package manager formula yet. Install it from a clone of the
+              repository, with the <code>script/install-closecode.ps1</code> installer on Windows.
             </p>
           </blockquote>
         </props.Sample>
@@ -178,7 +178,7 @@ export function DocsSamples(props: {
         <props.Sample variant="tabs">
           <div data-component="code-tabs">
             <div data-slot="tabs" role="tablist" aria-label="Install method">
-              <For each={["curl", "npm", "brew"]}>
+              <For each={["windows", "source"]}>
                 {(label, index) => (
                   <button
                     type="button"
@@ -196,9 +196,8 @@ export function DocsSamples(props: {
               <code>
                 {
                   [
-                    "curl -fsSL https://opencode.ai/v2/install | bash",
-                    "npm install -g @opencode/cli",
-                    "brew install anomalyco/tap/opencode-v2",
+                    "git clone https://github.com/reubenzhuyt-cloud/CloseCode && cd CloseCode && pwsh -File ./script/install-closecode.ps1",
+                    "git clone https://github.com/reubenzhuyt-cloud/CloseCode && cd CloseCode && bun install && bun run --cwd packages/cli build --single",
                   ][tab()]
                 }
               </code>
@@ -206,9 +205,8 @@ export function DocsSamples(props: {
                 slot="copy"
                 text={
                   [
-                    "curl -fsSL https://opencode.ai/v2/install | bash",
-                    "npm install -g @opencode/cli",
-                    "brew install anomalyco/tap/opencode-v2",
+                    "git clone https://github.com/reubenzhuyt-cloud/CloseCode && cd CloseCode && pwsh -File ./script/install-closecode.ps1",
+                    "git clone https://github.com/reubenzhuyt-cloud/CloseCode && cd CloseCode && bun install && bun run --cwd packages/cli build --single",
                   ][tab()]
                 }
               />

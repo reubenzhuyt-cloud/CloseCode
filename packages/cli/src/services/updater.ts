@@ -1,7 +1,7 @@
 import { Global } from "@opencode/util/global"
 import { AppProcess } from "@opencode/util/process"
 import { EffectFlock } from "@opencode/util/effect-flock"
-import { OPENCODE_ARTIFACT, OPENCODE_CHANNEL, OPENCODE_LOCAL, OPENCODE_VERSION } from "../version"
+import { OPENCODE_CHANNEL, OPENCODE_LOCAL, OPENCODE_VERSION } from "../version"
 import { Context, Duration, Effect, FileSystem, Layer, Option, Ref, Schema } from "effect"
 import { ChildProcess } from "effect/process"
 import { parse, type ParseError } from "jsonc-parser"
@@ -66,6 +66,23 @@ const wingetArgs = [
   "--accept-source-agreements",
   "--disable-interactivity",
 ]
+
+// The fork publishes no update metadata, npm package, Homebrew formula, or WinGet package: every
+// install method other than the fork installer would fetch the upstream OpenCode build, so lookups and
+// those upgrades refuse instead of replacing CloseCode with upstream.
+const noUpdateBackendMessage =
+  "CloseCode has no update backend. Reinstall from https://github.com/reubenzhuyt-cloud/CloseCode/releases or run script/install-closecode.ps1, or upgrade to a known release with `closecode upgrade <version> --method curl`."
+
+function noUpdateBackend(method?: Method) {
+  return new UpgradeError({
+    title: "CloseCode has no update backend",
+    detail:
+      method === undefined
+        ? "CloseCode publishes no update metadata, so it cannot choose a version to install."
+        : `CloseCode publishes no update metadata, so ${method} cannot install a CloseCode release.`,
+    retry: noUpdateBackendMessage,
+  })
+}
 
 function conciseDetail(input: string) {
   const lines = stripVTControlCharacters(input)
@@ -142,7 +159,6 @@ const make = Effect.gen(function* () {
   const appProcess = yield* AppProcess.Service
   const flock = yield* EffectFlock.Service
   const installedVersion = yield* Ref.make(OPENCODE_VERSION)
-  const channel = OPENCODE_CHANNEL.replace(/[^a-zA-Z0-9._-]/g, "-")
   const executable = yield* fs.realPath(process.execPath).pipe(Effect.orElseSucceed(() => process.execPath))
   const installedPackage = yield* Effect.gen(function* () {
     const directory = path.dirname(path.dirname(executable))
@@ -270,98 +286,9 @@ const make = Effect.gen(function* () {
     }
   }
 
-  const release = Effect.fnUntraced(function* (method?: Method) {
-    const distribution = method === "brew" ? "homebrew" : "npm"
-    // Homebrew Core builds its formula on its own schedule, so the tap release does not describe it.
-    const core = method === "brew" && installedFormula === "opencode"
-    const response = yield* Effect.tryPromise({
-      try: (signal) =>
-        fetch(
-          core
-            ? "https://formulae.brew.sh/api/formula/opencode.json"
-            : `https://opencode.ai/update/api/${encodeURIComponent(channel)}/${encodeURIComponent(OPENCODE_ARTIFACT)}/${distribution}?current=${encodeURIComponent(OPENCODE_VERSION)}`,
-          {
-            signal: AbortSignal.any([signal, AbortSignal.timeout(10_000)]),
-          },
-        ),
-      catch: (cause) =>
-        new UpgradeError(
-          {
-            title: "Could not check for CloseCode updates",
-            detail: errorDetail(cause),
-            retry: "Check your network, then run closecode upgrade again.",
-          },
-          { cause },
-        ),
-    })
-    if (!response.ok)
-      return yield* Effect.fail(
-        new UpgradeError({
-          title: "Could not check for CloseCode updates",
-          detail: `The update service returned HTTP ${response.status}.`,
-          retry: "Try again in a few minutes.",
-        }),
-      )
-    const data: { version?: string; metadata?: { package?: string }; versions?: { stable?: string } } =
-      yield* Effect.tryPromise({
-        try: () => response.json(),
-        catch: (cause) =>
-          new UpgradeError(
-            {
-              title: "Could not read the CloseCode update information",
-              detail: errorDetail(cause),
-              retry: "Try again in a few minutes.",
-            },
-            { cause },
-          ),
-      })
-    const version = core ? data.versions?.stable : data.version
-    const packageName = core ? "opencode" : data.metadata?.package
-    if (!version || !packageName)
-      return yield* Effect.fail(
-        new UpgradeError({
-          title: "Could not read the CloseCode update information",
-          detail: "The update service returned incomplete release information.",
-          retry: "Try again in a few minutes.",
-        }),
-      )
-    return { package: packageName, version }
-  })
-
-  // WinGet moderates every submission, so only its own index knows which release it can install.
-  const wingetVersion = Effect.fnUntraced(function* () {
-    const failure = (detail: string, cause?: unknown) =>
-      new UpgradeError(
-        {
-          title: "Could not check for CloseCode updates",
-          detail,
-          command: ["winget", "search", ...wingetArgs].join(" "),
-          retry: "Fix the issue above, then run closecode upgrade again.",
-        },
-        cause === undefined ? undefined : { cause },
-      )
-    const result = yield* exec(["winget", "search", ...wingetArgs], "1 minute").pipe(
-      Effect.mapError((cause) => failure(errorDetail(cause), cause)),
-    )
-    // Column headers are localized, but the result row always lists the identifier followed by the version.
-    const version = result.stdout
-      .split(/\r?\n|\r/)
-      .map((line) => line.trim().split(/\s+/))
-      .flatMap((tokens) => {
-        const index = tokens.findIndex((token) => token.toLowerCase() === wingetPackage.toLowerCase())
-        return index === -1 ? [] : tokens.slice(index + 1, index + 2)
-      })
-      .find((token) => parseReleaseVersion(token))
-    if (result.code !== 0 || !version) return yield* Effect.fail(failure(resultDetail(result)))
-    return version
-  })
-
-  const latest = (selected?: Method) =>
-    (selected ? Effect.succeed(selected) : method()).pipe(
-      Effect.flatMap((method) =>
-        method === "winget" ? wingetVersion() : release(method).pipe(Effect.map((data) => data.version)),
-      ),
-    )
+  // No service describes a CloseCode release, so a version lookup always refuses rather than
+  // resolving an upstream OpenCode version to install.
+  const latest = (method?: Method) => Effect.fail(noUpdateBackend(method))
 
   const temporaryDirectory = (prefix: string) =>
     Effect.acquireRelease(fs.makeTempDirectory({ directory: global.cache, prefix }), (directory) =>
@@ -422,105 +349,45 @@ const make = Effect.gen(function* () {
 
   const upgrade = Effect.fnUntraced(function* (method: Method, input: string) {
     if (!parseReleaseVersion(input)) return yield* Effect.fail(new Error(`Invalid version: ${input}`))
+    // The fork installer is the only path that installs a CloseCode build: every package manager and
+    // WinGet method resolves an upstream OpenCode package, so they refuse instead of upgrading to it.
+    if (method !== "curl") return yield* Effect.fail(noUpdateBackend(method))
     const version = input.trim().replace(/^v/, "")
-    const packageName =
-      method === "winget"
-        ? wingetPackage
-        : method === "brew" && installedFormula === "opencode"
-          ? "opencode"
-          : (yield* release(method)).package
-    const target = `${packageName}@${version}`
-    if (installedPackage && packageName !== installedPackage && (method === "pnpm" || method === "yarn")) {
-      return yield* Effect.fail(new Error(`Reinstall ${target} with ${method} to migrate from ${installedPackage}.`))
-    }
-    const commands: Record<Exclude<Method, "bun" | "curl" | "brew" | "winget">, string[]> = {
-      // Keep the old package: uninstalling it can unlink the replacement command.
-      npm: [
-        "npm",
-        "install",
-        "--global",
-        `--allow-scripts=${packageName}`,
-        ...((OPENCODE_ARTIFACT === "cli" && !installedPackage?.endsWith("/cli-node")) ||
-        (installedPackage && packageName !== installedPackage)
-          ? ["--force"]
-          : []),
-        target,
-      ],
-      pnpm: ["pnpm", "add", "--global", `--allow-build=${packageName}`, target],
-      yarn: ["yarn", "global", "add", target],
-      vp:
-        installedPackage && packageName !== installedPackage
-          ? ["vp", "install", "-g", "--force", target]
-          : ["vp", "update", "-g", target],
-    }
     yield* Effect.scoped(
       Effect.gen(function* () {
-        // Other OpenCode processes may be installing at the same time. Wait longer than the
-        // slowest install (curl runs two 5-minute commands).
+        // Other OpenCode processes may be installing at the same time. The installer runs two
+        // 5-minute commands, so wait longer than both.
         yield* flock.acquire("cli-upgrade", undefined, { timeoutMs: Duration.toMillis("15 minutes") })
-        if (method === "bun") {
-          // Bun does not prune old versions from its shared package cache.
-          yield* fs.makeDirectory(global.cache, { recursive: true })
-          const cache = yield* temporaryDirectory("update-")
-          return yield* retaining(
+        const bash = yield* installerBash()
+        yield* fs.makeDirectory(global.cache, { recursive: true })
+        const directory = yield* temporaryDirectory("update-")
+        const installer = path.join(directory, "install")
+        yield* runUpgrade({
+          method,
+          command: [
+            "curl",
+            "-fsSL",
+            "-o",
+            installer,
+            "https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install",
+          ],
+          displayCommand: [
+            "curl",
+            "-fsSL",
+            "https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install",
+          ],
+          title: "Could not download the CloseCode installer",
+          retry: "Check your network, then run closecode upgrade again.",
+        })
+        return yield* retaining(
+          method,
+          runUpgrade({
             method,
-            runUpgrade({
-              method,
-              command: ["bun", "install", "--global", "--trust", "--cache-dir", cache, target],
-              displayCommand: ["bun", "install", "--global", "--trust", target],
-            }),
-          )
-        }
-        if (method === "curl") {
-          const bash = yield* installerBash()
-          yield* fs.makeDirectory(global.cache, { recursive: true })
-          const directory = yield* temporaryDirectory("update-")
-          const installer = path.join(directory, "install")
-          yield* runUpgrade({
-            method,
-            command: [
-              "curl",
-              "-fsSL",
-              "-o",
-              installer,
-              "https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install",
-            ],
-            displayCommand: [
-              "curl",
-              "-fsSL",
-              "https://raw.githubusercontent.com/reubenzhuyt-cloud/CloseCode/dev/install",
-            ],
-            title: "Could not download the CloseCode installer",
-            retry: "Check your network, then run closecode upgrade again.",
-          })
-          return yield* retaining(
-            method,
-            runUpgrade({
-              method,
-              command: [bash, installer, "--version", version, "--no-modify-path"],
-              displayCommand: ["closecode", "upgrade", version, "--method", "curl"],
-              title: "The CloseCode installer failed",
-            }),
-          )
-        }
-        if (method === "brew") return yield* runUpgrade({ method, command: ["brew", "upgrade", packageName] })
-        if (method === "winget")
-          return yield* retaining(
-            method,
-            runUpgrade({
-              method,
-              command: [
-                "winget",
-                "upgrade",
-                ...wingetArgs,
-                "--version",
-                version,
-                "--silent",
-                "--accept-package-agreements",
-              ],
-            }),
-          )
-        return yield* retaining(method, runUpgrade({ method, command: commands[method] }))
+            command: [bash, installer, "--version", version, "--no-modify-path"],
+            displayCommand: ["closecode", "upgrade", version, "--method", "curl"],
+            title: "The CloseCode installer failed",
+          }),
+        )
       }),
     ).pipe(
       Effect.mapError((cause) =>
@@ -602,23 +469,8 @@ const make = Effect.gen(function* () {
         type: "unavailable" as const,
         message: "This build runs from a source checkout. Use an installed CloseCode release to check for updates.",
       }
-    const detected = yield* method()
-    if (!detected)
-      return {
-        type: "unavailable" as const,
-        message:
-          "Could not detect the installation method. Update with your package manager or download the latest release.",
-      }
-    const version = yield* latest(detected)
-    if (!parseReleaseVersion(version)) return yield* Effect.fail(new Error(`Invalid version: ${version}`))
-    const current = yield* Ref.get(installedVersion)
-    if (action(current, version, "auto") === "none") {
-      // An earlier check may have installed the update while this client is still running.
-      return action(OPENCODE_VERSION, current, "auto") === "none"
-        ? undefined
-        : { type: "installed" as const, version: current }
-    }
-    return { type: "available" as const, version }
+    // Nothing publishes CloseCode versions, so there is no release to compare the running build with.
+    return { type: "unavailable" as const, message: noUpdateBackendMessage }
   })
 
   const run = Effect.fn("cli.updater.run")(

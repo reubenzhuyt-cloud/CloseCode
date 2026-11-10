@@ -59,12 +59,10 @@ export function DocsCodeGallery(props: { reference?: boolean }) {
         <Tabs files label="Files" items={files} />
       </Item>
 
-      <Item name="Package-manager tabs" when="The same install command in npm, bun, pnpm and yarn.">
+      <Item name="Install method tabs" when="The same install step for each platform.">
         <Tabs
-          label="Package manager"
-          items={docsInstalls
-            .filter((item) => ["npm", "bun", "pnpm", "yarn"].includes(item.label))
-            .map((item) => ({ label: item.label, code: item.code, shell: true }))}
+          label="Install method"
+          items={docsInstalls.map((item) => ({ label: item.label, code: item.code, shell: true }))}
         />
       </Item>
 
@@ -121,7 +119,7 @@ export function DocsCodeGallery(props: { reference?: boolean }) {
       <Item name="Long multi-command script" when="A setup run top to bottom, one command per line.">
         <Terminal
           lines={[
-            "$ curl -fsSL https://opencode.ai/v2/install | bash",
+            "$ git clone https://github.com/reubenzhuyt-cloud/CloseCode",
             "$ cd my-app",
             "$ opencode auth login",
             '$ opencode run --model opencode/claude-opus-5-5 "Add a health check route"',
@@ -657,8 +655,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm install --global @opencode/cli
-      - run: opencode run --standalone --model opencode/claude-opus-5-5 "Review this repository"`
+      - uses: oven-sh/setup-bun@v2
+      - run: git clone --depth 1 https://github.com/reubenzhuyt-cloud/CloseCode /tmp/CloseCode
+      - run: bun install --cwd /tmp/CloseCode
+      - run: bun run --cwd /tmp/CloseCode/packages/cli build --single
+      - run: echo "/tmp/CloseCode/packages/cli/dist/cli-linux-x64/bin" >> $GITHUB_PATH
+      - run: closecode run --standalone --model opencode/claude-opus-5-5 "Review this repository"`
 
 const env = `# Loaded by your shell or CI, never committed
 ANTHROPIC_API_KEY=sk-ant-...

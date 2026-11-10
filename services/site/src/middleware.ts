@@ -47,7 +47,9 @@ export default [
       event.request = sanitizeServerActionRequest(event.request)
 
       const url = new URL(event.request.url)
-      // The V2 install script (`curl -fsSL https://opencode.ai/v2/install | bash`), always the latest.
+      // The V2 install script clients ask for: the fork repository's `install`, always the latest. The
+      // site shows the clone and the Windows installer instead (lib/install-commands.ts), because that
+      // script resolves package names the fork has not published.
       if (url.pathname === "/v2/install") return installScript()
       // The brand zip lived at the site root; it is in the files bucket now (src/lib/media.ts).
       if (url.pathname === "/opencode-brand-assets.zip")

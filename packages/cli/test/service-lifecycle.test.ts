@@ -6,6 +6,7 @@ import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { OPENCODE_VERSION } from "../src/version"
+import { ServiceConfig } from "../src/services/service-config"
 import { isolatedEnv } from "./fixture/environment"
 
 // Real `serve --service` processes driven by the real CLI commands and client. Only behavior that
@@ -15,6 +16,16 @@ import { isolatedEnv } from "./fixture/environment"
 
 const entry = path.join(import.meta.dir, "../src/index.ts")
 const serviceTest = process.platform === "win32" ? test.skip : test
+
+// The fork registers under its own filenames and never adopts upstream opencode's registration.
+test("service lifecycle homes use the fork's registration names", () => {
+  expect(ServiceConfig.filename()).toBe("closecode-service-local.json")
+  expect(ServiceConfig.filename("latest")).toBe("closecode-service.json")
+  expect(ServiceConfig.legacyRegistrationFilenames("local")).toEqual([])
+  expect(ServiceConfig.legacyRegistrationFilenames("latest")).toEqual([])
+  expect(ServiceConfig.legacyRegistrationFilenames("preview-a")).not.toContain("service.json")
+  expect(ServiceConfig.legacyRegistrationFilenames("preview-a")).not.toContain("service-local.json")
+})
 
 serviceTest(
   "concurrent CLI and client starts converge on one server",
@@ -121,7 +132,7 @@ serviceTest(
         process.platform !== "win32" && Bun.which("lsof") ? `PID ${process.pid} (` : "another process"
       }`,
     )
-    expect(conflict).toContain("opencode service set port <port>")
+    expect(conflict).toContain("closecode service set port <port>")
     expect(await servers(home)).toEqual([])
     expect(await Bun.file(home.registration).exists()).toBe(false)
 
@@ -180,7 +191,7 @@ async function serviceHome(options: { readonly failBoot?: boolean } = {}) {
   const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "opencode-service-lifecycle-")))
   const port = await availablePort()
   await fs.mkdir(path.join(root, "config"), { recursive: true })
-  await fs.writeFile(path.join(root, "config", "service-local.json"), JSON.stringify({ port }))
+  await fs.writeFile(path.join(root, "config", ServiceConfig.filename()), JSON.stringify({ port }))
   // A directory where the database file belongs makes boot fail after the server registers.
   if (options.failBoot) await fs.mkdir(path.join(root, "database"))
   // Servers spawned through this home's entry carry its path, so `servers()` sees only this home.
@@ -191,7 +202,7 @@ async function serviceHome(options: { readonly failBoot?: boolean } = {}) {
     root,
     port,
     entry: homeEntry,
-    registration: path.join(root, "state", "opencode", "service-local.json"),
+    registration: path.join(root, "state", "opencode", ServiceConfig.filename()),
     env: Object.fromEntries(
       Object.entries(isolatedEnv(root, overrides)).filter((entry): entry is [string, string] => entry[1] !== undefined),
     ),
@@ -213,7 +224,7 @@ async function cli(home: Home, ...args: string[]) {
     new Response(child.stdout).text(),
     new Response(child.stderr).text(),
   ])
-  if (code !== 0) throw new Error(`opencode ${args.join(" ")} exited ${code}: ${stderr.trim()}`)
+  if (code !== 0) throw new Error(`closecode ${args.join(" ")} exited ${code}: ${stderr.trim()}`)
   return stdout.trim()
 }
 

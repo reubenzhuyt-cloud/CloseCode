@@ -1,12 +1,12 @@
 # Util (`@opencode/util`)
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: 05bcb72b59 @ 2026-11-10
 
 ## Responsibility
 Cross-cutting helpers shared across the monorepo plus the Effect node/layer infrastructure that Core builds its service graph on. Owns no domain concepts. Leaf-ish: depends mostly on `effect` and Node/Bun builtins.
 
 ## Key Paths
-- `packages/util/src/` — flat utilities: `binary`, `bom`, `encode`, `hash`, `path`, `glob`, `glob`, `retry`, `flock`, `cross-spawn-spawner`, `process`, `npm`, `npm-config`, `patch`, `fs-util`, `global-roots`, `runtime-import`, `session-title-fallback`
+- `packages/util/src/` — flat one-file utilities (~40: `path`, `hash`, `glob`, `flock`, `fs-util`, `process`, `npm`, `npm-config`, `patch`, `retry`, `encode`, `binary`, `bom`, `qr`, `uuid`, `open`, `duration`, `record`, `teardown`, `session-title-fallback`, `session-turn`, …; `*.test.ts` siblings colocated)
 - `packages/util/src/effect/` — `app-node` graph helpers (`makeLocationNode`, `makeGlobalNode`, node providers/consumers), runtime helpers
 - `packages/util/src/observability/` — tracing/metrics support
 - `packages/util/src/runtime/`
@@ -15,6 +15,7 @@ Cross-cutting helpers shared across the monorepo plus the Effect node/layer infr
 ## Public API / Key Types
 - `effect/app-node` — `LayerNode.Provider`, `LayerNode.Output`, `makeLocationNode`, `makeGlobalNode`; the primitives Core uses to declare services
 - Path/encode/hash/flock/retry helpers used by Core and Server
+- `fs-util` — `FSUtil.Interface extends` the catalog `effect` `FileSystem` (`fs-util.ts:33`), so `readDirectoryEntries` and the `FileSystem.DirectoryEntry` types are inherited, not redeclared (the fork's duplicate `DirEntry`/`readDirectoryEntries` was removed in the v2.2.6 merge)
 - Platform-conditional modules resolved via `#` imports in consuming packages
 
 ## Dependencies

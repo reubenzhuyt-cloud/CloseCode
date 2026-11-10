@@ -37,10 +37,10 @@ export const voiceAnswers: VoiceAnswer[] = [
   {
     id: "install",
     asks: ["how do i install opencode", "how do i get started", "how do i download it", "install command", "set it up"],
-    keys: ["install", "download", "setup", "started", "start", "get", "curl", "npm", "brew", "homebrew"],
-    text: `In a terminal, run ${installs[0].command}. You can also install with npm, bun or Homebrew, or download the desktop app.`,
+    keys: ["install", "download", "setup", "started", "start", "get", "clone", "source", "build"],
+    text: `In a terminal, run ${installs[0].command}. CloseCode publishes no packages, so a clone and a build are the install; the Windows command in the same tabs uses script/install-closecode.ps1.`,
     speech:
-      "In a terminal, run the install script from opencode dot A I slash v2 slash install. You can also install with npm, bun or Homebrew, or download the desktop app.",
+      "CloseCode publishes no packages yet. Clone the CloseCode repository from GitHub, then build the command line app with Bun, or run the Windows installer script in the clone.",
     // public/voice/install.mp3 still reads the OpenCode 1 address (opencode.ai/install).
     unrecorded: true,
     links: [

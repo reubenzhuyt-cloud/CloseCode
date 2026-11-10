@@ -1,43 +1,46 @@
-// Every OpenCode install command the site shows: the home install row, the Terminal, Mini and SDK
+// Every CloseCode install command the site shows: the home install row, the Terminal, Mini and SDK
 // pages, the docs, llms.txt, the view-source comment, voice answers and the console API.
-// Checked on 5 Nov 2026 against the release workflow on origin/dev (.github/release/publish-npm.sh,
-// publish-homebrew.sh, publish-aur.sh, the repo's install script) and the live registries, where each
-// one installed OpenCode 2.2.5:
-// - npm: @opencode/cli, dist-tag latest = 2.2.5. Its postinstall links the platform binary, so Bun
-//   needs --trust and pnpm needs --allow-build. mise resolves `opencode` to npm:@opencode/cli.
-// - https://opencode.ai/v2/install reads opencode.ai/update/api/latest/cli/npm (@opencode/cli 2.2.5).
-// - Homebrew: anomalyco/tap/opencode-v2 = 2.2.5. AUR: opencode-beta = 2.2.5-1.
-// OpenCode 1 still lives under the old names: the opencode-ai npm package (1.19.5),
-// https://opencode.ai/install, anomalyco/tap/opencode (1.19.5) and the opencode-bin AUR package
-// (1.19.5). test/install-commands.test.ts keeps them out of the site.
+// The fork publishes no packages and runs no update service, so there is no npm package, Homebrew
+// tap, AUR formula or download backend to name. Every install builds from a clone of the repository,
+// checked against this tree on 10 Nov 2026:
+// - Windows: script/install-closecode.ps1 builds closecode.exe from the clone, replaces the copies it
+//   finds (npm globals, %USERPROFILE%\.opencode\bin), and verifies the binary starts.
+// - Everywhere else: `bun run --cwd packages/cli build --single` writes
+//   packages/cli/dist/cli-<os>-<arch>/bin/closecode, which goes on PATH.
+// - packages/sdk and packages/desktop are workspace packages, so they are not published either.
+// The upstream channels (the opencode.ai install scripts, @opencode/cli on npm, the anomalyco/tap
+// formulas and opencode-beta on the AUR) install the upstream product, so the site never shows them:
+// test/install-commands.test.ts keeps them out.
+
+const repository = "https://github.com/reubenzhuyt-cloud/CloseCode"
 
 /** The home install row, the Terminal and Mini pages, llms.txt, the console API and the view-source comment. */
 export const installs = [
-  { id: "curl", name: "Script", command: "curl -fsSL https://opencode.ai/v2/install | bash" },
-  { id: "npm", name: "npm", command: "npm install -g @opencode/cli" },
-  { id: "bun", name: "Bun", command: "bun install -g --trust @opencode/cli" },
-  { id: "brew", name: "Homebrew", command: "brew install anomalyco/tap/opencode-v2" },
-  { id: "paru", name: "AUR", command: "paru -S opencode-beta" },
+  {
+    id: "source",
+    name: "From source",
+    command: `git clone ${repository} && cd CloseCode && bun install && bun run --cwd packages/cli build --single`,
+  },
+  {
+    id: "windows",
+    name: "Windows",
+    command: `git clone ${repository} && cd CloseCode && pwsh -File ./script/install-closecode.ps1`,
+  },
 ] as const
 
-/** The docs intro's install tabs: every channel that installs OpenCode 2. */
-export const docsInstalls = [
-  { label: "curl", code: installs[0].command },
-  { label: "homebrew", code: installs[3].command },
-  { label: "npm", code: installs[1].command },
-  { label: "bun", code: installs[2].command },
-  { label: "pnpm", code: "pnpm add -g --allow-build=@opencode/cli @opencode/cli" },
-  { label: "yarn", code: "yarn global add @opencode/cli" },
-  { label: "vite+", code: "vp install -g @opencode/cli" },
-  { label: "aur", code: installs[4].command },
-  { label: "mise", code: "mise use -g opencode" },
+/** The docs intro's install tabs: the same two paths. */
+export const docsInstalls = installs.map((item) => ({ label: item.id, code: item.command }))
+
+/** The SDK is a workspace package in the clone (packages/sdk); the fork publishes no npm packages. */
+export const sdkInstalls = [
+  {
+    id: "source",
+    command: `# @opencode/sdk is not published yet: see ${repository}/tree/dev/packages/sdk`,
+  },
 ]
 
-/** The v2 SDK (@opencode/sdk, dist-tag latest = 2.2.5). */
-export const sdkInstalls = [
-  { id: "npm", command: "npm i @opencode/sdk" },
-  { id: "bun", command: "bun add @opencode/sdk" },
-] as const
-
-/** The desktop app's Homebrew cask (opencode-desktop = 2.2.5). */
-export const desktopInstall = { id: "cask", command: "brew install --cask opencode-desktop" }
+/** The desktop app packages from the clone too, and bundles the CLI, so build that first. */
+export const desktopInstall = {
+  id: "source",
+  command: `git clone ${repository} && cd CloseCode && bun install && bun run --cwd packages/cli build --single && bun run --cwd packages/desktop build`,
+}

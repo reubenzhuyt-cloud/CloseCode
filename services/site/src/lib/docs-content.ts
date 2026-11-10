@@ -51,82 +51,7 @@ export const docsConfigure = [
 
 export { docsInstalls }
 
-const update = "https://opencode.ai/update/api/latest"
-
-export type DownloadGroup = { platform: string; links: string[][] }
-
-export const cliDownloads: DownloadGroup[] = [
-  {
-    platform: "macOS",
-    links: [
-      ["Apple silicon", `${update}/cli/opencode/opencode-darwin-arm64.zip`],
-      ["Intel", `${update}/cli/opencode/opencode-darwin-x64.zip`],
-      ["Intel (baseline)", `${update}/cli/opencode/opencode-darwin-x64-baseline.zip`],
-    ],
-  },
-  {
-    platform: "Windows",
-    links: [
-      ["ARM64", `${update}/cli/opencode/opencode-windows-arm64.zip`],
-      ["x64", `${update}/cli/opencode/opencode-windows-x64.zip`],
-      ["x64 (baseline)", `${update}/cli/opencode/opencode-windows-x64-baseline.zip`],
-    ],
-  },
-  {
-    platform: "Linux (glibc)",
-    links: [
-      ["ARM64", `${update}/cli/opencode/opencode-linux-arm64.tar.gz`],
-      ["x64", `${update}/cli/opencode/opencode-linux-x64.tar.gz`],
-      ["x64 (baseline)", `${update}/cli/opencode/opencode-linux-x64-baseline.tar.gz`],
-    ],
-  },
-  {
-    platform: "Linux (musl)",
-    links: [
-      ["ARM64", `${update}/cli/opencode/opencode-linux-arm64-musl.tar.gz`],
-      ["x64", `${update}/cli/opencode/opencode-linux-x64-musl.tar.gz`],
-      ["x64 (baseline)", `${update}/cli/opencode/opencode-linux-x64-baseline-musl.tar.gz`],
-    ],
-  },
-]
-
-export const desktopDownloads: DownloadGroup[] = [
-  {
-    platform: "macOS",
-    links: [
-      ["Apple silicon", `${update}/desktop/opencode/opencode-desktop-mac-arm64.dmg`],
-      ["Intel", `${update}/desktop/opencode/opencode-desktop-mac-x64.dmg`],
-    ],
-  },
-  {
-    platform: "Windows",
-    links: [
-      ["x64", `${update}/desktop/opencode/opencode-desktop-win-x64.exe`],
-      ["ARM64", `${update}/desktop/opencode/opencode-desktop-win-arm64.exe`],
-    ],
-  },
-  {
-    platform: "Linux (.deb)",
-    links: [
-      ["x64", `${update}/desktop/opencode/opencode-desktop-linux-amd64.deb`],
-      ["ARM64", `${update}/desktop/opencode/opencode-desktop-linux-arm64.deb`],
-    ],
-  },
-  {
-    platform: "Linux (.rpm)",
-    links: [
-      ["x64", `${update}/desktop/opencode/opencode-desktop-linux-x86_64.rpm`],
-      ["ARM64", `${update}/desktop/opencode/opencode-desktop-linux-aarch64.rpm`],
-    ],
-  },
-  {
-    platform: "Linux (AppImage)",
-    links: [
-      ["x64", `${update}/desktop/opencode/opencode-desktop-linux-x86_64.AppImage`],
-      ["ARM64", `${update}/desktop/opencode/opencode-desktop-linux-arm64.AppImage`],
-    ],
-  },
-]
+const desktopBuild = "bun run --cwd packages/desktop build"
 
 export const docsToc = [
   { id: "cli", label: "CLI" },
@@ -148,25 +73,41 @@ export const docsIntro = {
   lead: "OpenCode is an open source coding agent. It's available as a desktop app, a terminal interface, a mobile app and an SDK.",
   cli: [
     [
-      "The npm package uses a postinstall script to select the native ",
-      { code: "opencode" },
-      " binary for your platform. The Bun and pnpm commands explicitly allow the required script; Vite+ requires no additional flag. The mise command requires mise 2026.10.9 or later; older versions install OpenCode 1.",
+      "CloseCode publishes no npm package, package manager formula or installer, so both tabs build from a clone of the repository, with Bun and Git installed."
     ],
-    ["Windows package managers are not supported."],
-    ["Download a standalone CLI binary for your platform."],
+    [
+      "On Windows, ",
+      { code: "script/install-closecode.ps1" },
+      " builds ",
+      { code: "closecode.exe" },
+      ", replaces the copies it finds (npm globals and ",
+      { code: "%USERPROFILE%\\.opencode\\bin" },
+      "), verifies that the binary starts, and prints how to add that directory to your ",
+      { code: "PATH" },
+      " (",
+      { code: "-AddToPath" },
+      " does it for you).",
+    ],
+    [
+      "Elsewhere, the build writes ",
+      { code: "packages/cli/dist/cli-<os>-<arch>/bin/closecode" },
+      ". Put that directory on your ",
+      { code: "PATH" },
+      ", for example ",
+      { code: `export PATH="$PWD/packages/cli/dist/cli-linux-x64/bin:$PATH"` },
+      ".",
+    ],
+    ["There are no standalone binaries to download, and Windows package managers are not supported."],
   ] satisfies RichText[],
-  desktop: "Download the latest OpenCode Desktop build for your platform.",
+  desktop: ["The desktop app builds from the same clone, from the CLI you just built:"] satisfies RichText,
+  desktopNote: "No desktop installers are published either.",
   web: {
-    lead: ["Access the OpenCode web interface with the ", { code: "opencode pair" }, " command."] satisfies RichText,
-    command: "opencode pair",
+    lead: ["Access the web interface with the ", { code: "closecode pair" }, " command."] satisfies RichText,
+    command: "closecode pair",
     output: "  Open a link to connect. Links work once and expire in 5 minutes.",
     url: "http://127.0.0.1:49374/auth/connect/...",
   },
-  docker: [
-    "Docker images use versioned tags, for example ",
-    { code: "ghcr.io/anomalyco/opencode:2.0.0" },
-    ".",
-  ] satisfies RichText,
+  docker: ["No Docker images are published for CloseCode; build one from a clone of the repository."] satisfies RichText,
   connect: [
     [
       "OpenCode has built-in support for many LLM providers. You can connect to them directly ",
@@ -210,10 +151,6 @@ export const docsIntro = {
 /** The docs Intro page as Markdown, with the docs navigation after it. */
 export function docsMarkdown() {
   const intro = docsIntro
-  const downloads = (groups: DownloadGroup[]) =>
-    groups
-      .map((group) => `- **${group.platform}:** ${group.links.map((item) => link(item[0], item[1])).join(" · ")}`)
-      .join("\n")
   const list = (items: { label: string; href: string }[]) =>
     items.map((item) => `- ${link(item.label, item.href)}`).join("\n")
 
@@ -223,10 +160,10 @@ export function docsMarkdown() {
     "## CLI",
     codeFence("bash", docsInstalls.map((item) => `# ${item.label}\n${item.code}`).join("\n\n")),
     ...intro.cli.map(richToMarkdown),
-    downloads(cliDownloads),
     "## Desktop",
-    intro.desktop,
-    downloads(desktopDownloads),
+    richToMarkdown(intro.desktop),
+    codeFence("bash", `$ ${desktopBuild}`),
+    intro.desktopNote,
     "## Web",
     richToMarkdown(intro.web.lead),
     codeFence("bash", `$ ${intro.web.command}\n\n${intro.web.output}\n\n  ${intro.web.url}`),

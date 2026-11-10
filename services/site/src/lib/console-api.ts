@@ -67,8 +67,7 @@ export function install() {
     url: url(getDownloadHref(build.id)),
   }))
   const command = (id: string) => installs.find((item) => item.id === id)?.command
-  const forThisComputer =
-    os === "Windows" ? ["npm", "bun"] : os === "macOS" ? ["brew", "curl"] : ["curl", "npm", "paru"]
+  const forThisComputer = os === "Windows" ? ["windows", "source"] : ["source"]
 
   const manifest = {
     site: location.origin,
@@ -107,7 +106,7 @@ export function install() {
     }
     say([`Install OpenCode${os ? ` on ${os}` : ""}:`, dim])
     forThisComputer.forEach((id) => say(["› ", dim], [command(id) ?? "", strong], [`   # ${id}`, dim]))
-    say(["Others: opencode.install('npm' | 'bun' | 'brew' | 'paru' | 'curl'). Pick one: opencode.install.pick()", dim])
+    say(["Others: opencode.install('source' | 'windows'). Pick one: opencode.install.pick()", dim])
     return command(forThisComputer[0])
   }
 
@@ -176,7 +175,7 @@ export function install() {
     help() {
       console.table({
         "opencode.install()": "the install command for this computer",
-        "opencode.install('brew')": "or one of: curl, npm, bun, brew, paru",
+        "opencode.install('windows')": "or one of: source, windows",
         "opencode.install.pick()": "choose one with the arrow keys and copy it",
         "opencode.download()": "desktop builds; download('mac-arm') starts one",
         "opencode.mobile()": androidSoon
@@ -206,7 +205,7 @@ export function install() {
         return build.url
       }
       console.table(Object.fromEntries(builds.map((build) => [build.id, { build: build.label, url: build.url }])))
-      say(["Homebrew: ", dim], [desktopInstall.command, strong])
+      say(["Desktop: ", dim], [desktopInstall.command, strong])
       return builds.map((build) => build.url)
     },
     mobile() {
