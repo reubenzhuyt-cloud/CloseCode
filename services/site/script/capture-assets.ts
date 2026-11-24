@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // Captures the official product screenshots from the real product with demo data, in light and dark,
 // at 2x, and writes a manifest (OpenCode version, date, size and hash of each file) next to them.
-// See script/assets/README.md. Run from packages/console/app:
+// See script/assets/README.md. Run from services/site:
 //   bun script/capture-assets.ts [--out ../../../../fresh-assets] [--surface terminal] [--surface terminal-film]
 // Needs: opencode (or OPENCODE_BIN), vhs, bun, git, zip. Only the terminal surfaces are automated so far.
 // Track the TUI on dev: OPENCODE_BIN=<a build of origin/dev's packages/cli> (bun run script/build.ts
@@ -67,7 +67,7 @@ const manifest = {
   opencodeVersion: version.replace(/^v/, ""),
   capturedAt: new Date().toISOString(),
   generator: {
-    script: "packages/console/app/script/capture-assets.ts",
+    script: "services/site/script/capture-assets.ts",
     commit: (await $`git rev-parse --short HEAD`.nothrow().text()).trim(),
     vhs: (await $`vhs --version`.nothrow().text()).trim(),
   },

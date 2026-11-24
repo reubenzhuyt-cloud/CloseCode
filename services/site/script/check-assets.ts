@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 // Checks that the captured product screenshots are fresh: compares the manifest written by
-// script/capture-assets.ts with the latest stable OpenCode release on GitHub. Run from packages/console/app:
+// script/capture-assets.ts with the latest stable OpenCode release on GitHub. Run from services/site:
 //   bun script/check-assets.ts [--manifest public/product-assets/manifest.json] [--max-behind 3]
 // Fails (exit 1) when the manifest is missing, shows an older major.minor than the latest release,
 // or is more than --max-behind stable releases behind. Warns when it is behind by fewer.

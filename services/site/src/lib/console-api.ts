@@ -300,7 +300,7 @@ type ModelsDev = Record<
   { models?: Record<string, { id: string; name: string; status?: string; cost?: { input?: number; output?: number } }> }
 >
 
-/** Loads a Text.js console app built by packages/console/textjs; its manifest maps names to hashed files. */
+/** Loads a Text.js console app built by services/site/textjs; its manifest maps names to hashed files. */
 async function textjs<T>(name: "lite" | "picker") {
   const files = (await fetch("/textjs/manifest.json").then((response) => response.json())) as Record<string, string>
   return (await import(/* @vite-ignore */ `/textjs/${files[name]}`)) as T

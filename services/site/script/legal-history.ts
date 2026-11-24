@@ -11,18 +11,16 @@ import { fileURLToPath } from "url"
 const app = join(dirname(fileURLToPath(import.meta.url)), "..")
 const repo = "https://github.com/anomalyco/opencode"
 
-// Every file that has held a document's text, newest first. The text moved from the route files to
-// src/lib/legal, then to this service, and two copies existed for a day, so a version is the text of
+// Every file that has held a document's text, newest first. The text moved from the old site's route
+// files to this service's own files, and two copies existed for a day, so a version is the text of
 // the newest of them that existed at that commit.
 const documents = {
   "/legal/privacy-policy": [
     "services/site/src/lib/legal/privacy-policy.ts",
-    "packages/console/app/src/lib/legal/privacy-policy.ts",
     "packages/console/app/src/routes/legal/privacy-policy/index.tsx",
   ],
   "/legal/terms-of-service": [
     "services/site/src/lib/legal/terms-of-service.ts",
-    "packages/console/app/src/lib/legal/terms-of-service.ts",
     "packages/console/app/src/routes/legal/terms-of-service/index.tsx",
   ],
 }

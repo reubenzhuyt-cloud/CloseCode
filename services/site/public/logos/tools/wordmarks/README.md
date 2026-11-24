@@ -3,7 +3,7 @@
 One-colour copies of each product's full logo (mark and wordmark) for the "Tool tiles: logo" setting
 in the home page's "Bring your own tools" section. Every file is one black fill with knockouts as
 transparent holes, and its `viewBox` is cropped to the ink, so it works as a CSS mask. After you add
-or change a file, run `bun script/measure-logos.ts` from `packages/console/app` to update
+or change a file, run `bun script/measure-logos.ts` from `services/site` to update
 `src/component/site/logo-metrics.ts`.
 
 | File         | Source                                                                                                  |

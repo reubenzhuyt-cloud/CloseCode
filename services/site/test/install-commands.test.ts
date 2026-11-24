@@ -28,8 +28,8 @@ const app = path.join(import.meta.dir, "..")
 const roots = ["src", "public", "script"]
 const text = /\.(tsx?|jsx?|css|md|mdx|txt|json|html|xml|webmanifest)$/
 // Stored GitHub data (script/github-snapshot.ts): past release notes may name OpenCode 1 packages
-// as history, not as an install command. The V1 docs are OpenCode 1's, so they install it.
-const exempt = (file: string) => file === "src/lib/github-snapshot.json" || file.startsWith("src/docs/v1/")
+// as history, not as an install command.
+const exempt = (file: string) => file === "src/lib/github-snapshot.json"
 
 async function files() {
   const found = await Promise.all(

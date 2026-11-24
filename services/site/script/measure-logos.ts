@@ -2,7 +2,7 @@
 // Measures the home logo row's logos and the tool wordmarks with logo-soup (https://github.com/johannschopplich/logo-soup)
 // and writes their metrics to src/component/site/logo-metrics.ts, where LogoWall sizes them.
 // logo-soup and sharp install into a temporary folder, so the app takes no dependency on them.
-// Run from packages/console/app: bun script/measure-logos.ts
+// Run from services/site: bun script/measure-logos.ts
 import { mkdtemp, rm } from "fs/promises"
 import { tmpdir } from "os"
 import { dirname, join } from "path"

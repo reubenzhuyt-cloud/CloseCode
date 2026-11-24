@@ -2,7 +2,7 @@
  * Generative cover patterns for the printed legal documents.
  *
  * Pure and deterministic: the same params (including `seed`) always produce the same SVG. No DOM,
- * no imports, so it can move into packages/console/app/src/lib/legal/ unchanged. All lengths are
+ * no imports, so it can move between the legal pages and their print layout unchanged. All lengths are
  * millimetres on an A4 sheet (210 × 297); the output is black on white (or white on black when
  * inverted), with no grey, so it prints with "background graphics" off.
  */

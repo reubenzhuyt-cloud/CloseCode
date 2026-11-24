@@ -185,7 +185,6 @@
     "**/node_modules",
     "**/dist",
     "**/.build",
-    "**/.sst",
     "**/*.d.ts",
     "**/sdk.gen.ts",
     "packages/cli-rs/**",

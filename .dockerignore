@@ -1,6 +1,5 @@
 .git
 .opencode
-.sst
 .turbo
 .wrangler
 node_modules

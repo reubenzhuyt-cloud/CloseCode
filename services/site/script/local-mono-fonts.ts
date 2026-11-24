@@ -3,7 +3,7 @@
 // fontkit) and writes their names to src/lib/local-mono-fonts.json, for Settings › Mono font's
 // "Installed on this Mac" group. Only the names are kept; the fonts are never copied. fontkit
 // installs into a temporary folder, so the app takes no dependency on it.
-// Run from packages/console/app: bun script/local-mono-fonts.ts
+// Run from services/site: bun script/local-mono-fonts.ts
 import { mkdtemp, readdir, rm } from "fs/promises"
 import { homedir, tmpdir } from "os"
 import { dirname, join } from "path"

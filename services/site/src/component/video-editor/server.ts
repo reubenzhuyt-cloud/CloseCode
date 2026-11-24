@@ -9,7 +9,7 @@ import { formatEdit, type Edit } from "./edit"
 // routes/video-editor/api/[...path].ts, which only loads this module when import.meta.env.DEV is true.
 
 // The recording pipelines live outside the repo; by default in product-videos/ next to the checkout (the dev server
-// runs from packages/console/app). Set PRODUCT_VIDEOS_DIR to use another folder.
+// runs from services/site). Set PRODUCT_VIDEOS_DIR to use another folder.
 const ROOT = resolve(process.env.PRODUCT_VIDEOS_DIR ?? join(process.cwd(), "../../../../product-videos"))
 const EDITOR = join(ROOT, "editor")
 const SITE = join(process.cwd(), "public", "product-videos")

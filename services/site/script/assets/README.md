@@ -41,7 +41,7 @@ Rules for every surface:
 ### Terminal (TUI): automated
 
 ```sh
-cd packages/console/app
+cd services/site
 bun script/capture-assets.ts   # about 1 minute; writes ../../../../fresh-assets (next to the checkout)
 ```
 
@@ -67,7 +67,7 @@ orange dialogs. To capture from `dev`:
 ```sh
 git worktree add --detach ../tui-dev origin/dev && cd ../tui-dev && bun install
 cd packages/cli && OPENCODE_VERSION=<version in packages/cli/package.json> bun run script/build.ts --single --skip-install --skip-web-ui --outdir=<build dir>
-cd <site checkout>/packages/console/app
+cd <site checkout>/services/site
 OPENCODE_BIN=<build dir>/cli-darwin-arm64/bin/opencode bun script/capture-assets.ts --surface terminal --surface terminal-film \
   --experiment new-designs --theme opencode2 --out <out>
 ```
@@ -183,7 +183,7 @@ jobs:
       - run: bun install
       - run: bun run --cwd packages/cli build --single
       - name: Capture
-        working-directory: packages/console/app
+        working-directory: services/site
         env: { CAPTURE_FONT: "JetBrains Mono" }
         run: bun script/capture-assets.ts --out public/product-assets
       - uses: peter-evans/create-pull-request@v7
@@ -191,13 +191,13 @@ jobs:
           branch: fresh-assets
           title: "chore(console): capture product screenshots from ${{ github.event.release.tag_name || 'latest' }}"
           body: "Automatic capture. Review the images before merging."
-          add-paths: packages/console/app/public/product-assets
+          add-paths: services/site/public/product-assets
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - working-directory: packages/console/app
+      - working-directory: services/site
         env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
         run: bun script/check-assets.ts --manifest public/product-assets/manifest.json
 ```
