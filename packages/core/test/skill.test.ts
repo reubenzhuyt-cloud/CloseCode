@@ -1,6 +1,7 @@
 import { describe, expect } from "bun:test"
 import { Deferred, Effect, Fiber, Layer, Stream } from "effect"
 import { Agent } from "@opencode/core/agent"
+import { PermissionPolicy } from "@opencode/core/permission/policy"
 import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
 import { LayerNode } from "@opencode/util/effect/layer-node"
 import { FSUtil } from "@opencode/util/fs-util"
@@ -60,7 +61,7 @@ describe("Skill", () => {
       expect(yield* skills.get(Skill.ID.make("deploy"))).toBeUndefined()
       expect(yield* skills.get(Skill.ID.make("team:review"))).toEqual(info("team:review", "Review"))
       const instructions = yield* SkillInstructions.Service
-      const guidance = yield* instructions.load([]).pipe(Effect.flatMap(readInitial))
+      const guidance = yield* instructions.load(PermissionPolicy.empty).pipe(Effect.flatMap(readInitial))
       expect(guidance.text).toContain("<id>team:review</id>")
       expect(guidance.text).not.toContain("deploy")
 
@@ -192,25 +193,39 @@ describe("Skill", () => {
   it.effect("hides skills denied by a tag rule and honors last-match-wins across tags and IDs", () => {
     const unity = tagged("unity-edit", ["unity"])
     return Effect.sync(() => {
-      expect(Skill.available([unity], [{ action: "skill", resource: "tag:unity", effect: "deny" }])).toEqual([])
       expect(
-        Skill.available([unity], [
-          { action: "skill", resource: "tag:unity", effect: "deny" },
-          { action: "skill", resource: "unity-edit", effect: "allow" },
-        ]),
+        Skill.available(
+          [unity],
+          PermissionPolicy.fromRules([{ action: "skill", resource: "tag:unity", effect: "deny" }]),
+        ),
+      ).toEqual([])
+      expect(
+        Skill.available(
+          [unity],
+          PermissionPolicy.fromRules([
+            { action: "skill", resource: "tag:unity", effect: "deny" },
+            { action: "skill", resource: "unity-edit", effect: "allow" },
+          ]),
+        ),
       ).toEqual([unity])
       expect(
-        Skill.available([unity], [
-          { action: "skill", resource: "unity-edit", effect: "deny" },
-          { action: "skill", resource: "tag:unity", effect: "allow" },
-        ]),
+        Skill.available(
+          [unity],
+          PermissionPolicy.fromRules([
+            { action: "skill", resource: "unity-edit", effect: "deny" },
+            { action: "skill", resource: "tag:unity", effect: "allow" },
+          ]),
+        ),
       ).toEqual([unity])
       expect(
-        Skill.available([unity], [
-          { action: "skill", resource: "tag:unity", effect: "deny" },
-          { action: "skill", resource: "unity-edit", effect: "allow" },
-          { action: "skill", resource: "tag:*", effect: "deny" },
-        ]),
+        Skill.available(
+          [unity],
+          PermissionPolicy.fromRules([
+            { action: "skill", resource: "tag:unity", effect: "deny" },
+            { action: "skill", resource: "unity-edit", effect: "allow" },
+            { action: "skill", resource: "tag:*", effect: "deny" },
+          ]),
+        ),
       ).toEqual([])
     })
   })
@@ -279,7 +294,7 @@ describe("Skill", () => {
         }),
       )
       const agent = yield* agents.get(Agent.ID.make("reviewer"))
-      expect(Skill.available([info("deploy", "Deploy")], agent!.permissions)).toEqual([])
+      expect(Skill.available([info("deploy", "Deploy")], PermissionPolicy.fromRules(agent!.permissions))).toEqual([])
     }),
   )
 

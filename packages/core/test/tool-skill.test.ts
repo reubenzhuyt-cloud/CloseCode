@@ -192,7 +192,7 @@ describe("SkillTool", () => {
           agent: Agent.ID.make("unitymaster"),
           call: { type: "tool-call", id: "call-display-name", name: "skill", input: { id: "unity-edit" } },
         }),
-      ).toMatchObject({ status: "completed", output: { name: "Unity Edit" } })
+      ).toMatchObject({ status: "completed", metadata: { name: "Unity Edit" } })
     }).pipe(
       Effect.provide(
         AppNodeBuilder.build(LayerNode.group([Tool.node, skillToolNode, Skill.node, Config.node, Agent.node]), [
@@ -278,7 +278,7 @@ describe("SkillTool", () => {
               }),
             ).toEqual({
               status: "completed",
-              output: { name: "Effect", directory, output: Skill.toModelOutput(info, [reference]) },
+              output: { directory, content: Skill.toModelOutput(info, [reference]) },
               content: [{ type: "text", text: Skill.toModelOutput(info, [reference]) }],
               metadata: { name: "Effect", directory },
             })

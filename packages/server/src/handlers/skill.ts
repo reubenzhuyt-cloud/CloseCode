@@ -5,7 +5,7 @@ import { AgentNotFoundError } from "@opencode/protocol/errors"
 import { Effect } from "effect"
 import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"
-import { awaitPlugins, response } from "../location"
+import { response } from "../location"
 
 export const SkillHandler = HttpApiBuilder.group(Api, "server.skill", (handlers) =>
   handlers
@@ -13,7 +13,6 @@ export const SkillHandler = HttpApiBuilder.group(Api, "server.skill", (handlers)
     .handle(
       "skill.diagnostic",
       Effect.fn(function* (ctx) {
-        yield* awaitPlugins
         const agent = yield* Agent.Service.use((agents) => agents.resolve(ctx.query.agent))
         if (!agent)
           return yield* new AgentNotFoundError({

@@ -232,7 +232,8 @@ function locale(value: string) {
 const normalizeScript = (script?: string) => (script === "Aran" ? "Arab" : script)
 
 export const DESKTOP_NATIVE_ENGLISH = {
-  "desktop.microphoneUsage": "CloseCode uses your microphone for voice calls.",
+  "desktop.microphoneUsage": "CloseCode uses your microphone for voice calls and lets websites you allow in the browser pane use it.",
+  "desktop.cameraUsage": "CloseCode lets websites you allow in the browser pane use your camera.",
   "desktop.documentsFolderUsage":
     "CloseCode uses files in your Documents folder for projects you open and commands you run there.",
   "desktop.desktopFolderUsage": "CloseCode uses files on your Desktop for projects you open and commands you run there.",

@@ -101,6 +101,10 @@ const render = (await import(path.join(cache, "render/render.js"))) as {
 }
 
 const write = (href: string, body: string) => Bun.write(path.join(output, href), body)
+// Copy public assets before Bun.write can create the same output directories.
+await Promise.all(
+  docsSets.map((set) => cp(path.join(root, "public", set.base), path.join(output, set.base), { recursive: true })),
+)
 // The files the server render emitted that pages link (the fonts they preload and declare), beside the
 // client build's; the render's own code stays in the cache.
 const emitted = new Set<string>()
@@ -118,8 +122,6 @@ await Promise.all([
   write(`${base}llms.txt`, render.renderLlmsTxt(site)),
   // Only the latest docs are in the sitemap.
   write(`${base}sitemap.xml`, render.renderSitemap(site)),
-  // The logos, favicon and generated files the pages link (the site build has copied them already).
-  cp(path.join(root, "public", base), path.join(output, base), { recursive: true }),
 ])
 
 await Promise.all(

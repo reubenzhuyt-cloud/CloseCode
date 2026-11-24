@@ -40,11 +40,21 @@ export function docsHostRedirect(url: URL) {
   return `https://${url.hostname.slice("docs.".length)}${latestDocs.base.slice(0, -1)}${path}${url.search}`
 }
 
-// Pages that moved, by slug: the old docs' Go and Zen pages, which became Console pages.
+// Pages that moved, by slug: the docs' own moves, and the old docs' Go and Zen pages, which became
+// Console pages.
 const moved = new Map([
   ["console/inference", "console/api/inference"],
   ["go", "console/go"],
   ["zen", "console/models"],
+  ["rules", "instructions"],
+  ["sdk", "build/sdk"],
+  ["server", "api"],
+  ["keybinds", "cli/keybinds"],
+  ["tui", "cli/tui"],
+  ["web", "cli/web"],
+  ["acp", "cli/acp"],
+  ["modes", "agents"],
+  ["custom-tools", "build/plugins/server"],
 ])
 
 /**

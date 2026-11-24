@@ -5,7 +5,7 @@ import { Context, Effect, Layer, Schema } from "effect"
 import type { Agent } from "@opencode/schema/agent"
 import type { Session } from "@opencode/schema/session"
 import { optional } from "@opencode/schema/schema"
-import { Permission } from "../permission.js"
+import type { PermissionPolicy } from "../permission/policy.js"
 import { Skill } from "../skill.js"
 import { Instructions } from "../instructions/index.js"
 
@@ -51,9 +51,9 @@ const update = Instructions.listUpdate<Summary>({
 })
 
 export interface Interface {
-  /** Lists skills the given ruleset does not deny; callers pass the merged agent and Session permissions. */
+  /** Lists skills the given policy does not deny; callers pass the session's effective permission policy. */
   readonly load: (
-    permissions: Permission.Ruleset,
+    policy: PermissionPolicy.Policy,
     input?: { readonly agent?: Agent.Info; readonly metadata?: Session.Metadata },
   ) => Effect.Effect<Instructions.List>
 }
@@ -66,11 +66,11 @@ const layer = Layer.effect(
     const skills = yield* Skill.Service
 
     return Service.of({
-      load: Effect.fn("SkillInstructions.load")(function* (permissions, input) {
+      load: Effect.fn("SkillInstructions.load")(function* (policy, input) {
         const entries = yield* skills.entries()
         const all = entries.filter((entry) => Skill.visible(entry, input?.agent)).map((entry) => entry.skill)
         const levels = resolveSkillLevels(input?.agent, input?.metadata, all)
-        const available = Skill.available(all, permissions)
+        const available = Skill.available(all, policy)
           .flatMap((skill) => {
             const level = levels[skill.name] ?? levels[skill.id] ?? "full"
             if (level === "off") return []

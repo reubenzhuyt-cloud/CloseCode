@@ -54,7 +54,7 @@ describe("docs routes", () => {
   })
 
   test("send paths without a page to the docs' intro, temporarily", () => {
-    for (const path of ["/docs/ja/", "/docs/ja/agents/", "/docs/zh-cn/config", "/docs/ide/", "/docs/sdk.md"])
+    for (const path of ["/docs/ja/", "/docs/ja/agents/", "/docs/zh-cn/config", "/docs/ide/", "/docs/lsp.md"])
       expect(route(path)).toEqual({ type: "redirect", location: "/docs/", status: 302 })
     expect(route("/docs/ide/?ref=app")).toEqual({ type: "redirect", location: "/docs/", status: 302 })
   })
@@ -67,6 +67,9 @@ describe("docs routes", () => {
     })
     expect(route("/docs/go")).toEqual({ type: "redirect", location: "/docs/console/go/", status: 301 })
     expect(route("/docs/zen/")).toEqual({ type: "redirect", location: "/docs/console/models/", status: 301 })
+    expect(route("/docs/rules/")).toEqual({ type: "redirect", location: "/docs/instructions/", status: 301 })
+    expect(route("/docs/sdk")).toEqual({ type: "redirect", location: "/docs/build/sdk/", status: 301 })
+    expect(route("/docs/server/")).toEqual({ type: "redirect", location: "/docs/api", status: 301 })
   })
 
   test("leave the docs' own files to the assets, never to a page", () => {
@@ -92,6 +95,7 @@ describe("retired V1 docs routes", () => {
     expect(host("https://docs.opencode.ai/")).toBe("https://opencode.ai/docs/")
     expect(host("https://docs.opencode.ai/docs")).toBe("https://opencode.ai/docs/")
     expect(host("https://docs.opencode.ai/docs/ide/?x=1")).toBe("https://opencode.ai/docs/ide/?x=1")
+    expect(host("https://docs.opencode.ai/s/abc")).toBe("https://opencode.ai/docs/s/abc")
     expect(host("https://docs.dev.opencode.ai/docs/ja/")).toBe("https://dev.opencode.ai/docs/ja/")
     expect(host("https://opencode.ai/docs/")).toBeUndefined()
   })

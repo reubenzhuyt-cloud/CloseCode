@@ -25,24 +25,28 @@ function fixture(
   name = "@opencode/cli",
   failCleanup = false,
   formula?: string,
-  executableOverride?: (root: string, home: string) => Effect.Effect<string, PlatformError.PlatformError, FileSystem.FileSystem>,
+  executableOverride?: (
+    root: string,
+    home: string,
+  ) => Effect.Effect<string, PlatformError.PlatformError, FileSystem.FileSystem>,
 ) {
   return Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem
     const spawner = yield* ChildProcessSpawner.ChildProcessSpawner
     const root = yield* fs.makeTempDirectoryScoped({ prefix: "opencode-updater-" })
     const execPath = process.execPath
-    const modules = path.join(root, "node_modules")
+    // npm's global layout on POSIX.
+    const modules = path.join(root, "lib", "node_modules")
     const executable = executableOverride
       ? yield* executableOverride(root, path.join(root, "home"))
       : formula
         ? path.join(root, "Cellar", formula, "2.0.20", "bin", "opencode")
-        : path.join(modules, "@opencode", "cli", "bin", "opencode")
+        : path.join(modules, ...name.split("/"), "bin", "opencode")
     yield* fs.makeDirectory(path.dirname(executable), { recursive: true })
     yield* fs.writeFileString(executable, "binary")
     if (!formula && !executableOverride)
       yield* fs.writeFileString(
-        path.join(modules, "@opencode", "cli", "package.json"),
+        path.join(modules, ...name.split("/"), "package.json"),
         JSON.stringify({ name, bin: { opencode: "bin/opencode" } }),
       )
     const global = Global.make({
@@ -64,6 +68,7 @@ function fixture(
       yield* fs.writeFileString(bash, "bash")
     }
     const commands: string[][] = []
+    const paths: Array<string | undefined> = []
     const updater = yield* Updater.Service.pipe(
       Effect.provide(Updater.layer),
       Effect.provide(
@@ -97,6 +102,7 @@ function fixture(
               const args = command.args.map(String)
               const lookup = command.command === "git" && args[0] === "--exec-path"
               if (!lookup) commands.push([command.command, ...args])
+              if (!lookup) paths.push(command.options.env?.PATH?.toString())
               const result = lookup
                 ? { stdout: Buffer.from(`${path.join(git, "mingw64", "libexec", "git-core")}\n`) }
                 : respond({ command: command.command, args })
@@ -115,7 +121,10 @@ function fixture(
         }),
       ),
     )
-    return { updater, commands, global, fs, executable, bash }
+    const prefix = yield* fs.realPath(root)
+    // Windows keeps the npm on PATH and its default prefix.
+    const prefixArgs = process.platform === "win32" ? [] : ["--prefix", prefix]
+    return { updater, commands, paths, global, fs, executable, bash, prefix, prefixArgs }
   })
 }
 
@@ -124,6 +133,8 @@ const unix = process.platform === "win32" ? it.live.skip : it.live
 
 // The fork publishes nothing an upgrade could install: every package-manager and WinGet method would
 // resolve the upstream OpenCode package, so they refuse instead of replacing CloseCode with upstream.
+// This replaces upstream's per-method install assertions (`installs`) with the inverse: no install
+// command may run. `curl` stays the only install path (see the CloseCode installer tests below).
 const refused = ["npm", "pnpm", "bun", "yarn", "vp", "brew", "winget"] as const
 
 refused.forEach((method) => {
@@ -136,6 +147,140 @@ refused.forEach((method) => {
       )
       expect(test.commands).toEqual([])
       expect(yield* test.fs.exists(test.global.cache)).toBe(false)
+    }),
+  )
+})
+
+// Installs a 2.2.7 package at <root>/<directory>, optionally with an npm in <root>/bin.
+const installed = (directory: string[], npm = false) =>
+  fixture(
+    () => ({}),
+    "@opencode/cli",
+    false,
+    undefined,
+    (root) =>
+      Effect.gen(function* () {
+        const fs = yield* FileSystem.FileSystem
+        const pkg = path.join(root, ...directory)
+        yield* fs.makeDirectory(pkg, { recursive: true })
+        yield* fs.writeFileString(
+          path.join(pkg, "package.json"),
+          JSON.stringify({ name: "@opencode/cli", version: "2.2.7", bin: { opencode: "bin/opencode" } }),
+        )
+        if (npm) {
+          yield* fs.makeDirectory(path.join(root, "bin"), { recursive: true })
+          yield* fs.writeFileString(path.join(root, "bin", "npm"), "npm")
+        }
+        return path.join(pkg, "bin", "opencode")
+      }),
+  )
+const npmGlobal = ["lib", "node_modules", "@opencode", "cli"]
+
+// Version managers such as fnm give each Node install its own prefix, while the npm on PATH may belong to another one.
+unix("npm runs from the prefix that owns the running binary with that prefix's node first on PATH", () =>
+  Effect.gen(function* () {
+    const test = yield* installed(npmGlobal, true)
+    const npm = path.join(test.prefix, "bin", "npm")
+    yield* test.updater.method()
+    // Upstream installs here; the fork refuses npm, so only detection and removal reach the package manager.
+    const refusedUpgrade = yield* test.updater.upgrade("npm", "2.2.7").pipe(Effect.flip)
+    expect(refusedUpgrade.message).toBe(
+      "CloseCode publishes no update metadata, so npm cannot install a CloseCode release.",
+    )
+    const removal = test.updater.removal("npm")
+    if (!removal) return yield* Effect.die("Expected npm removal command")
+    yield* removal.run
+    expect(test.commands[0]).toEqual([npm, "list", "-g", "--depth=0", "--prefix", test.prefix, "@opencode/cli"])
+    expect(test.commands.slice(5).map((command) => command.slice(0, 5))).toEqual([
+      [npm, "uninstall", "--global", "--prefix", test.prefix],
+    ])
+    const first = path.join(test.prefix, "bin") + path.delimiter
+    expect(test.paths.map((value) => value?.startsWith(first) ?? false)).toEqual([
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+    ])
+  }),
+)
+
+unix("npm only derives a prefix when the running package is that prefix's global package", () =>
+  Effect.gen(function* () {
+    const test = yield* installed(["lib", "node_modules", "wrapper", "node_modules", "@opencode", "cli"], true)
+    yield* test.updater.method()
+    expect(test.commands[0]).toEqual(["npm", "list", "-g", "--depth=0", "@opencode/cli"])
+    expect(test.paths[0]).toBeUndefined()
+  }),
+)
+
+// Upstream verifies the manifest after a package-manager install; the fork refuses the install first, so
+// the running copy's manifest is never touched.
+it.live("npm upgrades refuse before touching the running copy", () =>
+  Effect.gen(function* () {
+    const test = yield* installed(npmGlobal)
+    const error = yield* test.updater.upgrade("npm", "2.3.4").pipe(Effect.flip)
+    expect(error).toBeInstanceOf(Updater.UpgradeError)
+    expect(error.message).toBe("CloseCode publishes no update metadata, so npm cannot install a CloseCode release.")
+    expect(test.commands).toEqual([])
+    const directory = path.dirname(path.dirname(test.executable))
+    const text = yield* test.fs.readFileString(path.join(directory, "package.json"))
+    expect(JSON.parse(text).version).toBe("2.2.7")
+  }),
+)
+
+const managers = [
+  {
+    name: "Volta",
+    label: "~/.volta",
+    directory: [".volta", "tools", "image", "packages", "@opencode", "cli", ...npmGlobal],
+  },
+  {
+    name: "Volta",
+    label: "custom VOLTA_HOME",
+    directory: ["volta-home", "tools", "image", "packages", "@opencode", "cli", ...npmGlobal],
+  },
+  {
+    name: "mise",
+    label: "mise npm backend",
+    directory: ["mise", "installs", "npm-opencode-cli", "2.2.7", ...npmGlobal],
+  },
+] as const
+
+// Upstream prints `volta install @opencode/cli@<version>` from the release backend it queries; the fork has
+// no such backend and must not point at the upstream npm package, so it explains the refusal instead.
+managers.forEach((manager) => {
+  it.live(`${manager.label} copies report ${manager.name} ownership instead of updating in place`, () =>
+    Effect.gen(function* () {
+      const test = yield* installed([...manager.directory], true)
+      expect(yield* test.updater.method()).toBeUndefined()
+      const latest = yield* test.updater.managed()
+      const pinned = yield* test.updater.managed("v2.2.6")
+      expect(latest?.title).toBe(`CloseCode is managed by ${manager.name}`)
+      expect(pinned?.title).toBe(`CloseCode is managed by ${manager.name}`)
+      expect(latest?.command).toBeUndefined()
+      const applied = yield* test.updater.apply("2.3.4").pipe(Effect.flip)
+      expect(applied.message).toContain(`CloseCode is managed by ${manager.name}`)
+      // An explicit --method still refuses, and nothing runs against the managed copy.
+      const explicit = yield* test.updater.upgrade("npm", "2.3.4").pipe(Effect.flip)
+      expect(explicit.message).toBe(
+        "CloseCode publishes no update metadata, so npm cannot install a CloseCode release.",
+      )
+      expect(test.commands).toEqual([])
+    }),
+  )
+})
+;[
+  ["mise", "installs", "node", "24.22.2"],
+  [".volta", "tools", "image", "node", "22.23.4"],
+].forEach((node) => {
+  it.live(`npm globals under ${node.slice(0, 3).join("/")} stay npm installs`, () =>
+    Effect.gen(function* () {
+      const test = yield* installed([...node, ...npmGlobal])
+      expect(yield* test.updater.managed()).toBeUndefined()
+      yield* test.updater.method()
+      expect(test.commands).toHaveLength(5)
     }),
   )
 })
@@ -160,7 +305,7 @@ it.live("manual installs refuse an upstream package manager", () =>
     const error = yield* test.updater.apply("2.3.4").pipe(Effect.flip)
     expect(error.message).toBe("CloseCode publishes no update metadata, so npm cannot install a CloseCode release.")
     expect(test.commands).toEqual([
-      ["npm", "list", "-g", "--depth=0", "@opencode/cli"],
+      ["npm", "list", "-g", "--depth=0", ...test.prefixArgs, "@opencode/cli"],
       ["pnpm", "list", "-g", "--depth=0", "@opencode/cli"],
       ["bun", "pm", "ls", "-g"],
       ["yarn", "global", "list"],
@@ -254,7 +399,7 @@ it.live("invalid version targets never execute a command or create a cache", () 
       }))
       expect(yield* test.updater.method()).toBe(method)
       expect(test.commands).toEqual([
-        ["npm", "list", "-g", "--depth=0", "@opencode/cli"],
+        ["npm", "list", "-g", "--depth=0", ...test.prefixArgs, "@opencode/cli"],
         ["pnpm", "list", "-g", "--depth=0", "@opencode/cli"],
         ["bun", "pm", "ls", "-g"],
         ["yarn", "global", "list"],
@@ -485,8 +630,13 @@ if (typeof OPENCODE_CLI_NAME === "string" && OPENCODE_CLI_NAME === "closecode-no
       expect(yield* test.updater.method()).toBe("npm")
       const error = yield* test.updater.upgrade("npm", "v2.3.4").pipe(Effect.flip)
       expect(error.message).toBe("CloseCode publishes no update metadata, so npm cannot install a CloseCode release.")
+      // Upstream runs the npm/pnpm/vp installs here; the fork refuses each with the resolved node package name.
+      const pnpm = yield* test.updater.upgrade("pnpm", "v2.3.4").pipe(Effect.flip)
+      const vp = yield* test.updater.upgrade("vp", "v2.3.4").pipe(Effect.flip)
+      expect(pnpm.message).toBe("CloseCode publishes no update metadata, so pnpm cannot install a CloseCode release.")
+      expect(vp.message).toBe("CloseCode publishes no update metadata, so vp cannot install a CloseCode release.")
       expect(test.commands).toEqual([
-        ["npm", "list", "-g", "--depth=0", "@opencode/cli-node"],
+        ["npm", "list", "-g", "--depth=0", ...test.prefixArgs, "@opencode/cli-node"],
         ["pnpm", "list", "-g", "--depth=0", "@opencode/cli-node"],
         ["bun", "pm", "ls", "-g"],
         ["yarn", "global", "list"],

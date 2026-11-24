@@ -1,7 +1,7 @@
 export * as Permission from "./permission.js"
 
 import { makeLocationNode } from "@opencode/util/effect/app-node"
-import { Context, Deferred, Effect, Layer, Schema } from "effect"
+import { Context, Deferred, Effect, Layer, Schema, Scope } from "effect"
 import { Permission } from "@opencode/schema/permission"
 import type { Tool } from "@opencode/schema/tool"
 import { Bus } from "./bus.js"
@@ -10,10 +10,11 @@ import { Agent } from "./agent.js"
 import { SessionErrors } from "./session/error.js"
 import { SessionSchema } from "./session/schema.js"
 import { SessionStore } from "./session/store.js"
-import { Wildcard } from "./util/wildcard.js"
+import { PermissionPolicy } from "./permission/policy.js"
 import { PermissionSaved } from "./permission/saved.js"
 import { PluginHooks } from "./plugin/hooks.js"
 
+export * as Policy from "./permission/policy.js"
 const PermissionEffect = Permission.Effect
 export { PermissionEffect as Effect }
 export { Rule, Ruleset } from "@opencode/schema/permission"
@@ -92,16 +93,28 @@ export class NotFoundError extends Schema.TaggedError<NotFoundError>()("Permissi
 
 export type Error = BlockedError | CorrectedError
 
+export { ignoresCase, pathActions } from "./permission/policy.js"
+
+/**
+ * What "Allow always" saves for a web URL: its site, so approving one page doesn't allow every URL. Rules match the URL
+ * as written, so the site is kept as written, with and without a path. The site ends where URL parsing ends it,
+ * including at `\`, which parsers treat as `/`. A URL with credentials or whitespace in its site
+ * (`https://opencode.ai@evil.com` goes to evil.com) saves only itself. Rules treat `*` and `?` as wildcards, so a site
+ * with either, such as `https://*`, gets no pattern, and neither does an unusual URL with either: no "Allow always".
+ */
+export function site(url: string) {
+  const origin = /^https?:\/\/[^/\\?#@\s*]+(?=[/\\?#]|$)/i.exec(url)?.[0]
+  if (origin) return [origin, `${origin}/*`]
+  return /[*?]/.test(url) ? [] : [url]
+}
+
 export function evaluate(action: string, resource: string, ...rulesets: Permission.Ruleset[]): Permission.Rule {
-  return (
-    rulesets
-      .flat()
-      .findLast((rule) => Wildcard.match(action, rule.action) && Wildcard.match(resource, rule.resource)) ?? {
-      action,
-      resource: "*",
-      effect: "ask",
-    }
-  )
+  return PermissionPolicy.evaluate(PermissionPolicy.fromRules(...rulesets), action, resource)
+}
+
+/** True when every resource for `action` is denied; trailing narrow denies preserve a blanket deny while any `allow` or `ask` keeps the action reachable. */
+export function isActionDenied(action: string, ...rulesets: Permission.Ruleset[]): boolean {
+  return PermissionPolicy.isActionDenied(PermissionPolicy.fromRules(...rulesets), action)
 }
 
 /**
@@ -115,19 +128,7 @@ export function evaluateAny(
   resources: ReadonlyArray<string>,
   ...rulesets: Permission.Ruleset[]
 ): Permission.Rule {
-  return (
-    rulesets
-      .flat()
-      .findLast(
-        (rule) =>
-          Wildcard.match(action, rule.action) &&
-          resources.some((resource) => Wildcard.match(resource, rule.resource)),
-      ) ?? {
-      action,
-      resource: "*",
-      effect: "ask",
-    }
-  )
+  return PermissionPolicy.evaluateAny(PermissionPolicy.fromRules(...rulesets), action, resources)
 }
 
 export function merge(...rulesets: Permission.Ruleset[]): Permission.Ruleset {
@@ -146,6 +147,11 @@ export interface Interface {
   readonly get: (id: ID) => Effect.Effect<Request | undefined>
   readonly forSession: (sessionID: SessionSchema.ID) => Effect.Effect<ReadonlyArray<Request>>
   readonly list: () => Effect.Effect<ReadonlyArray<Request>>
+  /**
+   * Marks `call` as made by `parent`, such as a call inside a Code Mode program. It has an ID of its own but no row,
+   * so until the scope closes, requests naming it as their source show on `parent`'s row.
+   */
+  readonly nested: (call: Tool.CallID, parent: Tool.CallID) => Effect.Effect<void, never, Scope.Scope>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/Permission") {}
@@ -166,6 +172,7 @@ const layer = Layer.effect(
     const saved = yield* PermissionSaved.Service
     const hooks = yield* PluginHooks.Service
     const pending = new Map<ID, Pending>()
+    const parents = new Map<string, Tool.CallID>()
     let closed = false
 
     const close = Effect.gen(function* () {
@@ -183,13 +190,15 @@ const layer = Layer.effect(
     }).pipe(Effect.uninterruptible)
     yield* Effect.addFinalizer(() => close)
 
-    const savedRules = Effect.fnUntraced(function* () {
-      return (yield* saved.list({ projectID: location.project.id })).map(
-        (item): Permission.Rule => ({
-          action: item.action,
-          resource: item.resource,
-          effect: "allow",
-        }),
+    const savedPolicy = Effect.fnUntraced(function* () {
+      return PermissionPolicy.fromRules(
+        (yield* saved.list({ projectID: location.project.id })).map(
+          (item): Permission.Rule => ({
+            action: item.action,
+            resource: item.resource,
+            effect: "allow",
+          }),
+        ),
       )
     })
 
@@ -197,50 +206,60 @@ const layer = Layer.effect(
       const session = yield* sessions.get(sessionID)
       if (!session) return yield* new SessionErrors.NotFoundError({ sessionID })
       const agent = yield* agents.resolve(agentID ?? session.agent)
-      return merge(agent?.permissions ?? missingAgentPermissions, session.permissions ?? [])
+      return PermissionPolicy.fromRules(agent?.permissions ?? missingAgentPermissions, session.permissions ?? [])
     })
 
-    function denied(input: AssertInput, rules: Permission.Ruleset) {
-      if (!input.candidates?.length)
-        return input.resources.some((resource) => evaluate(input.action, resource, rules).effect === "deny")
-      return evaluateAny(input.action, [...input.resources, ...input.candidates], rules).effect === "deny"
-    }
+    const nested: Interface["nested"] = (call, parent) =>
+      Effect.acquireRelease(
+        Effect.sync(() => void parents.set(call, parent)),
+        () => Effect.sync(() => void parents.delete(call)),
+      )
 
-    function outcome(input: AssertInput, rules: Permission.Ruleset): Permission.Effect {
-      if (input.candidates?.length)
-        return evaluateAny(input.action, [...input.resources, ...input.candidates], rules).effect
-      const effects = input.resources.map((resource) => evaluate(input.action, resource, rules).effect)
-      return effects.includes("ask") ? "ask" : "allow"
-    }
+    /**
+     * A skill's ID and its `tag:` resources name the same subject, so `candidates` fold through one
+     * last-match-wins decision; a later ID rule overrides an earlier tag rule and vice versa.
+     * Without candidates, plain resource lists keep upstream's effect-lattice `evaluateAll`.
+     */
+    const decide = (policy: PermissionPolicy.Policy, input: AssertInput): Permission.Effect =>
+      input.candidates?.length
+        ? PermissionPolicy.evaluateAny(policy, input.action, [...input.resources, ...input.candidates]).effect
+        : PermissionPolicy.evaluateAll(policy, input.action, input.resources)
 
-    function relevant(input: AssertInput, rules: Permission.Ruleset) {
-      return rules.filter((rule) => Wildcard.match(input.action, rule.action))
+    function row(source: AssertInput["source"]) {
+      const parent = source && parents.get(source.id)
+      return parent ? { ...source, id: parent } : source
     }
 
     const evaluateInput = Effect.fnUntraced(function* (input: AssertInput) {
-      const rules = yield* configured(input.sessionID, input.agent)
-      if (denied(input, rules)) return { effect: "deny" as const, rules }
-      const all = [...rules, ...(yield* savedRules())]
-      const effect = outcome(input, all)
+      const base = yield* configured(input.sessionID, input.agent)
+      if (decide(base, input) === "deny") return { effect: "deny" as const, policy: base }
+      const effective = PermissionPolicy.fallback(base, yield* savedPolicy())
+      const effect = decide(effective, input)
       const event = yield* hooks.trigger("permission", "evaluate", {
         sessionID: input.sessionID,
         agent: input.agent,
         action: input.action,
         resources: input.resources,
         metadata: input.metadata,
-        source: input.source,
+        source: row(input.source),
         effect,
       })
       const unattended = yield* Unattended
       if (event.effect !== "ask" || unattended === undefined)
-        return { effect: event.effect, message: event.message, rules: all }
-      const settled = [...all, ...unattended]
-      const allowed = input.resources.every((resource) => evaluate(input.action, resource, settled).effect === "allow")
-      if (allowed) return { effect: "allow" as const, rules: all }
+        return { effect: event.effect, message: event.message, policy: effective }
+      // When an evaluate hook downgraded `allow` to `ask`, unattended rules must explicitly allow the request
+      // rather than inheriting the pre-hook `allow` from `effective`.
+      const settled =
+        effect === "ask" ? PermissionPolicy.override(effective, unattended) : PermissionPolicy.fromRules(unattended)
+      if (
+        (effect === "ask" || input.resources.length > 0) &&
+        PermissionPolicy.evaluateAll(settled, input.action, input.resources) === "allow"
+      )
+        return { effect: "allow" as const, policy: effective }
       return {
         effect: "deny" as const,
         message: `Permission ${input.action} needs approval, and nobody is present to give it`,
-        rules: all,
+        policy: effective,
       }
     })
 
@@ -256,7 +275,7 @@ const layer = Layer.effect(
         metadata:
           input.metadata &&
           Object.fromEntries(Object.entries(input.metadata).filter(([, value]) => value !== undefined)),
-        source: input.source,
+        source: row(input.source),
         message,
       }
     }
@@ -296,7 +315,7 @@ const layer = Layer.effect(
           Effect.gen(function* () {
             if (result.effect === "deny") {
               return yield* new BlockedError({
-                rules: relevant(input, result.rules),
+                rules: PermissionPolicy.relevant(result.policy, input.action),
                 permission: input.action,
                 resources: input.resources,
                 reason: result.message,
@@ -326,7 +345,7 @@ const layer = Layer.effect(
       const result = yield* evaluateInput(input)
       if (result.effect !== "deny") return
       return yield* new BlockedError({
-        rules: relevant(input, result.rules),
+        rules: PermissionPolicy.relevant(result.policy, input.action),
         permission: input.action,
         resources: input.resources,
         reason: result.message,
@@ -357,6 +376,7 @@ const layer = Layer.effect(
             pending.delete(input.requestID)
             for (const [id, item] of pending) {
               if (item.request.sessionID !== existing.request.sessionID) continue
+              if (item.request.source?.messageID !== existing.request.source?.messageID) continue
               yield* bus.publish(Permission.Event.Replied, {
                 sessionID: item.request.sessionID,
                 requestID: item.request.id,
@@ -412,7 +432,7 @@ const layer = Layer.effect(
       return Array.from(pending.values(), (item) => item.request).filter((request) => request.sessionID === sessionID)
     })
 
-    return Service.of({ ask, assert, assertNotDenied, allows, reply, get, forSession, list, close })
+    return Service.of({ ask, assert, assertNotDenied, allows, reply, get, forSession, list, nested, close })
   }),
 )
 

@@ -4,6 +4,7 @@ import { Effect, Layer } from "effect"
 import type { Session } from "@opencode/schema/session"
 import { Agent } from "@opencode/core/agent"
 import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { PermissionPolicy } from "@opencode/core/permission/policy"
 import { AbsolutePath } from "@opencode/core/schema"
 import { Skill } from "@opencode/core/skill"
 import { resolveSkillLevels, SkillInstructions } from "@opencode/core/skill/instructions"
@@ -37,7 +38,9 @@ const agentInfo = (overrides: Partial<Agent.Info> = {}) =>
 const render = (list: Skill.Info[], agent: Agent.Info, metadata?: Session.Metadata) =>
   Effect.gen(function* () {
     const instructions = yield* SkillInstructions.Service
-    return yield* instructions.load(agent.permissions, { agent, metadata }).pipe(Effect.flatMap(readInitial))
+    return yield* instructions
+      .load(PermissionPolicy.fromRules(agent.permissions), { agent, metadata })
+      .pipe(Effect.flatMap(readInitial))
   }).pipe(Effect.provide(layer(() => list)))
 
 const effect = skill("Effect", "effect")
