@@ -1,13 +1,13 @@
 # Session / Inbox & Prompt
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: bf24a67263 @ 2026-11-24
 
 ## Responsibility
 Owns durable prompt admission and delivery: the inbox lifecycle (admit/queue/steer/cancel/deliver), prompt preparation (attachments, skills, plugin hooks), and synthetic message admission. Durable admission is separate from model execution: admission inserts one durable inbox row before scheduling advisory `SessionExecution.wake`. Does not own the step loop (runner.md).
 
 ## Key Paths
 - `packages/core/src/session/inbox.ts` — `SessionInbox.Service` (`@opencode/SessionInbox`), `make`, `find`, `projectAdmitted`, `projectDelivered`, `projectCancelled`, `LifecycleConflict`, `Promotable`
-- `packages/core/src/session/prompt.ts` — `SessionPrompt.prepare({ session, messageID, input })` (`:29`): awaits plugin activation, triggers `session/prompt` hook, materializes attachments, resolves skills
+- `packages/core/src/session/prompt.ts` — `SessionPrompt.prepare({ session, messageID, input })` (`:34`): awaits plugin activation (`:40`), triggers the `session/prompt` hook, materializes attachments, resolves skills
 - `packages/core/src/session/schema.ts` — session info/metadata
 - `packages/core/src/session/event.ts` — re-exports `@opencode/schema/session-event` (`session.inbox.enqueued`, `session.inbox.delivered`, …)
 - `packages/schema/src/session-inbox.ts`, `prompt.ts`, `prompt-input.ts` — inbox/prompt wire shapes

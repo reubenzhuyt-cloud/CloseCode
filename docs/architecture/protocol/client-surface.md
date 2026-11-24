@@ -1,26 +1,29 @@
-# Protocol / Client Surface
+# Client Surface
 
-> last-verified: 05bcb72b59 @ 2026-11-10
+> last-verified: bf24a67263 @ 2026-11-24
 
 ## Responsibility
-Provides the typed client view of the HttpApi and the metadata needed to generate per-flavor clients. Owns the shape declared on the client side; the concrete effect/promise/solid client code lives in `@opencode/client`.
+Provides the typed client view of the HttpApi and the metadata the codegen needs for each client flavor. Owns the contract the generated clients are derived from, plus the deprecated-path set that drives aliases.
 
 ## Key Paths
-- `packages/protocol/src/client.ts` — `ClientApi` (HttpApi re-parameterized with client-side middleware identities), `groupNames`, `promiseOmitEndpoints`, `effectOmitEndpoints`
-- `packages/client/src/effect/api/`, `packages/client/src/effect/generated/`, `packages/client/src/promise/generated/` — generated client output (do **not** edit by hand)
+- `packages/protocol/src/client.ts` — `ClientApi`, `groupNames`, `clientNamespace`, `deprecatedClientPaths`, `promiseOmitEndpoints`, `effectOmitEndpoints`
+- `packages/client/src/contract.ts` — re-exports the above for client consumers
+- `packages/client/script/generate.ts` — passes `deprecatedClientPaths` as `aliases`
 
 ## Public API / Key Types
-- `ClientApi` — `ClientApiShape` built from `makeDefaultApi` with client middleware stand-ins (`client.ts:18`, value at `:28`)
-- `groupNames` — group id → short name map (`server.server` → `server`, `server.experimental` → `experimental`, …)
-- `promiseOmitEndpoints` / `effectOmitEndpoints` — endpoints excluded per client flavor (e.g. `fs.read`, `pty.connect`)
+- `ClientApi` — the API with middleware identities swapped for client-side stand-ins
+- `groupNames` — group id → SDK namespace (`server.experimental` → `experimental`)
+- `clientNamespace(path)` — `"experimental"` for `/api/experimental…`
+- `deprecatedClientPaths` — frozen set; the only paths that keep a top-level alias. The fork's `config.updateAgent` is in it because it shipped un-namespaced in 0.4.0.
+- `promiseOmitEndpoints`, `effectOmitEndpoints` — per-flavor omissions for streaming/raw endpoints
 
-## Generation
-- Regenerate from `packages/client`: `bun run generate` (runs `script/build.ts` via `@opencode/httpapi-codegen`). `bun run check:generated` = regenerate + `git diff --exit-code -- src/promise/generated src/effect/generated src/effect/api`. Never edit generated files.
-- Fork-only operations (e.g. `experimental.config.updateAgent`) exist only in regenerated output — after a Protocol change, regeneration is what restores them; drift fails CI.
+## Rules
+- Regenerate from `packages/client` with `bun run generate`; verify with `bun run check:generated`. Never edit generated files by hand.
+- Adding an endpoint under `/api/experimental` puts it under `client.experimental.*` automatically; do not add it to `deprecatedClientPaths` unless it previously shipped un-namespaced.
 
 ## Dependencies
-- In: `schema`, `protocol/api`.
-- Out: `client`.
+- In: `protocol/api`, `protocol/groups`.
+- Out: `packages/client` generated surfaces, `sdk`.
 
 ## Links
 - Parent: INDEX.md

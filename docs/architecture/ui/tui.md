@@ -1,15 +1,15 @@
 # TUI (`@opencode/tui`)
 
-> last-verified: 05bcb72b59 @ 2026-11-10
+> last-verified: bf24a67263 @ 2026-11-24
 
 ## Responsibility
-The terminal UI built on OpenTUI/Solid: app shell, routes, components, prompt/editor, feature plugins, and the storybook harness. Owns rendering and client-local state; it talks to the server only through `@opencode/client`.
+The terminal UI built on OpenTUI/Solid: app shell, routes, components, prompt/editor, feature plugins, and the storybook harness. Owns rendering and client-local state; it talks to the server only through `@opencode/client`. The Rust `opencode-native` TUI (`packages/cli-rs`) is a separate client held to this one by parity suites — see platform/tooling-services.md.
 
 ## Key Paths
 - `packages/tui/src/index.tsx` — `run`, `TuiInput`, `LogProvider`
 - `packages/tui/src/app.tsx`, `runtime.tsx` — app shell/runtime
-- `packages/tui/src/component/` — dialogs, command palette, panes (e.g. `dialog-model.tsx`, `dialog-mcp.tsx`, `dialog-session-list.tsx`)
-- `packages/tui/src/routes/` — `home.tsx`
+- `packages/tui/src/component/` — dialogs, command palette, panes (e.g. `dialog-model.tsx`, `dialog-speed.tsx`, `dialog-mcp.tsx`, `dialog-session-list.tsx`, `dialog-agent-edit.tsx`, `dialog-pair.tsx`)
+- `packages/tui/src/routes/` — `home.tsx`, `session/composer/` (`tabs.ts` + shell/subagents/terminals/scripts tabs)
 - `packages/tui/src/feature-plugins/` — `home/`, `prompt/`, `sidebar/`, `system/` (diff viewer, notifications, stats, plugins) and `system/storybook/` (storybook stories; registered in `index.tsx`)
 - `packages/tui/src/plugin/` — TUI plugin host (`api.tsx`, `builtins.ts`, `discovery.ts`, `markdown.ts`, `render.tsx`, `source.ts`, `watch.ts`)
 - `packages/tui/src/context/`, `prompt/`, `theme/`, `ui/`, `devtools/`, `mini/`, `simulation/`
@@ -22,6 +22,7 @@ The terminal UI built on OpenTUI/Solid: app shell, routes, components, prompt/ed
 
 ## Notes
 - Depends on `@opencode/core` for simulation/dev tooling (e.g. `simulation`), plus `latex`/`merman` for rendering.
+- Machine management is CLI-only (`closecode machine add|list|remove`); the TUI has no machine dialog.
 
 ## Dependencies
 - In: `client`, `core`, `plugin`, `schema`, `simulation`, `theme`, `ui`, `util`, `latex`, `merman`.

@@ -1,6 +1,6 @@
 # Simulation (`@opencode/simulation`)
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: bf24a67263 @ 2026-11-24
 
 ## Responsibility
 Record/replay simulation harness for the app and TUI: a simulated backend, frontend driver, and protocol, plus a control server and recording format. Owns deterministic scenario playback; it does not own production server behavior.

@@ -1,6 +1,6 @@
 # Diagrams & Math (`@opencode/latex`, `@opencode/merman`)
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: bf24a67263 @ 2026-11-24
 
 ## Responsibility
 Text-to-render plugins used by the UI to display math and diagrams: LaTeX math parsing/rendering and Mermaid-style diagram layout. Own no domain logic; they expose markdown/plugin entry points consumed by `tui` and `session-ui`.

@@ -1,28 +1,28 @@
 # Session / History & Persistence
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: bf24a67263 @ 2026-11-24
 
 ## Responsibility
-Owns the projected Session read models and durable rows: loading ordered history, projecting durable events into rows, and the store/query interface used by the runner and Server. Durable events record only irreducible facts; read models fold ordered history. Does not own event publication (events.md) nor admission.
+Owns the durable read models and persistence for a Session: projected message history, the store/query interface, and the tables behind history, inbox, instructions, blobs, and search. Does not own admission (inbox-prompt.md) or the step loop (runner.md).
 
 ## Key Paths
-- `packages/core/src/session/history.ts` — `SessionHistory.load`, `entriesForRunner`, `preview`, `firstUserMessage`, `latestCompaction`, `Boundary`
-- `packages/core/src/session/store.ts` — `SessionStore.Service` (`@opencode/SessionStore`): `ListInput` (directory/project/all), `MessagesInput`, get/list queries
-- `packages/core/src/session/projector.ts` — `SessionProjector` durable-event projection node (`SessionAlreadyProjected`)
-- `packages/core/src/session/sql.ts` — Drizzle tables: `SessionTable`, `SessionMessageTable`, `SessionPendingTable`, `SessionInboxTable`, `InstructionEntryTable`, `InstructionBlobTable`, `InstructionStateTable`
-- `packages/core/src/session/message.ts`, `message-updater.ts` — message shape (re-export `@opencode/schema/session-message`) and updates
-- `packages/core/src/session/usage.ts`, `stats.ts`, `diff.ts`, `info.ts` — usage, stats, diff, info read models
-- `packages/core/src/session/transfer.ts`, `move.ts` — transfer/move persistence
+- `packages/core/src/session/history.ts` — `load`, `entriesForRunner`, `withParts`, row decoders, `NativeWindow`
+- `packages/core/src/session/store.ts` — `SessionStore.Service`, `ListInput`/`MessagesInput`
+- `packages/core/src/session/projector.ts` — durable-event → row projection
+- `packages/core/src/session/sql.ts` — `SessionTable`, `SessionMessageTable`, `SessionPartTable`, `SessionInboxTable`, `InstructionEntryTable`, `InstructionBlobTable`, `InstructionStateTable`, `BlobTable`, `BlobRefTable`
+- `packages/core/src/session/blob.ts` — `media_blob` storage and `media:` refs
+- `packages/core/src/session/search*.ts` — SQLite FTS index and session search read model (`sqlite_fts` flag)
+- `packages/core/src/session/{message,message-updater,usage,stats,diff,info,transfer,move}.ts` — read models and transfer/move persistence
 - `packages/schema/src/session-message.ts`, `session-metadata.ts`, `session-stats.ts`, `token-usage.ts`
 
 ## Public API / Key Types
-- `SessionHistory.load(...)`, `SessionHistory.entriesForRunner(...)`, `SessionHistory.preview(...)`
-- `SessionStore.Service`, `SessionStore.ListInput`
-- `SessionMessage` schema (re-exported from Core and used by Server/client)
+- `SessionHistory.load(...)`, `SessionHistory.entriesForRunner(...)`, `SessionHistory.withParts(...)`
+- `SessionStore.Service`, `SessionStore.ListInput`, `SessionStore.MessagesInput`
+- `SessionSearch` (`SearchOutput`, `ReadOutput`, `IndexUnavailableError`), `SessionSearchBuild`
 
 ## Dependencies
-- In: `Bus`, `Database`, `schema/session-message`.
-- Out: `Session.make`, `SessionExecution`, `SessionRunner`, server (`session`/`message` routes).
+- In: `Database`, `SessionMessage` schema, `Bus` (projection trigger), `Flag` (`media_blob`, `sqlite_fts`).
+- Out: `session/engine`, `session/runner`, `session/execution`, server handlers, tools (`session-search`).
 
 ## Links
 - Parent: INDEX.md

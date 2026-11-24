@@ -1,6 +1,6 @@
 # HTTP Recorder (`@opencode/http-recorder`)
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: bf24a67263 @ 2026-11-24
 
 ## Responsibility
 Records and replays Effect HTTP and WebSocket traffic as deterministic cassettes, with redaction of secrets. Owns the cassette format, matching, replay, and redaction; used by tests and the simulated provider.

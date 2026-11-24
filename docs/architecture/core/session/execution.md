@@ -1,6 +1,6 @@
 # Session / Execution
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: bf24a67263 @ 2026-11-24
 
 ## Responsibility
 `SessionExecution` is the process-global, Session-ID-based coordinator. It snapshots/owns process-local execution, coalesces wakeups, joins resumes, and interrupts active work. It owns the write-ahead execution claim used for restart recovery. It is **not** clustered ownership, fencing, or an exactly-once guarantee.
@@ -8,6 +8,7 @@
 ## Key Paths
 - `packages/core/src/session/execution.ts` — `SessionExecution.Service` (`@opencode/SessionExecution`), `terminal(exit, reason)`, `layer`, `node`, `noopLayer`
 - `packages/core/src/session/execution/restart.ts` — startup recovery of claimed top-level sessions
+- `packages/core/src/session/execution/subagent-report.ts` — subagent job reports routed to their owning Session
 - `packages/core/src/session/run-coordinator.ts` — `SessionRunCoordinator.make({...})`: joins explicit same-session resumes, coalesces prompt wakeups, allows different sessions to run concurrently
 - `packages/core/src/session/runner/index.ts` — the runner invoked per drain
 

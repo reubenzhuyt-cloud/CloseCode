@@ -1,6 +1,6 @@
 # Session / Compaction & Instructions
 
-> last-verified: c87e37cd12 @ 2026-10-12
+> last-verified: bf24a67263 @ 2026-11-24
 
 ## Responsibility
 Owns oversized-context compaction and Session-scoped instruction state. `SessionCompaction` turns a prepared request into a replacement window via registered native strategies; `SessionInstructions` injects discovered instruction files as durable synthetic messages. Does not own provider-mode decisions, retry policy, overflow recovery, or checkpoint persistence — Core owns those (AGENTS.md "V2 Session Core").
@@ -11,6 +11,7 @@ Owns oversized-context compaction and Session-scoped instruction state. `Session
 - `packages/core/src/session/instruction-state.ts`, `instruction-entry.ts` — `InstructionState`/`InstructionEntry` persistence boundaries
 - `packages/core/src/session/system-prompt.ts` — request-assembly system prompt
 - `packages/core/src/instruction-discovery.ts` — ambient global/upward-project discovery
+- `packages/core/src/session/cwd-instructions.ts` — the per-Session working-directory instruction block
 - `packages/schema/src/instruction.ts`, `instruction-entry.ts`, `session-compaction-event.ts`
 - `packages/core/src/session/sql.ts` — `InstructionEntryTable`, `InstructionBlobTable`, `InstructionStateTable`
 
