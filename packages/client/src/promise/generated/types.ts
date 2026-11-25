@@ -2526,6 +2526,7 @@ export type ConfigEntry =
         automations?: boolean
         permissions?: PermissionRuleset
         auto_approve?: boolean
+        post_finish?: false | { agents?: Array<string> }
         policies?: Array<{
           action:
             | "provider.use"
