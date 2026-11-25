@@ -81,7 +81,7 @@ export class Info extends Schema.Class<Info>("Config.Info")({
   }),
   auto_approve: Schema.Boolean.pipe(optional).annotate({
     description:
-      "Approve every permission request that would otherwise ask, for all sessions including subagents. Deny rules still apply (default: false)",
+      "Approve every permission request that would otherwise ask, for all sessions including subagents and for requests raised when nobody is present to answer, such as automations created by a plugin or over HTTP. Configured deny rules still block the operation, and policies still hard-deny after rules run (default: false)",
   }),
   policies: ConfigPolicy.Info.pipe(Schema.Array, optional).annotate({
     description: "Ordered policies controlling access to providers, tools, and integrations",

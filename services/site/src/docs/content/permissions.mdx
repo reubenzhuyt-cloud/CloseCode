@@ -311,8 +311,10 @@ This is a server configuration setting and defaults to `false`. It is resolved
 per Location: a global value applies to every Location, and project
 configuration overrides it. It is separate from the CLI's
 [`session.permissions`](/cli/config) setting, which only answers requests in the
-session open in that client. Configured `deny` rules still block the operation,
-and [policies](/policies) still hard-deny after rules run.
+session open in that client. It also covers requests raised when nobody is
+present to answer, so an automation created by a plugin or over HTTP runs
+without a confirmation. Configured `deny` rules still block the operation, and
+[policies](/policies) still hard-deny after rules run.
 
 ## Policies
 
