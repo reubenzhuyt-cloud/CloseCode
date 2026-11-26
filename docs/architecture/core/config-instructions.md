@@ -1,6 +1,6 @@
 # Core / Config & Instructions
 
-> last-verified: bf24a67263 @ 2026-11-24
+> last-verified: 754ee05a22 @ 2026-11-26
 
 ## Responsibility
 Owns configuration discovery, normalization, watching, feature-flag resolution, and the instructions algebra/built-ins. Does not own the config *schema* (in `@opencode/schema/config`) nor Session-scoped instruction state (see session/compaction-instructions.md).
@@ -8,7 +8,7 @@ Owns configuration discovery, normalization, watching, feature-flag resolution, 
 ## Key Paths
 - `packages/core/src/config.ts` — `Config.Service` (`@opencode/Config`), `Config.Options`, `latest(entries, key)`, `testLayer`; `Config.Interface` carries `updateAgent?` (`config.ts:61`) and `integration?` (`:67`), both implemented; `project_overlay` is resolved here without the Flag service (which reads Config) at `:404-407`
 - `packages/core/src/config/` — `discovery.ts`, `markdown.ts`, `normalize.ts`, `variable.ts`, `watch.ts`, `integration.ts`, `managed.ts`
-- `packages/core/src/config/plugin/` — config plugins: `agent`, `auto-approve`, `command`, `compaction`, `compatibility`, `entry-observer`, `formatter`, `image`, `instruction`, `location-watcher`, `mcp`, `policy`, `provider`, `reference`, `session-search`, `shell`, `skill`, `skill-file`, `skill-scan`, `snapshot`, `source`, `tool-output`, `websearch`, `worktree`
+- `packages/core/src/config/plugin/` — config plugins: `agent`, `auto-approve`, `command`, `compaction`, `compatibility`, `entry-observer`, `formatter`, `image`, `instruction`, `location-watcher`, `mcp`, `policy`, `post-finish`, `provider`, `reference`, `session-search`, `shell`, `skill`, `skill-file`, `skill-scan`, `snapshot`, `source`, `tool-output`, `websearch`, `worktree`
 - `packages/core/src/instructions/` — `builtins.ts`, `index.ts`, `agent.ts`; the Instructions algebra and built-ins live in `src/instructions`
 - `packages/core/src/instruction-discovery.ts` — ambient global/upward-project instruction discovery
 - `packages/core/src/flag.ts`, `flag/resolve.ts` — `Flag.Service` (`resolve`, `all`, `enabled`), `Flag.Overrides`, `testLayer`
@@ -24,6 +24,7 @@ Owns configuration discovery, normalization, watching, feature-flag resolution, 
 - `Config.Info.auto_approve` — server-side ask→allow for all sessions in the Location; never overrides rule/`deny` (see `plugin/auto-approve.ts`, registered before `ConfigPolicyPlugin`)
 - `Config.Info.policies` (optional `ConfigPolicy[]`) — ordered access policies for providers/tools/integrations enforced by `ConfigPolicyPlugin` (`plugin/internal.ts:336`); `experimental.policies` is deprecated in favour of the top-level key
 - `Config.Info.automations` — `boolean` (default true) switching scheduled/event-driven runs on (see automation.md)
+- `Config.Info.post_finish` (fork) — `boolean | { agents?: string[] }` (`schema/config.ts:86`), gating `ConfigPostFinishPlugin`: absent/`true` → `["coder"]`, `false` → none, object → `agents ?? ["coder"]`. Registered in `normalize.ts:240`'s `nativeAtomic` table; without that line normalization drops the key. Regenerated into `client/src/promise/generated/types.ts` (`:2529`, from `bun run generate`).
 - Feature flags: `Flag.enabled(key)` resolves `schema/config/flag.ts` keys — `OPENCODE_FLAGS` env (`-key`, `all`) > `experimental.<key>`/`all_flags` from config > default, on in `local`/`dev` channels and off in releases. Registry keys: `todo`, `media_blob`, `artifacts`, `console_watches`, `recommended_api`, `model_speeds`, `full_codemode`, `machines`, `home_memory`, `project_overlay`, `opencode_api`, `sqlite_fts`
   - `optInOnly = {todo, opencode_api}` — never on by default; `OPENCODE_FLAGS=all` and `experimental.all_flags` skip them
   - `localOnly = {opencode_api}` — off outside local/dev builds whatever the config says

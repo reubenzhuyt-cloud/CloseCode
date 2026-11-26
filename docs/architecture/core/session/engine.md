@@ -1,6 +1,6 @@
 # Session / Engine
 
-> last-verified: bf24a67263 @ 2026-11-24
+> last-verified: 754ee05a22 @ 2026-11-26
 
 ## Responsibility
 The Session aggregate entry point. `Session.make()` is built once per host scope and exposes `forSession(id)` handles that share host services and reload current state. Owns admission orchestration (prompt/synthetic/command/shell/skill), metadata mutation, cwd, revert staging, and delegation to execution. Does not own the step loop (runner.md) or durable projection (history-persistence.md).
@@ -20,6 +20,10 @@ The Session aggregate entry point. `Session.make()` is built once per host scope
 - Handle ops: `get`, `message`, `view`, `rename`, `archive`/`unarchive`, `setMetadata`, `setPermissions`, `switchAgent`, `switchModel`, `cwd`/`setCwd`, `inbox`, `prompt`, `synthetic`, `command`, `shell`, `skill`, `compact`, `wait`, `resume`, `interrupt`, `cancelInbox`, `steerInbox`, `queueInbox`, `generate`, `background`, `revert.{stage,clear,commit}`
 - `Session.prompt` publishes inbox admission before `execution.wake` unless `resume: false` (admit-only)
 - `Session.cwd`/`setCwd` are experimental: a `Environment.Place` (local or `machine:/path`), undefined clears it
+
+## Notes
+- `Session.Metadata` is declared host-supplied and opaque to core (`schema/src/session-metadata.ts`), with one fork exception: core's settlement path reads and clears the `post-finish` key (`session/execution/subagent-report.ts`). It therefore shows up in `Session.Info.metadata` for as long as one settlement takes; see session/execution.md.
+- `setMetadata` publishes `session.metadata.updated` with the whole map, so callers replace it rather than merge.
 
 ## Dependencies
 - In: `Bus`, `Database`, `SessionStore`, `Instance`, `SessionExecution`, `SessionInbox`, `FSUtil`, `SessionPrompt`, `SessionRevert`, `Environment`.
