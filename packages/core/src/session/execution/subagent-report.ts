@@ -1,12 +1,15 @@
 export * as SubagentReport from "./subagent-report.js"
 
 import { Automation } from "@opencode/schema/automation"
-import { Effect, Result } from "effect"
+import { eq, sql } from "drizzle-orm"
+import { Effect, Option, Result } from "effect"
+import { Database } from "../../database/database.js"
 import type { Job } from "../../job.js"
 import { SessionBackground } from "../background.js"
 import { SessionInbox } from "../inbox.js"
 import { SessionMessage } from "../message.js"
 import type { SessionSchema } from "../schema.js"
+import { SessionTable } from "../sql.js"
 import type { SessionStore } from "../store.js"
 import { SubagentCompletion } from "../subagent-completion.js"
 
@@ -137,9 +140,19 @@ export const make = (deps: Deps) => {
     const jobState = yield* deps.jobs.prepareSubagentReport(sessionID, period?.boundGeneration)
     const initial = yield* deps.store.get(sessionID)
     // An automation run's child finishes quietly; only a follow-up the parent sent through a Job reports back.
-    if ((!initial?.parentID || Automation.isRunSession(sessionID)) && jobState.mode === "none") {
+    // A host may also mark one round of a child quiet, so its receipt can go to the human instead of the parent.
+    const silent = postFinishSilent(initial?.metadata)
+    if (
+      ((!initial?.parentID || Automation.isRunSession(sessionID)) && jobState.mode === "none") ||
+      (jobState.mode === "none" && silent)
+    ) {
       return {
-        commit: () => deps.store.release(sessionID),
+        // The mark covers one settlement. Bus.publish runs this inside its own transaction, so clearing it there
+        // makes the mark single-use: a later round, such as a follow-up the parent sends itself, reports normally.
+        commit: () =>
+          deps.store
+            .release(sessionID)
+            .pipe(Effect.andThen(silent ? clearPostFinishMark(sessionID) : Effect.void)),
         deliver: Effect.void,
       }
     }
@@ -155,6 +168,8 @@ export const make = (deps: Deps) => {
       Effect.gen(function* () {
         box.postCommit = { type: "none" }
         yield* deps.store.release(sessionID)
+        // A mark this settlement did not honour must not silence the next one.
+        if (silent) yield* clearPostFinishMark(sessionID)
         const child = yield* deps.store.get(sessionID)
         const parent = child?.parentID ? yield* deps.store.get(child.parentID) : undefined
         if (!child?.parentID || !parent) {
@@ -200,4 +215,35 @@ export const make = (deps: Deps) => {
   })
 
   return { started, clear, prepare }
+}
+
+/**
+ * Metadata key a host sets to keep one settlement of a Session away from its parent. Core owns the name so the
+ * silence is part of settlement, and a host that sets it owns what the human sees instead.
+ */
+export const SILENT_METADATA_KEY = "post-finish"
+
+/** Whether a host marked this round of a Session as one that must not report to its parent. */
+export function postFinishSilent(metadata: SessionSchema.Metadata | undefined) {
+  const mark = metadata?.[SILENT_METADATA_KEY]
+  return typeof mark === "object" && mark !== null && "silent" in mark && mark.silent === true
+}
+
+// Runs inside Bus.publish's BEGIN IMMEDIATE transaction like `release`, so it must stay one flat statement.
+// `json_remove` keeps the stored column's private keys, which the public metadata shape does not carry.
+function clearPostFinishMark(sessionID: SessionSchema.ID) {
+  return Effect.gen(function* () {
+    const database = Option.getOrUndefined(yield* Effect.serviceOption(Database.Service))
+    if (!database) return
+    yield* database.db
+      .update(SessionTable)
+      .set({
+        metadata: sql`json_remove(${SessionTable.metadata}, ${`$."${SILENT_METADATA_KEY}"`})`,
+        // Metadata edits are not activity, so keep the row's ordering untouched.
+        time_updated: sql`${SessionTable.time_updated}`,
+      })
+      .where(eq(SessionTable.id, sessionID))
+      .run()
+      .pipe(Effect.orDie)
+  })
 }

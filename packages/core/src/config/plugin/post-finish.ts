@@ -4,14 +4,22 @@ import { define } from "@opencode/plugin/effect/plugin"
 import type { Info } from "@opencode/schema/config"
 import type { SessionInbox } from "@opencode/schema/session-inbox"
 import { Session } from "@opencode/schema/session"
+import { TuiEvent } from "@opencode/schema/tui-event"
 import { Cause, Effect, Stream } from "effect"
+import { Bus } from "../../bus.js"
 import { Config } from "../../config.js"
+import { SubagentReport } from "../../session/execution/subagent-report.js"
 
 // Read-only agents write their architecture delta in their own final report, and the archivist is the merger itself,
 // so a follow-up round on either would either do nothing or run the merge twice. Refused even when configured.
 const READ_ONLY = new Set(["researcher", "reviewer", "explore", "archivist"])
 const DEFAULT_AGENTS = ["coder"]
 const MARKER = "postfinish:"
+// One entry per child Session: the agent whose round is in flight, and whether its receipt already reached the human.
+const PENDING = "postfinish-pending:"
+const REPORTED = "postfinish-reported:"
+// The toast schema decodes a missing duration to this; a published payload carries the resolved value.
+const TOAST_DURATION = 5000
 
 // The whole round after the finished boundary: one appendix, no reading, no verification, no git.
 const PROMPT = `你已越过 finished 边界。本轮只做一件事。
@@ -22,6 +30,7 @@ task/source、受影响路径与符号、实际改动、验证证据（已有则
 只回一行：已归档，后面跟受影响路径。本轮确实没有值得暂存的内容，就只回 NO-DELTA。`
 
 type Enqueued = { readonly data: { readonly item: SessionInbox.Item } }
+type Settled = { readonly type: string; readonly data: { readonly sessionID: Session.ID } }
 
 /**
  * After a subagent reports finished, keep working in its own Session for one appendix round, so the parent never
@@ -32,17 +41,33 @@ export const Plugin = define({
   id: "opencode.config.post-finish",
   effect: Effect.fn(function* (ctx) {
     const config = yield* Config.Service
+    const bus = yield* Bus.Service
 
-    // The follow-up round is a second busy period, so its own settlement reports to the parent again as a
-    // `<background-result>`. The receipt belongs to the human, not to the parent. Nothing here decides that yet.
-    // TODO(post-finish): silence the child's settlement report
-    // What this must control: the follow-up busy period's settlement, which `subagent-report.ts:131-145` turns into
-    // the parent-visible `<background-result kind="subagent">` (`prepare` -> `recordSubagentReport` ->
-    // `deliverReport` -> a synthetic item on the parent). The seam is called only after the follow-up is admitted, so
-    // it can key off the marker instead of the child Session.
-    const suppressReport = Effect.fn("ConfigPostFinishPlugin.suppressReport")(function* (_childID: string) {
-      yield* Effect.void
+    // The appendix round is a second busy period of the same Session, so its settlement would report to the parent
+    // again as a `<background-result>`. The receipt belongs to the human, not to the parent: mark the round's
+    // settlement silent — core clears the mark in the commit that publishes that settlement, so it covers exactly
+    // one round — and toast the human when the round lands.
+    const suppressReport = Effect.fn("ConfigPostFinishPlugin.suppressReport")(function* (
+      sessionID: Session.ID,
+      agent: string,
+    ) {
+      const session = yield* ctx.session.get({ sessionID })
+      yield* ctx.session.update({
+        sessionID,
+        metadata: { ...session.metadata, [SubagentReport.SILENT_METADATA_KEY]: { silent: true } },
+      })
+      // Written before the prompt is admitted, so this round's settlement can never precede its own receipt.
+      yield* ctx.storage.set(PENDING + sessionID, agent)
     })
+
+    const suppressMark = (sessionID: Session.ID) =>
+      Effect.gen(function* () {
+        const session = yield* ctx.session.get({ sessionID })
+        const metadata = Object.entries(session.metadata ?? {}).filter(
+          ([key]) => key !== SubagentReport.SILENT_METADATA_KEY,
+        )
+        yield* ctx.session.update({ sessionID, metadata: Object.fromEntries(metadata) })
+      })
 
     const handle = Effect.fn("ConfigPostFinishPlugin.handle")(function* (event: Enqueued) {
       const item = event.data.item
@@ -59,30 +84,74 @@ export const Plugin = define({
       if (!allowlist(Config.latest(yield* config.entries(), "post_finish")).includes(agent)) return
       // Every report for this child mints a fresh message ID, so the marker is keyed by Session.
       if ((yield* ctx.storage.get(MARKER + child)) !== undefined) return
-      yield* ctx.session.prompt({ sessionID, text: PROMPT, delivery: "steer" }).pipe(
+      yield* suppressReport(sessionID, agent).pipe(
+        Effect.andThen(ctx.session.prompt({ sessionID, text: PROMPT, delivery: "steer" })),
         Effect.tap(() => ctx.storage.set(MARKER + child, true)),
-        Effect.tap(() => suppressReport(child)),
         Effect.catchCause((cause) =>
           Cause.hasInterruptsOnly(cause)
             ? Effect.interrupt
-            : Effect.logWarning("post-finish appendix round failed", { sessionID, agent, cause }),
+            : Effect.logWarning("post-finish appendix round failed", { sessionID, agent, cause }).pipe(
+                // A mark without a round would silence a report the parent is still owed, so give up both.
+                Effect.andThen(ctx.storage.remove(PENDING + sessionID)),
+                Effect.andThen(suppressMark(sessionID)),
+                Effect.catchCause(() => Effect.void),
+              ),
         ),
       )
     })
 
-    yield* ctx.event.subscribe({ types: ["session.inbox.enqueued"] }).pipe(
-      Stream.runForEach((event) =>
-        // A plugin bug must never break report delivery, which runs this subscription's publisher.
-        handle(event).pipe(
-          Effect.catchCause((cause) =>
-            Cause.hasInterruptsOnly(cause)
-              ? Effect.interrupt
-              : Effect.logWarning("post-finish handler failed", { cause }),
-          ),
-        ),
-      ),
-      Effect.forkScoped({ startImmediately: true }),
-    )
+    // Counts the archive only when the round this plugin admitted actually settles, and only once per child: the
+    // pending record is consumed here, so a later round cannot reuse this receipt.
+    const settle = Effect.fn("ConfigPostFinishPlugin.settle")(function* (event: Settled) {
+      const sessionID = event.data.sessionID
+      if ((yield* ctx.storage.get(REPORTED + sessionID)) !== undefined) return
+      const pending = yield* ctx.storage.get(PENDING + sessionID)
+      if (typeof pending !== "string") return
+      yield* ctx.storage.remove(PENDING + sessionID)
+      // An interrupted round archived nothing, so it stays quiet; so does a settlement that was never muted.
+      if (event.type === "session.execution.interrupted") return
+      const failed = event.type === "session.execution.failed"
+      // Publishing to the bus keeps the receipt out of the parent Session and off the SDK round trip. The Session's
+      // own Location is stated rather than inherited: only a TUI watching that directory shows the toast.
+      const session = yield* ctx.session.get({ sessionID })
+      yield* bus.publish(
+        TuiEvent.ToastShow,
+        {
+          message: failed ? `${pending} 收尾失败` : `${pending} 已归档`,
+          variant: failed ? "warning" : "success",
+          duration: TOAST_DURATION,
+        },
+        { location: session.location },
+      )
+      yield* ctx.storage.set(REPORTED + sessionID, true)
+    })
+
+    // One subscription for both streams: the bus keeps publish order across types within a subscription, so the
+    // original completed report is always handled before the settlement that follows it. Separate subscriptions could
+    // race the other way and mistake the original settlement for the appendix round's.
+    yield* ctx.event
+      .subscribe({
+        types: [
+          "session.inbox.enqueued",
+          "session.execution.succeeded",
+          "session.execution.failed",
+          "session.execution.interrupted",
+        ],
+      })
+      .pipe(
+        Stream.runForEach((event) => {
+          // A plugin bug must never break report delivery, which runs this stream's publisher.
+          const handled = event.type === "session.inbox.enqueued" ? handle(event) : settle(event)
+          return handled.pipe(
+            Effect.catchCause((cause) =>
+              Cause.hasInterruptsOnly(cause)
+                ? Effect.interrupt
+                : Effect.logWarning("post-finish handler failed", { cause }),
+            ),
+          )
+        }),
+        Effect.forkScoped({ startImmediately: true }),
+      )
   }),
 })
 
