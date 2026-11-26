@@ -15,9 +15,8 @@ import { SubagentReport } from "../../session/execution/subagent-report.js"
 const READ_ONLY = new Set(["researcher", "reviewer", "explore", "archivist"])
 const DEFAULT_AGENTS = ["coder"]
 const MARKER = "postfinish:"
-// One entry per child Session: the agent whose round is in flight, and whether its receipt already reached the human.
+// One entry per child Session: the agent whose round is in flight.
 const PENDING = "postfinish-pending:"
-const REPORTED = "postfinish-reported:"
 // The toast schema decodes a missing duration to this; a published payload carries the resolved value.
 const TOAST_DURATION = 5000
 
@@ -52,6 +51,13 @@ export const Plugin = define({
       agent: string,
     ) {
       const session = yield* ctx.session.get({ sessionID })
+      // Accepted window: the mark silences whichever settlement commits next, not the round this plugin admits. A
+      // parent-initiated follow-up that lands between this write and the appendix round's drain is silenced instead,
+      // so its report is dropped while the toast still says archived. Closing that needs a per-round token carried by
+      // the settlement, which costs more than the window; the parent's own user-visible round still reports later.
+      // Accepted hazard: `session.update` replaces the whole public metadata map (session.ts setMetadata publishes the
+      // map; projector.ts writes it whole), so this read-modify-write can drop a public key another writer stored in
+      // between. Core's private `$opencode_experimental_cwd` survives because the projector re-reads and re-adds it.
       yield* ctx.session.update({
         sessionID,
         metadata: { ...session.metadata, [SubagentReport.SILENT_METADATA_KEY]: { silent: true } },
@@ -100,11 +106,10 @@ export const Plugin = define({
       )
     })
 
-    // Counts the archive only when the round this plugin admitted actually settles, and only once per child: the
-    // pending record is consumed here, so a later round cannot reuse this receipt.
+    // Counts the archive only when the round this plugin admitted actually settles: the pending record is consumed
+    // here, and the marker allows one round per child, so this receipt cannot fire twice.
     const settle = Effect.fn("ConfigPostFinishPlugin.settle")(function* (event: Settled) {
       const sessionID = event.data.sessionID
-      if ((yield* ctx.storage.get(REPORTED + sessionID)) !== undefined) return
       const pending = yield* ctx.storage.get(PENDING + sessionID)
       if (typeof pending !== "string") return
       yield* ctx.storage.remove(PENDING + sessionID)
@@ -123,7 +128,6 @@ export const Plugin = define({
         },
         { location: session.location },
       )
-      yield* ctx.storage.set(REPORTED + sessionID, true)
     })
 
     // One subscription for both streams: the bus keeps publish order across types within a subscription, so the
@@ -155,8 +159,9 @@ export const Plugin = define({
   }),
 })
 
-// An absent key defaults to the built-in allowlist; `false`, or an empty `agents` list, covers nobody.
+// An absent key or `true` defaults to the built-in allowlist; `false`, or an empty `agents` list, covers nobody.
 function allowlist(value: Info["post_finish"]) {
   if (value === false) return []
-  return value?.agents ?? DEFAULT_AGENTS
+  if (value === true || value === undefined) return DEFAULT_AGENTS
+  return value.agents ?? DEFAULT_AGENTS
 }

@@ -294,6 +294,22 @@ describe("ConfigPostFinishPlugin.Plugin", () => {
         yield* plugin.emit(report("completed"))
 
         expect(plugin.prompts).toHaveLength(1)
+        expect(plugin.prompts[0]?.text).toContain("UNARCHIVED.md")
+      }),
+    ),
+  )
+
+  it.effect("covers coder when post_finish is true", () =>
+    withConfig(
+      [new Document({ type: "document", info: decodeInfo({ post_finish: true }) })],
+      Effect.gen(function* () {
+        const plugin = yield* run(() => Effect.succeed(admitted))
+
+        yield* plugin.emit(report("completed"))
+
+        expect(plugin.prompts).toHaveLength(1)
+        expect(plugin.prompts[0]?.sessionID).toBe(childID)
+        expect(plugin.stored.get(`postfinish-pending:${childID}`)).toBe("coder")
       }),
     ),
   )

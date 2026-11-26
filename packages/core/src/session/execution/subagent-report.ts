@@ -231,10 +231,14 @@ export function postFinishSilent(metadata: SessionSchema.Metadata | undefined) {
 
 // Runs inside Bus.publish's BEGIN IMMEDIATE transaction like `release`, so it must stay one flat statement.
 // `json_remove` keeps the stored column's private keys, which the public metadata shape does not carry.
+// A missing service is a defect, never a silent skip: the mark would otherwise outlive its one settlement while the
+// host's marker keeps every later report from this child. The throw fails the transaction, rolling the release back.
 function clearPostFinishMark(sessionID: SessionSchema.ID) {
   return Effect.gen(function* () {
-    const database = Option.getOrUndefined(yield* Effect.serviceOption(Database.Service))
-    if (!database) return
+    const database = Option.getOrThrowWith(
+      yield* Effect.serviceOption(Database.Service),
+      () => new Error("Database.Service is required to clear the post-finish mark"),
+    )
     yield* database.db
       .update(SessionTable)
       .set({

@@ -84,13 +84,13 @@ export class Info extends Schema.Class<Info>("Config.Info")({
       "Approve every permission request that would otherwise ask, for all sessions including subagents and for requests raised when nobody is present to answer, such as automations created by a plugin or over HTTP. Configured deny rules still block the operation, and policies still hard-deny after rules run (default: false)",
   }),
   post_finish: Schema.Union([
-    Schema.Literal(false),
+    Schema.Boolean,
     Schema.Struct({ agents: Schema.Array(Schema.String).pipe(optional) }),
   ])
     .pipe(optional)
     .annotate({
       description:
-        'After a subagent reports finished, it gets one automatic follow-up that only appends its architecture delta to docs/architecture/UNARCHIVED.md (default: ["coder"]). Set false to disable, or list the agents to cover.',
+        'After a subagent reports finished, one automatic follow-up appends its architecture delta to docs/architecture/UNARCHIVED.md. Defaults to on with ["coder"]; true is the default list, false disables it, or give agents to cover.',
     }),
   policies: ConfigPolicy.Info.pipe(Schema.Array, optional).annotate({
     description: "Ordered policies controlling access to providers, tools, and integrations",
