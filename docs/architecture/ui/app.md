@@ -1,6 +1,6 @@
 # App (`@opencode/app`)
 
-> last-verified: bf24a67263 @ 2026-11-24
+> last-verified: 0b1033a1ab @ 2026-11-26
 
 ## Responsibility
 The SolidStart web/desktop application: session composer, home, new-session flow, providers, servers/pairing, settings, shell, workspaces, and the components lab. Owns web UI composition; renders shared `@opencode/session-ui` and `@opencode/ui` components and talks to the server via `@opencode/client`.
@@ -17,6 +17,9 @@ The SolidStart web/desktop application: session composer, home, new-session flow
 ## Public API / Key Types
 - `AppInterface`, `AppBaseProviders`, `PlatformProvider`, `Platform`, `ServerConnection`
 - Run: `bun run --cwd packages/app dev` (web), `bun --cwd packages/desktop dev` (desktop)
+
+## Notes
+- Ambient Vite types (`import.meta.glob`, `?raw`, `*.css`) come from `"types": ["bun", "node", "vite/client"]` in `packages/app/tsconfig.json:4`. There is no `src/sst-env.d.ts` any more; SST was removed, so the tsconfig `types` array is the only source of those declarations (matches `desktop`, `ui`, `session-ui`, `gui-plugins`, `stories`, `services/site`).
 
 ## Dependencies
 - In: `client`, `schema`, `gui-plugins`, `plugin`, `session-ui`, `ui`, `util`.
