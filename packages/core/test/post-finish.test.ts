@@ -45,11 +45,15 @@ const allowlist = (...list: string[]): Entry[] => [
   new Document({ type: "document", info: decodeInfo({ post_finish: { agents: list } }) }),
 ]
 
-type Enqueued = { readonly type: "session.inbox.enqueued"; readonly data: { readonly item: Inbox.Info } }
+type Enqueued = {
+  readonly type: "session.inbox.enqueued"
+  readonly data: { readonly sessionID: Session.ID; readonly item: Inbox.Info }
+}
 
 const report = (state: string, agent = "coder", child: Session.ID = childID): Enqueued => ({
   type: "session.inbox.enqueued",
   data: {
+    sessionID: parentID,
     item: Inbox.Synthetic.make({
       id: SessionMessage.ID.create(),
       sessionID: parentID,
@@ -57,6 +61,25 @@ const report = (state: string, agent = "coder", child: Session.ID = childID): En
       type: "synthetic",
       delivery: "steer",
       payload: { text: "<background-result />", metadata: { source: "subagent", childID: child, agent, state } },
+    }),
+  },
+})
+
+/** A real dispatch: the parent's prompt, or the plugin's own appendix prompt, both admitted as user items. */
+const dispatch = (
+  sessionID: Session.ID = childID,
+  metadata?: Record<string, unknown>,
+): Enqueued => ({
+  type: "session.inbox.enqueued",
+  data: {
+    sessionID,
+    item: Inbox.User.make({
+      id: SessionMessage.ID.create(),
+      sessionID,
+      time: { created: DateTime.makeUnsafe(0) },
+      type: "user",
+      delivery: "steer",
+      payload: { text: "Keep going", metadata },
     }),
   },
 })
@@ -70,10 +93,11 @@ const admitted = Inbox.User.make({
   payload: { text: "已归档：packages/core/src/config/plugin/post-finish.ts" },
 })
 
-const info = (sessionID: Session.ID, metadata?: Session.Metadata): Session.Info =>
+const info = (sessionID: Session.ID, metadata?: Session.Metadata, parent?: Session.ID): Session.Info =>
   Session.Info.make({
     id: sessionID,
     projectID: Project.ID.global,
+    parentID: parent,
     cost: Money.USD.make(0),
     tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
     location: { directory: AbsolutePath.make("/workspace") },
@@ -102,10 +126,19 @@ const unusedBus = Layer.succeed(
  * pubsub standing in for the bus. The caller provides the config entries.
  */
 const run = Effect.fnUntraced(function* (
-  prompt: (input: { readonly sessionID: string; readonly text: string }) => Effect.Effect<typeof admitted, Error>,
+  prompt: (input: {
+    readonly sessionID: string
+    readonly text: string
+    readonly metadata?: Record<string, unknown>
+  }) => Effect.Effect<typeof admitted, Error>,
 ) {
   const stored = new Map<string, Schema.Json>()
-  const prompts: { sessionID: Session.ID; text: string; delivery: string | undefined }[] = []
+  const prompts: {
+    sessionID: Session.ID
+    text: string
+    delivery: string | undefined
+    metadata: Record<string, unknown> | undefined
+  }[] = []
   const updates: { sessionID: Session.ID; metadata: Session.Metadata | undefined }[] = []
   // A PubSub, like the bus: every published event reaches the subscription, where a Queue would hand it to one waiter.
   const events = yield* PubSub.unbounded<Enqueued>()
@@ -114,14 +147,22 @@ const run = Effect.fnUntraced(function* (
       // SAFETY: the plugin filters this stream by event type only.
       event: { subscribe: () => Stream.fromPubSub(events) as never },
       session: {
-        get: (input) => Effect.succeed(info(input.sessionID, { host: "kept" })),
+        get: (input) =>
+          Effect.succeed(
+            info(input.sessionID, { host: "kept" }, input.sessionID === childID ? parentID : undefined),
+          ),
         update: (input) =>
           Effect.sync(() => {
             updates.push({ sessionID: input.sessionID, metadata: input.metadata })
           }),
         prompt: (input) =>
           Effect.sync(() => {
-            prompts.push({ sessionID: input.sessionID, text: input.text, delivery: input.delivery })
+            prompts.push({
+              sessionID: input.sessionID,
+              text: input.text,
+              delivery: input.delivery,
+              metadata: input.metadata,
+            })
           }).pipe(Effect.andThen(prompt(input))),
       },
       storage: {
@@ -196,6 +237,79 @@ describe("ConfigPostFinishPlugin.Plugin", () => {
         yield* plugin.emit(report("completed"))
 
         expect(plugin.prompts).toHaveLength(1)
+        expect(plugin.stored.get(`postfinish:${childID}`)).toBe(true)
+      }),
+    ),
+  )
+
+  it.effect("re-arms when the parent dispatches into the child again", () =>
+    withConfig(
+      allowlist("coder"),
+      Effect.gen(function* () {
+        const plugin = yield* run(() => Effect.succeed(admitted))
+
+        yield* plugin.emit(report("completed"))
+        expect(plugin.prompts).toHaveLength(1)
+        expect(plugin.prompts[0]?.metadata).toEqual({ source: "post-finish" })
+        expect(plugin.stored.get(`postfinish:${childID}`)).toBe(true)
+
+        // The second dispatch is admitted as a user item into the same child.
+        yield* plugin.emit(dispatch())
+        expect(plugin.stored.get(`postfinish:${childID}`)).toBeUndefined()
+        expect(plugin.stored.get(`postfinish-pending:${childID}`)).toBeUndefined()
+
+        yield* plugin.emit(report("completed"))
+        expect(plugin.prompts).toHaveLength(2)
+        expect(plugin.prompts[1]?.sessionID).toBe(childID)
+        expect(plugin.stored.get(`postfinish:${childID}`)).toBe(true)
+      }),
+    ),
+  )
+
+  it.effect("does not re-arm on the appendix prompt's own admission", () =>
+    withConfig(
+      allowlist("coder"),
+      Effect.gen(function* () {
+        const plugin = yield* run(() => Effect.succeed(admitted))
+
+        yield* plugin.emit(report("completed"))
+        expect(plugin.prompts).toHaveLength(1)
+
+        // `ctx.session.prompt` admits the appendix round as a user item, so it needs its own discriminator.
+        yield* plugin.emit(dispatch(childID, { source: "post-finish" }))
+
+        expect(plugin.stored.get(`postfinish:${childID}`)).toBe(true)
+        expect(plugin.stored.get(`postfinish-pending:${childID}`)).toBe("coder")
+        yield* plugin.emit(report("completed"))
+        expect(plugin.prompts).toHaveLength(1)
+      }),
+    ),
+  )
+
+  it.effect("does not re-arm on a synthetic item admitted into the child", () =>
+    withConfig(
+      allowlist("coder"),
+      Effect.gen(function* () {
+        const plugin = yield* run(() => Effect.succeed(admitted))
+
+        yield* plugin.emit(report("completed"))
+        expect(plugin.stored.get(`postfinish:${childID}`)).toBe(true)
+
+        yield* plugin.emit({
+          type: "session.inbox.enqueued",
+          data: {
+            sessionID: childID,
+            item: Inbox.Synthetic.make({
+              id: SessionMessage.ID.create(),
+              sessionID: childID,
+              time: { created: DateTime.makeUnsafe(0) },
+              type: "synthetic",
+              delivery: "steer",
+              payload: { text: "notice", metadata: { source: "subagent" } },
+            }),
+          },
+        })
+
         expect(plugin.stored.get(`postfinish:${childID}`)).toBe(true)
       }),
     ),
@@ -460,7 +574,11 @@ const harness = Effect.fnUntraced(function* (answers: ReadonlyArray<string | Err
             const item = yield* inbox.admit({
               id: SessionMessage.ID.create(),
               sessionID: input.sessionID,
-              item: { type: "user", payload: { text: input.text }, delivery: input.delivery ?? "steer" },
+              item: {
+                type: "user",
+                payload: { text: input.text, metadata: input.metadata },
+                delivery: input.delivery ?? "steer",
+              },
             })
             yield* execution.wake(input.sessionID)
             return item
@@ -538,7 +656,7 @@ describe("ConfigPostFinishPlugin.Plugin settlement", () => {
 
   settlement.effect("still reports a round the parent starts itself after the appendix", () =>
     Effect.gen(function* () {
-      const plugin = yield* harness([ANSWER, APPENDIX, "Parent follow-up"])
+      const plugin = yield* harness([ANSWER, APPENDIX, "Parent follow-up", APPENDIX])
 
       yield* plugin.round(childID)
       yield* plugin.toast(1)
@@ -551,14 +669,33 @@ describe("ConfigPostFinishPlugin.Plugin settlement", () => {
       })
       expect(item.type).toBe("user")
       yield* plugin.round(childID)
+      yield* plugin.toast(2)
+      yield* plugin.execution.awaitIdle(childID)
       yield* plugin.execution.awaitIdle(parentID)
 
       const delivered = reports(yield* SessionInbox.list(plugin.database.db, parentID))
       expect(delivered).toHaveLength(2)
       expect(text(delivered[1])).toContain("Parent follow-up")
-      expect(plugin.toasts()).toHaveLength(1)
-      // The appendix round reused the same Session, so the follow-up answered in its context.
+      // The new dispatch re-armed the round, so this reused child archived twice.
+      expect(plugin.toasts()).toHaveLength(2)
       expect(plugin.stored.get(`postfinish:${childID}`)).toBe(true)
+    }),
+  )
+
+  settlement.effect("starts no further appendix round once the appendix settles", () =>
+    Effect.gen(function* () {
+      const plugin = yield* harness([ANSWER, APPENDIX])
+
+      yield* plugin.round(childID)
+      yield* plugin.toast(1)
+      yield* plugin.execution.awaitIdle(childID)
+      yield* plugin.execution.awaitIdle(parentID)
+
+      // No dispatch came, so the marker still stands and the settled round cannot recurse into another one.
+      expect(plugin.stored.get(`postfinish:${childID}`)).toBe(true)
+      expect(plugin.answers).toEqual([])
+      expect(reports(yield* SessionInbox.list(plugin.database.db, parentID))).toHaveLength(1)
+      expect(plugin.toasts()).toHaveLength(1)
     }),
   )
 

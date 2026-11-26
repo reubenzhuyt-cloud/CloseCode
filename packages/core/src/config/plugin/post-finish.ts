@@ -17,6 +17,8 @@ const DEFAULT_AGENTS = ["coder"]
 const MARKER = "postfinish:"
 // One entry per child Session: the agent whose round is in flight.
 const PENDING = "postfinish-pending:"
+// Discriminator on the appendix prompt: it is admitted as a user item, exactly like a parent dispatch.
+const APPENDIX_SOURCE = "post-finish"
 // The toast schema decodes a missing duration to this; a published payload carries the resolved value.
 const TOAST_DURATION = 5000
 
@@ -28,13 +30,16 @@ const PROMPT = `你已越过 finished 边界。本轮只做一件事。
 task/source、受影响路径与符号、实际改动、验证证据（已有则写）。本任务已有块就更新它，不要加第二个。
 只回一行：已归档，后面跟受影响路径。本轮确实没有值得暂存的内容，就只回 NO-DELTA。`
 
-type Enqueued = { readonly data: { readonly item: SessionInbox.Item } }
+type Enqueued = {
+  readonly data: { readonly sessionID: Session.ID; readonly item: SessionInbox.Item }
+}
 type Settled = { readonly type: string; readonly data: { readonly sessionID: Session.ID } }
 
 /**
  * After a subagent reports finished, keep working in its own Session for one appendix round, so the parent never
- * waits for it. Reports reach the parent as synthetic inbox items, so this watches that public event instead of
- * changing the settlement pipeline.
+ * waits for it. Every finished round earns its own appendix; the marker only stops the same round from recursing.
+ * Reports reach the parent as synthetic inbox items, so this watches that public event instead of changing the
+ * settlement pipeline.
  */
 export const Plugin = define({
   id: "opencode.config.post-finish",
@@ -91,7 +96,14 @@ export const Plugin = define({
       // Every report for this child mints a fresh message ID, so the marker is keyed by Session.
       if ((yield* ctx.storage.get(MARKER + child)) !== undefined) return
       yield* suppressReport(sessionID, agent).pipe(
-        Effect.andThen(ctx.session.prompt({ sessionID, text: PROMPT, delivery: "steer" })),
+        Effect.andThen(
+          ctx.session.prompt({
+            sessionID,
+            text: PROMPT,
+            delivery: "steer",
+            metadata: { source: APPENDIX_SOURCE },
+          }),
+        ),
         Effect.tap(() => ctx.storage.set(MARKER + child, true)),
         Effect.catchCause((cause) =>
           Cause.hasInterruptsOnly(cause)
@@ -106,8 +118,27 @@ export const Plugin = define({
       )
     })
 
+    // The parent dispatching again into the same child is the only re-arm signal: a real dispatch is admitted as a
+    // user item, so each round a subagent runs earns its own appendix. Loop safety has three parts. (1) The appendix
+    // round settles silently, so it never admits a `<background-result>` into the parent and `handle` never sees it.
+    // (2) Our own appendix prompt is a user item too, but its `source` discriminator is skipped below, so admitting it
+    // cannot clear the marker it just set. (3) `handle` still writes the marker before the appendix prompt is admitted,
+    // so even if that silence ever failed and the round did report, the report would meet the marker and start nothing.
+    const rearm = Effect.fn("ConfigPostFinishPlugin.rearm")(function* (event: Enqueued) {
+      const item = event.data.item
+      // Synthetic items are reports and receipts, never new work, so they cannot re-arm.
+      if (item.type !== "user") return
+      if (item.payload.metadata?.source === APPENDIX_SOURCE) return
+      const sessionID = event.data.sessionID
+      const session = yield* ctx.session.get({ sessionID })
+      if (session.parentID === undefined) return
+      // The previous round's receipt is stale the moment new work replaces it.
+      yield* ctx.storage.remove(MARKER + sessionID)
+      yield* ctx.storage.remove(PENDING + sessionID)
+    })
+
     // Counts the archive only when the round this plugin admitted actually settles: the pending record is consumed
-    // here, and the marker allows one round per child, so this receipt cannot fire twice.
+    // here, so this receipt cannot fire twice for one round.
     const settle = Effect.fn("ConfigPostFinishPlugin.settle")(function* (event: Settled) {
       const sessionID = event.data.sessionID
       const pending = yield* ctx.storage.get(PENDING + sessionID)
@@ -145,7 +176,12 @@ export const Plugin = define({
       .pipe(
         Stream.runForEach((event) => {
           // A plugin bug must never break report delivery, which runs this stream's publisher.
-          const handled = event.type === "session.inbox.enqueued" ? handle(event) : settle(event)
+          const handled =
+            event.type !== "session.inbox.enqueued"
+              ? settle(event)
+              : event.data.item.type === "user"
+                ? rearm(event)
+                : handle(event)
           return handled.pipe(
             Effect.catchCause((cause) =>
               Cause.hasInterruptsOnly(cause)
